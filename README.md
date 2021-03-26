@@ -1,10 +1,8 @@
 # 2) 서버 프로그래밍3 (구현) : Spring Boot
 ## STS4(Spring Tool Suite4) Tree Structure  
-  C:/dic/WS_FRAME/
-├─.settings    <-- Eclipse에서 관리  
-├─build  
-│  └─classes  
-│      └─start    <-- JAVA class 실행: 내장 톰캣이 실행되어 동일하게 작동  
+  C:/dic/WS_FRAME/start
+├─bin/main/dev/boot  
+│               └─start    <-- JAVA class 실행: 내장 톰캣이 실행되어 동일하게 작동  
 ├─ Project and External Dependencies	<-- gradle에 명시한 라이브러리 목록  
 ├─src    <--  JSP등 리소스 디렉토리
 │  └─/main/java  <-- 자바 소스 폴더  
