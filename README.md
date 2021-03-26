@@ -16,3 +16,5 @@ ___
 * **0318 : [01] STS 4.5.1(Spring Tool Suite) 설치(STS 4.6.0 권장) -> 이미 설치**  
 * **0318 : [02] Spring Boot 프로젝트 생성, 문자열 출력, 프로젝트 구조(project: start)**  
   * ▶ 
+![image](https://user-images.githubusercontent.com/76051264/112605394-9ac90c00-8e5a-11eb-95ec-dc0e872dbee3.png)  
+
