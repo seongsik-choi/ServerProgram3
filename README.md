@@ -4,7 +4,7 @@
 ├─bin/main/dev/boot  
 │               └─start    <-- JAVA class 실행: 내장 톰캣이 실행되어 동일하게 작동  
 ├─ Project and External Dependencies	<-- gradle에 명시한 라이브러리 목록  
-├─src    <--  JSP등 리소스 디렉토리
+├─src    <--  JSP등 리소스 디렉토리  
 │  └─/main/java  <-- 자바 소스 폴더  
 │  └─/main/java/dev.boot.start.StartApplication.java  <-- main 메소드가 존재하는 자바 class(구성과 최초 실행)  
 │  └─/main/resources/static	<-- Image, CSS, Javascript등 정적 파일들 저장  
