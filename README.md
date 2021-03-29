@@ -17,7 +17,7 @@
 * **0326 : [01] STS 4.5.1(Spring Tool Suite) 설치(STS 4.6.0 권장) -> 이미 설치**  
 * **0326 : [02] Spring Boot 프로젝트 생성**  
   * ▶ [01] Spring Boot 프로젝트 생성  
-  * a. FILE -> NEW -> 'Spring Starter Project' 실행
+  에 a. FILE -> NEW -> 'Spring Starter Project' 실행
   * b. 보이지 않는 경우 : Windows -> perspective -> open perspective -> other -> Spring  
   * c. 프로젝트명: start, Package: dev.boot.start  
     * Service URL : https://start.spring.io 웹 상에서 프로젝트 기초 소스 생성  
@@ -31,7 +31,86 @@
   * d. 의존 library 추가 : Spring boot Version(2.3.9)  
     * 'Web -> Spring Web'을 체크 
     * [Finish] 버튼을 클릭 
-  * e. 프로젝트가 생성 : start/src/main/java/dev.boot.start.StartApplication.java  
 ---
-* **0329 : [02]문자열 출력, 프로젝트 구조(project: start)**  
+* **0329 : [02]문자열 출력, 프로젝트 구조(project: start), 문자열 출력, 프로젝트 구조(project: start)**  
+ * e. 프로젝트가 생성 : start/src/main/java/dev.boot.start.StartApplication.java  
+  * ▶Spring Legacy와 차이 : Server와 App의 분리, JAVA와 Linux 설치 시 즉시 배포 가능.  
+  ~~~
+// StartApplication.java  
+package dev.boot.start;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class StartApplication {
+	public static void main(String[] args) {
+		SpringApplication.run(StartApplication.class, args);  // Spring FrameWork의 기능을 갖게됨.
+	}
+}
+  ~~~
+ * 5. 8080 포트는 오라클이 사용중임으로 '/src/main/resources/application.properties'에 코드 추가  
+    * server.port = 9091
+ * **▶ Server실행 3가지 : Spring Boot APP(내장톰캣) / Boot Dashboard(내장톰캣) / Run on Server(구형실행)**  
+ * 6. 프로젝트를 선택하고 'Spring Boot App'을 실행: 내장 톰캣 기반 실행  
+    * Start 프로젝트 선택 -> Run As -> Spring Boot App  
+    * Error : 프로젝트만 실행된 경우 STS 내부 브라우저는 404 에러.  
+ * 7. 웹에서 정상적으로 실행 확인 : STS 내부 브러우저 실행: http://localhost:9091  
+    * 크롬 실행: http://localhost:9091 : Whitelabel Error Page  
+ * 8. Boot Dashboard 열기  
+ * 9. Boot Dashboard를 이용한 서버 실행  
+ * 10. 웹에서 정상적으로 실행 확인 :  크롬 실행: http://localhost:9091  
+ * 11. Boot Dashboard를 이용한 서버 중지  
+
+ ~~~
+ 1. HelloCont.java class 추가
+ 2. 소스 입력
+package dev.boot.start;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HelloCont {
+  @RequestMapping("/")
+  public String hello() {
+    return "안녕하세요. Spring Boot 입니다.";
+  }
+}
+~~~
+
+3. 실행: DevTools가 설치되어 있지 않음으로 아직 자동 새로고침 안됨으로 서버를 재부팅할것.
+- 크롬 실행: http://localhost:9091
+
+[참고] 고전적인 실행 방법(속도가 매우 늦고 JSP인식등의 문제로 권장하지 않음),
+        실행 주소에 Context Path 'start'가 출력됨.
+ - start 프로젝트 선택 -> Run As -> Run On Server
+
+[03] Spring project의 주요 폴더 구조
+1. /src/main/java: 자바 소스 폴더
+2. /src/main/java/dev.boot.start.StartApplication.java
+   1) main 메소드가 존재하는 자바 class
+   2) 구성과 최초 실행을 담당
+- JAVA class 실행: 내장 톰캣이 실행되어 동일하게 작동함.
+3. /src/main/resources/static
+   1) Image, CSS, Javascript등 정적 파일들 저장
+4. /src/main/resources/application.properties
+   1) 환경 설정에 사용할 properties 정의
+5. Project and External Dependencies
+   1) gradle에 명시한 라이브러리 목록
+
+6. src
+   1) JSP등 리소스 디렉토리
+
+7. build.gradle
+   1) gradle build 명세, 프로젝트에 필요한 라이브러리 정의, 빌드 및 배포 설정
+   2) 스프링 부트의 버전을 명시
+   3) 자바 버전 명시
+   4) 의존성 옵션
+       implementation: 의존 라이브러리 수정시 본 모듈까지만 재빌드(재컴파일)
+       api: 의존 라이브러리 수정시 본 모듈을 의존하는 모듈들도 재빌드(재컴파일)
+       compileOnly: compile 시에만 빌드하고 빌드 결과물에는 포함하지 않음
+                         runtime(실행)시 필요없는 라이브러리인 경우 
+       runtimeOnly: runtime 시에만 필요한 라이브러리인 경우
+       providedRuntime: 실행시 제공되는 library
+       testImplementation: 테스트시 관련 library 제공
 
