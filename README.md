@@ -50,7 +50,7 @@ public class StartApplication {
 }
   ~~~
  * **e. 8080 포트는 오라클이 사용중임, '/src/main/resources/application.properties'에 코드 추가**  
-    * **server.port = 9091**
+    * **server.port = 9091**  
 **▶ Server실행 3가지 : Spring Boot App(내장톰캣) / Boot Dashboard(내장톰캣) / Run on Server(구형외부실행)**  
  * f. 프로젝트를 선택하고 'Spring Boot App'을 실행: 내장 톰캣 기반 실행  
     * Start 프로젝트 선택 -> Run As -> Spring Boot App  
