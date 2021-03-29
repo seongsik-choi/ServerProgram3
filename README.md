@@ -227,16 +227,16 @@ dependencies {
 6. jsp 폴더 생성
 /src/main/webapp/WEB-INF/views
 
-7. VO(DTO) 생성
+7. VO(DTO) 생성 : getter, Setterr
 ▷ /src/main/java/dev.boot.basic/EmployeeVO.java
 
-8. VO(DTO) test class 제작
+8. VO(DTO) test class 제작 : getter, setter 사용 예제
 ▷ /src/main/java/dev.boot.basic/EmployeeVOUse.java
 
-9. Controller class 제작
+9. Controller class 제작 : view.jsp로 넘기기 위한 Controller(ModelAndView create())
 ▷ /src/main/java/dev.boot.basic/EmployeeCont.java 
 
-10. JSP view 제작
+10. JSP view 제작 : EL로 View 구현
 ▷ /src/main/webapp/WEB-INF/views/employee/employee.jsp
 
 11. 실행 화면
