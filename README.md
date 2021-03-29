@@ -127,12 +127,12 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-devtools', version: '2.3.9.RELEASE'  
     
   // 해당 란에 2 line 추가(JSTL)  
-  // https://mvnrepository.com/artifact/javax.servlet/jstl  
-  implementation group: 'javax.servlet', name: 'jstl', version: '1.2'  
+  // https://mvnrepository.com/artifact/javax.servlet/jstl
+  implementation 'javax.servlet:jstl'
     
   // 해당 란에 2 line 추가(tomcat-embed-jasper)  
-  // https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-jasper  
-  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-jasper', version: '10.0.4'  
+  // https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-jasper
+  implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
 }  
  ~~~ 
 5. Gradlere fresh  : build.gradle 선택 -> Gradle -> Refresh -> Gradle Project
