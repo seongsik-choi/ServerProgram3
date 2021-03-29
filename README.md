@@ -106,7 +106,7 @@ implementation group: 'org.springframework.boot', name: 'spring-boot-devtools', 
 4. '/src/main/resources/application.properties' 변경
 server.port=9091
 
-DEVTOOLS (DevToolsProperties)
+DEVTOOLS (DevToolsProperties)  
 spring.devtools.livereload.enabled=true  <- 추가
 
 [02] jsp 파일 실행 설정
@@ -115,24 +115,24 @@ spring.devtools.livereload.enabled=true  <- 추가
    - implementation 'org.apache.tomcat.embed:tomcat-embed-jasper': Tomcat JSP compile library 추가
    - maven web page에서 'JSTL', 'tomcat-embed-jasper' 검색하여 설치 가능
 
-▷ build.gradle 편집 : 6 line 추가
-dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
-	testImplementation('org.springframework.boot:spring-boot-starter-test') {
-		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-	}
-  // 해당 란에 2 line 추가(spring-boot-devtools)
-  // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-devtools
-  implementation group: 'org.springframework.boot', name: 'spring-boot-devtools', version: '2.3.9.RELEASE'
+▷ build.gradle 편집 : 6 line 추가  
+dependencies {  
+	implementation 'org.springframework.boot:spring-boot-starter-web'  
+	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'  
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {  
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'  
+	}  
+  // 해당 란에 2 line 추가(spring-boot-devtools)  
+  // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-devtools  
+  implementation group: 'org.springframework.boot', name: 'spring-boot-devtools', version: '2.3.9.RELEASE'  
+    
+  // 해당 란에 2 line 추가(JSTL)  
+  // https://mvnrepository.com/artifact/javax.servlet/jstl  
+  implementation group: 'javax.servlet', name: 'jstl', version: '1.2'  
+    
+  // 해당 란에 2 line 추가(tomcat-embed-jasper)  
+  // https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-jasper  
+  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-jasper', version: '10.0.4'  
+}  
   
-  // 해당 란에 2 line 추가(JSTL)
-  // https://mvnrepository.com/artifact/javax.servlet/jstl
-  implementation group: 'javax.servlet', name: 'jstl', version: '1.2'
-  
-  // 해당 란에 2 line 추가(tomcat-embed-jasper)
-  // https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-jasper
-  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-jasper', version: '10.0.4'
-}
-
 5. Gradlere fresh  : build.gradle 선택 -> Gradle -> Refresh -> Gradle Project
