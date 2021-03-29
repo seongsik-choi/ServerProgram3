@@ -35,7 +35,7 @@
 ---
 * **0329 : [02]문자열 출력, 프로젝트 구조(project: start), 문자열 출력, 프로젝트 구조(project: start)**  
  * e. 프로젝트가 생성 : start/src/main/java/dev.boot.start.StartApplication.java  
-  * ▶Spring Legacy와 차이 : Server와 App의 분리, JAVA와 Linux 설치 시 즉시 배포 가능.  
+**▶Spring Legacy와 차이 : Server와 App의 분리, JAVA와 Linux 설치 시 즉시 배포 가능**    
   ~~~
 // StartApplication.java  
 package dev.boot.start;
@@ -51,7 +51,7 @@ public class StartApplication {
   ~~~
  * **e. 8080 포트는 오라클이 사용중임, '/src/main/resources/application.properties'에 코드 추가**  
     * **server.port = 9091**
- * **▶ Server실행 3가지 : Spring Boot App(내장톰캣) / Boot Dashboard(내장톰캣) / Run on Server(구형외부실행)**  
+**▶ Server실행 3가지 : Spring Boot App(내장톰캣) / Boot Dashboard(내장톰캣) / Run on Server(구형외부실행)**  
  * f. 프로젝트를 선택하고 'Spring Boot App'을 실행: 내장 톰캣 기반 실행  
     * Start 프로젝트 선택 -> Run As -> Spring Boot App  
     * Error : 프로젝트만 실행된 경우 STS 내부 브라우저는 404 에러.  
