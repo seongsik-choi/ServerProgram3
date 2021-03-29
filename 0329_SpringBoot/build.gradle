@@ -23,10 +23,10 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-devtools', version: '2.3.9.RELEASE'
   
   // https://mvnrepository.com/artifact/javax.servlet/jstl
-  implementation group: 'javax.servlet', name: 'jstl', version: '1.2'
+  implementation 'javax.servlet:jstl'
   
   // https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-jasper
-  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-jasper', version: '10.0.4'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
   
 }
 
