@@ -20,7 +20,7 @@
   ![image](https://user-images.githubusercontent.com/76051264/112605394-9ac90c00-8e5a-11eb-95ec-dc0e872dbee3.png)  
   * 1. FILE -> NEW -> 'Spring Starter Project' 실행
   * 2. 프로젝트명: demo, Package: dev.boot.demo
-  * 3. 의존 library 추가
+  * 3. 의존 library 추가 : Spring boot Version(2.3.8) / Available(WEB)  
     * 1) 'Web -> Spring Web'을 체크
     * 2) [Finish] 버튼을 클릭
   * 4. 프로젝트가 생성되었음 : start/src/main/java/dev.boot.start.StartApplication.java
