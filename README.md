@@ -84,11 +84,11 @@ public class HelloCont {
 - start 프로젝트 선택 -> Run As -> Run On Server
 
 **[03] Spring project의 주요 폴더 구조 + 추가**  
-- build.gradle
-   a) gradle build 명세, 프로젝트에 필요한 라이브러리 정의, 빌드 및 배포 설정
-   b) 스프링 부트의 버전을 명시
-   c) 자바 버전 명시
-   d) 의존성 옵션
+- build.gradle  
+   a) gradle build 명세, 프로젝트에 필요한 라이브러리 정의, 빌드 및 배포 설정  
+   b) 스프링 부트의 버전을 명시  
+   c) 자바 버전 명시  
+   d) 의존성 옵션 
        implementation: 의존 라이브러리 수정시 본 모듈까지만 재빌드(재컴파일)  
        api: 의존 라이브러리 수정시 본 모듈을 의존하는 모듈들도 재빌드(재컴파일)  
        compileOnly: compile 시에만 빌드하고 빌드 결과물에는 포함하지 않음, runtime(실행)시 필요없는 라이브러리인 경우  
