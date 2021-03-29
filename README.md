@@ -106,9 +106,15 @@ compile group: 'org.springframework.boot', name: 'spring-boot-devtools', version
 
 [02] jsp 파일 실행 설정
 1. jsp 사용을위한 의존성 추가 : dependencies에 추가!! 
-   - implementation 'javax.servlet:jstl': JSTL 사용 선언
-   - implementation 'org.apache.tomcat.embed:tomcat-embed-jasper': Tomcat JSP compile library 추가
-   - maven web page에서 'JSTL', 'tomcat-embed-jasper' 검색하여 설치 가능
+   - maven web page에서 'JSTL', 'tomcat-embed-jasper' 검색하여 설치 가능하나  
+   - tomcat-embed-jasper는 권장 버전 설치되도록 할것. version 속성 생략(하단의 2 Line)
+   - JSTL 사용 선언/ Tomcat JSP compile library 추가  
+ ~~~
+ ▶ SPring Boot 2.3.9와 Tomcat 9.0.43의 맞는 의존성
+ implementation 'javax.servlet:jstl'
+ implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
+ ~~~
+ 
 ~~~
 ▷ /src/main/resources/application.properties 변경(3line 추가)
 server.port=9091
