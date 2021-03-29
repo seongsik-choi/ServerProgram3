@@ -4,7 +4,7 @@
   **package 명 : dev.boot.start**  
 ├─bin/main/dev/boot  
 │               └─start    <-- JAVA class 실행: 내장 톰캣이 실행되어 동일하게 작동  
-├─build.gradle	 <--  gradle build 명세, 프로젝트에 필요한 라이브러리 정의, 빌드 및 배포 설정, 스프링 부트의 버전을 명시, 자바 버전 명시, 의존성 옵션  
+├─build.gradle	 <--  gradle build 명세, 프로젝트에 필요한 라이브러리 정의, 빌드 및 배포 설정, 스프링 부트의 버전을 명시, 자바 버전 명시, Jar library 의존성 옵션  
 │  
 ├─Project and External Dependencies	<-- gradle에 명시한 Spring project 의존 라이브러리 목록  
 │  
