@@ -48,18 +48,18 @@ public class StartApplication {
 	}
 }
   ~~~
- * 5. 8080 포트는 오라클이 사용중임으로 '/src/main/resources/application.properties'에 코드 추가  
+ * e. 8080 포트는 오라클이 사용중임으로 '/src/main/resources/application.properties'에 코드 추가  
     * server.port = 9091
- * **▶ Server실행 3가지 : Spring Boot APP(내장톰캣) / Boot Dashboard(내장톰캣) / Run on Server(구형실행)**  
- * 6. 프로젝트를 선택하고 'Spring Boot App'을 실행: 내장 톰캣 기반 실행  
+ * **▶ Server실행 3가지 : Spring Boot App(내장톰캣) / Boot Dashboard(내장톰캣) / Run on Server(구형실행)**  
+ * f. 프로젝트를 선택하고 'Spring Boot App'을 실행: 내장 톰캣 기반 실행  
     * Start 프로젝트 선택 -> Run As -> Spring Boot App  
     * Error : 프로젝트만 실행된 경우 STS 내부 브라우저는 404 에러.  
- * 7. 웹에서 정상적으로 실행 확인 : STS 내부 브러우저 실행: http://localhost:9091  
+ * g. 웹에서 정상적으로 실행 확인 : STS 내부 브러우저 실행: http://localhost:9091  
     * 크롬 실행: http://localhost:9091 : Whitelabel Error Page  
- * 8. Boot Dashboard 열기  
- * 9. Boot Dashboard를 이용한 서버 실행  
- * 10. 웹에서 정상적으로 실행 확인 :  크롬 실행: http://localhost:9091  
- * 11. Boot Dashboard를 이용한 서버 중지  
+ * h. Boot Dashboard 열기  
+ * i. Boot Dashboard를 이용한 서버 실행  
+ * j. 웹에서 정상적으로 실행 확인 :  크롬 실행: http://localhost:9091  
+ * k. Boot Dashboard를 이용한 서버 중지  
 
  ~~~
  1. HelloCont.java class 추가
