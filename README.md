@@ -82,7 +82,7 @@ public class HelloCont {
 ~~~
 Legacy 기반 프로그램의 경우 : 경로 설정이 반드시 필요
 EX) 개발시에는 localhost:9090/패키지명을 포함시키지만
-  -> 배포시에는 패키지명 대신 localhost:9091/로 표시
+  -> 배포시에는 패키지명 대신 localhost:9090/로 표시
 <% 
 // String root = request.getContextPath(); // /resort 
 // ${pageContext.request.contextPath}
