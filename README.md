@@ -1,7 +1,7 @@
 # 2) 서버 프로그래밍3 (구현) : Spring Boot
 ## STS4(Spring Tool Suite4) Tree Structure  
   C:/dic/WS_FRAME/start  
-  **package 명 : dev.boot.start**
+  **package 명 : dev.boot.start**  
 ├─bin/main/dev/boot  
 │               └─start    <-- JAVA class 실행: 내장 톰캣이 실행되어 동일하게 작동  
 ├─build.gradle	 <--  gradle build 명세, 프로젝트에 필요한 라이브러리 정의, 빌드 및 배포 설정, 스프링 부트의 버전을 명시, 자바 버전 명시, 의존성 옵션  
@@ -20,7 +20,7 @@
   * a. FILE -> NEW -> 'Spring Starter Project' 실행
   * b. 보이지 않는 경우 : Windows -> perspective -> open perspective -> other -> Spring  
   * c. 프로젝트명: start, Package: dev.boot.start  
-    * Service URL: https://start.spring.io 웹 상에서 프로젝트 기초 소스 생성  
+    * Service URL : https://start.spring.io 웹 상에서 프로젝트 기초 소스 생성  
     * Name : project name  
     * Type : library 관리 툴, Gradle  
     * Packaging : 배포 형태, War  
@@ -29,9 +29,9 @@
     * version : source version  
     * Package : project main source package  
   * d. 의존 library 추가 : Spring boot Version(2.3.9)  
-    * 1) 'Web -> Spring Web'을 체크
-    * 2) [Finish] 버튼을 클릭
-  * e. 프로젝트가 생성되었음 : start/src/main/java/dev.boot.start.StartApplication.java
+    * 'Web -> Spring Web'을 체크 
+    * [Finish] 버튼을 클릭 
+  * e. 프로젝트가 생성 : start/src/main/java/dev.boot.start.StartApplication.java  
 ---
 * **0329 : [02]문자열 출력, 프로젝트 구조(project: start)**  
 
