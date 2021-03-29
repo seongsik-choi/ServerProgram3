@@ -48,9 +48,9 @@ public class StartApplication {
 	}
 }
   ~~~
- * **e. 8080 포트는 오라클이 사용중임으로 '/src/main/resources/application.properties'에 코드 추가**  
+ * **e. 8080 포트는 오라클이 사용중임, '/src/main/resources/application.properties'에 코드 추가**  
     * **server.port = 9091**
- * **▶ Server실행 3가지 : Spring Boot App(내장톰캣) / Boot Dashboard(내장톰캣) / Run on Server(구형실행)**  
+ * **▶ Server실행 3가지 : Spring Boot App(내장톰캣) / Boot Dashboard(내장톰캣) / Run on Server(구형외부실행)**  
  * f. 프로젝트를 선택하고 'Spring Boot App'을 실행: 내장 톰캣 기반 실행  
     * Start 프로젝트 선택 -> Run As -> Spring Boot App  
     * Error : 프로젝트만 실행된 경우 STS 내부 브라우저는 404 에러.  
@@ -79,20 +79,20 @@ public class HelloCont {
 -실행: DevTools가 설치되어 있지 않음으로 아직 자동 새로고침 안됨으로 서버를 재부팅  
 ▶ 크롬 실행: http://localhost:9091  
 ▶ **Spring의 경우 port 번호 뒤 /패키지명 필요했지만 Boot는 필요No(배포를 위해)**  
+▶ **EX) 개발시에는 /패키지명을 포함시키지만 -> 배포시에는 /패키지명을 빼야** 
 [참고] 고전적인 실행 방법(속도가 매우 늦고 JSP인식등의 문제로 권장하지 않음), 실행 주소에 Context Path 'start'가 출력됨.  
 - start 프로젝트 선택 -> Run As -> Run On Server
 
 **[03] Spring project의 주요 폴더 구조 + 추가**  
 - build.gradle
-   1) gradle build 명세, 프로젝트에 필요한 라이브러리 정의, 빌드 및 배포 설정
-   2) 스프링 부트의 버전을 명시
-   3) 자바 버전 명시
-   4) 의존성 옵션
-       implementation: 의존 라이브러리 수정시 본 모듈까지만 재빌드(재컴파일)
-       api: 의존 라이브러리 수정시 본 모듈을 의존하는 모듈들도 재빌드(재컴파일)
-       compileOnly: compile 시에만 빌드하고 빌드 결과물에는 포함하지 않음
-                         runtime(실행)시 필요없는 라이브러리인 경우 
-       runtimeOnly: runtime 시에만 필요한 라이브러리인 경우
-       providedRuntime: 실행시 제공되는 library
-       testImplementation: 테스트시 관련 library 제공
+   a) gradle build 명세, 프로젝트에 필요한 라이브러리 정의, 빌드 및 배포 설정
+   b) 스프링 부트의 버전을 명시
+   c) 자바 버전 명시
+   d) 의존성 옵션
+       implementation: 의존 라이브러리 수정시 본 모듈까지만 재빌드(재컴파일)  
+       api: 의존 라이브러리 수정시 본 모듈을 의존하는 모듈들도 재빌드(재컴파일)  
+       compileOnly: compile 시에만 빌드하고 빌드 결과물에는 포함하지 않음, runtime(실행)시 필요없는 라이브러리인 경우  
+       runtimeOnly: runtime 시에만 필요한 라이브러리인 경우  
+       providedRuntime: 실행시 제공되는 library  
+       testImplementation: 테스트시 관련 library 제공  
 
