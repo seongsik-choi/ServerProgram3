@@ -121,7 +121,7 @@ implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-jasper', ve
  ~~~
  
 ~~~
-▷ /src/main/resources/application.properties 변경(3line 추가)
+▷ /src/main/resources/application.properties 변경 : 3line 추가
 server.port=9091
 # DEVTOOLS (DevToolsProperties)
 spring.devtools.livereload.enabled=true  <- 추가
@@ -147,4 +147,4 @@ dependencies {
 }  
  ~~~ 
 5. Gradlere fresh  : build.gradle 선택 -> Gradle -> Refresh -> Gradle Project
-6. 다운로드된 library 확인 : C:/Users(사용자)/계정(soldesk)/.gradle/caches/modules-2/files-2.1/  
+6. 다운로드된 library 확인 : C:/Users(사용자)/.gradle/caches/modules-2/files-2.1/  
