@@ -185,6 +185,7 @@ dependencies {
 ▷ /src/main/webapp/swiss/swiss.jsp
 ~~~
 
+---
 * **0329 :[04] basic 프로젝트 생성, 빈즈의 사용, 패키지 자동 import**
 ~~~
 [01] basic 프로젝트 생성, 빈즈의 사용, 패키지 자동 import
@@ -223,7 +224,9 @@ dependencies {
   implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
 }
 ▷ build.gradle 편집 -> Gradle -> Refresh Gradle Project
+~~~
 
+~~~
 6. jsp 폴더 생성
 /src/main/webapp/WEB-INF/views
 
@@ -265,7 +268,9 @@ dependencies {
 
 10. JSP view 제작 : EL로 View 구현
 ▷ /src/main/webapp/WEB-INF/views/employee/employee.jsp
+~~~
 
+~~~
 11. 실행 화면
 1) Boot Dashboard -> 2) BasicApplication -> 3) http://localhost:9091/employee/employee.do 접속
 [참고] Lombok eclipse plugin 설치, 버그 있음 ★★★★★
@@ -284,5 +289,5 @@ dependencies {
 ▷ C:/ai6/sts-4.5.1\SpringToolSuite4.ini
 9. STS restart
 10. VO(DTO) class 제작
-
 ~~~
+---
