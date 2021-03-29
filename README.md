@@ -17,14 +17,21 @@
 * **0326 : [01] STS 4.5.1(Spring Tool Suite) 설치(STS 4.6.0 권장) -> 이미 설치**  
 * **0326 : [02] Spring Boot 프로젝트 생성**  
   * ▶ [01] Spring Boot 프로젝트 생성  
-  ![image](https://user-images.githubusercontent.com/76051264/112605394-9ac90c00-8e5a-11eb-95ec-dc0e872dbee3.png)  
-  * 1. FILE -> NEW -> 'Spring Starter Project' 실행
-  * 1.1. 보이지 않는 경우 : Windows -> perspective -> open perspective -> other -> Spring  
-  * 2. 프로젝트명: demo, Package: dev.boot.demo
-  * 3. 의존 library 추가 : Spring boot Version(2.3.8) / Available(WEB)  
+  * a. FILE -> NEW -> 'Spring Starter Project' 실행
+  * b. 보이지 않는 경우 : Windows -> perspective -> open perspective -> other -> Spring  
+  * c. 프로젝트명: start, Package: dev.boot.start  
+    * 1) Service URL: https://start.spring.io 웹 상에서 프로젝트 기초 소스 생성  
+    * 2) Name: project name  
+    * 3) Type: library 관리 툴, Gradle  
+    * 4) Packaging: 배포 형태, War  
+    * 5) Group: dev.boot  
+    * 6) Artifact: start   
+    * 7) version: source version  
+    * 8) Package: project main source package  
+  * d. 의존 library 추가 : Spring boot Version(2.3.9)
     * 1) 'Web -> Spring Web'을 체크
     * 2) [Finish] 버튼을 클릭
-  * 4. 프로젝트가 생성되었음 : start/src/main/java/dev.boot.start.StartApplication.java
+  * e. 프로젝트가 생성되었음 : start/src/main/java/dev.boot.start.StartApplication.java
 ---
 * **0329 : [02]문자열 출력, 프로젝트 구조(project: start)**  
 
