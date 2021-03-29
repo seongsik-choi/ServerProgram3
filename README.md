@@ -17,8 +17,8 @@
 
 * **0326 : [01] STS 4.5.1(Spring Tool Suite) 설치(STS 4.6.0 권장) -> 이미 설치**  
 * **0326 : [02] Spring Boot 프로젝트 생성**  
-  * ▶ [01] Spring Boot 프로젝트 생성  
-  에 a. FILE -> NEW -> 'Spring Starter Project' 실행
+**[01] Spring Boot 프로젝트 생성**    
+  * a. FILE -> NEW -> 'Spring Starter Project' 실행
   * b. 보이지 않는 경우 : Windows -> perspective -> open perspective -> other -> Spring  
   * c. 프로젝트명: start, Package: dev.boot.start  
     * Service URL : https://start.spring.io 웹 상에서 프로젝트 기초 소스 생성  
@@ -62,7 +62,7 @@ public class StartApplication {
  * j. 웹에서 정상적으로 실행 확인 :  크롬 실행: http://localhost:9091  
  * k. Boot Dashboard를 이용한 서버 중지  
 
-[02] 문자열 출력하기(jsp 페이지 없이 Rest 형식의 출력)  
+**[02] 문자열 출력하기(jsp 페이지 없이 Rest 형식의 출력)**    
  ~~~
 // HelloCont.java
 package dev.boot.start;
@@ -77,7 +77,7 @@ public class HelloCont {
   }
 }
 ~~~
--실행: DevTools가 설치되어 있지 않음으로 아직 자동 새로고침 안됨으로 서버를 재부팅  
+- 실행: DevTools가 설치되어 있지 않음으로 아직 자동 새로고침 안됨으로 서버를 재부팅  
 ▶ 크롬 실행: http://localhost:9091  
 ▶ **Legacy의 경우 port 번호 뒤 /패키지명 필요했지만 Boot는 필요No(배포를 위해)** 
 ~~~
@@ -98,14 +98,14 @@ EX) 개발시에는 localhost:9090/패키지명을 포함시키지만
 ---  
 * **0329 :[03] spring-boot-devtools 설정, jsp 파일 실행 설정, HTML 및 이미지 출력, CSS 실행, Javascript 실행, JSP+JSTL 실행(project: start)**
 
-[01] 새로고침 인식을위한 spring-boot-devtools 설정
+**[01] 새로고침 인식을위한 spring-boot-devtools 설정**  
 1. http://mvnrepository.com
 2. spring-boot-devtools 검색(Spring version 2.3.9과 일치를 권장)  
 // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-devtools  
 compile group: 'org.springframework.boot', name: 'spring-boot-devtools', version: '2.3.9.RELEASE'  
 3. gradle dependency 편집 : Spring Boot 버전과 일치 권장
 
-[02] jsp 파일 실행 설정
+**[02] jsp 파일 실행 설정**  
 1. jsp 사용을위한 의존성 추가 : dependencies에 추가!! 
    - maven web page에서 'JSTL', 'tomcat-embed-jasper' 검색하여 설치 가능하나  
    - tomcat-embed-jasper는 권장 버전 설치되도록 할것. version 속성 생략(하단의 2 Line)
