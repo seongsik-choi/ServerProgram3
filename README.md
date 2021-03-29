@@ -19,6 +19,7 @@
   * ▶ [01] Spring Boot 프로젝트 생성  
   ![image](https://user-images.githubusercontent.com/76051264/112605394-9ac90c00-8e5a-11eb-95ec-dc0e872dbee3.png)  
   * 1. FILE -> NEW -> 'Spring Starter Project' 실행
+  * 1.1. 보이지 않는 경우 : Windows -> perspective -> open perspective -> other -> Spring  
   * 2. 프로젝트명: demo, Package: dev.boot.demo
   * 3. 의존 library 추가 : Spring boot Version(2.3.8) / Available(WEB)  
     * 1) 'Web -> Spring Web'을 체크
