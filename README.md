@@ -110,9 +110,13 @@ compile group: 'org.springframework.boot', name: 'spring-boot-devtools', version
    - tomcat-embed-jasper는 권장 버전 설치되도록 할것. version 속성 생략(하단의 2 Line)
    - JSTL 사용 선언/ Tomcat JSP compile library 추가  
  ~~~
- ▶ SPring Boot 2.3.9와 Tomcat 9.0.43의 맞는 의존성
+ ▶ Spring Boot 2.3.9와 Tomcat 9.0.43의 맞는 의존성
  implementation 'javax.servlet:jstl'
  implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
+ 
+ // Default는 version 명시
+ // https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-jasper
+implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-jasper', version: '9.0.43'
  ~~~
  
 ~~~
@@ -142,3 +146,4 @@ dependencies {
 }  
  ~~~ 
 5. Gradlere fresh  : build.gradle 선택 -> Gradle -> Refresh -> Gradle Project
+6. 다운로드된 library 확인 : C:/Users(사용자)/계정(soldesk)/.gradle/caches/modules-2/files-2.1/  
