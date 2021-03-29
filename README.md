@@ -148,3 +148,72 @@ dependencies {
  ~~~ 
 5. Gradlere fresh  : build.gradle 선택 -> Gradle -> Refresh -> Gradle Project
 6. 다운로드된 library 확인 : C:/Users(사용자)/.gradle/caches/modules-2/files-2.1/  
+
+~~~
+★ Spring Boot 경로 표현 ★
+1)  /static/css/style.css  ->  /css/style.css
+2)  /static/images/finemae -> /images/puppy06.jpg
+3) /static/js/function.js -> /js/function.js
+
+3. 폴더 생성: /webapp/WEB-INF/views 대소문자 일치시킬것 ★
+[03] HTML 및 이미지 출력
+1. 이미지 저장
+2. HTML 실행
+- http://localhost:9091/swiss/images.html  // src/main/resources/static/images dic 생성
+
+▷ /src/main/webapp/swiss/images.html
+<!-Spring Boot에서 이미지 접근을 위해서는 /static/images/finemae으로 접근! -!>
+
+[04] CSS 실행
+1. CSS
+▷ /static/css/style.css
+2. HTML
+- http://localhost:9091/swiss/style.html
+▷ /src/main/webapp/swiss/style.html
+
+[05] Javascript 실행
+1. Javascript
+▷ /static/js/function.js
+2. HTML
+- http://localhost:9091/swiss/js.html
+▷ /src/main/webapp/swiss/js.html
+
+[06] JSP 실행
+- Context Path의 값은 없음.
+1. JSP
+- http://localhost:9091/swiss/swiss.jsp
+▷ /src/main/webapp/swiss/swiss.jsp
+~~~
+
+* **0329 :[04] basic 프로젝트 생성, 빈즈의 사용, 패키지 자동 import**
+~~~
+[01] basic 프로젝트 생성, 빈즈의 사용, 패키지 자동 import
+- 패키지 자동 import: Ctrl + Shift + O
+
+1. 'Spring Starter Project' 실행
+2. 프로젝트명: basic, Package: dev.boot.basic
+3. 의존 library 추가
+1) Available: Spring Boot DevTools 입력하여 검색해서 추가
+2) Web -> Spring Web을 체크하여 추가
+   이후 누락된 library는 build.gradle에서 직접  추가 할 수 있음
+3) [Finish] 버튼을 클릭
+
+4. '/src/main/resources/application.properties' 변경
+- 8080 포트는 오라클이 사용중임으로 아래의 코드를 추가함.
+   server.port = 9091
+
+- Controller 실행시 jsp 경로 설정 추가
+# JSP View path
+spring.mvc.view.prefix=/WEB-INF/views/
+spring.mvc.view.suffix=.jsp
+
+- 자동 새로고침
+# DEVTOOLS (DevToolsProperties)
+spring.devtools.livereload.enabled=true
+
+5. jsp 사용을위한 의존성 추가
+   - implementation 'javax.servlet:jstl': JSTL 사용 선언
+   - implementation 'org.apache.tomcat.embed:tomcat-embed-jasper': Tomcat JSP compile library 추가
+
+▷ build.gradle 편집 -> Gradle -> Refresh Gradle Project
+~~~
