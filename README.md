@@ -216,4 +216,39 @@ spring.devtools.livereload.enabled=true
    - implementation 'org.apache.tomcat.embed:tomcat-embed-jasper': Tomcat JSP compile library 추가
 
 ▷ build.gradle 편집 -> Gradle -> Refresh Gradle Project
+
+6. jsp 폴더 생성
+/src/main/webapp/WEB-INF/views
+
+7. VO(DTO) 생성
+▷ /src/main/java/dev.boot.basic/EmployeeVO.java
+
+8. VO(DTO) test class 제작
+▷ /src/main/java/dev.boot.basic/EmployeeVOUse.java
+
+9. Controller class 제작
+▷ /src/main/java/dev.boot.basic/EmployeeCont.java 
+
+10. JSP view 제작
+▷ /src/main/webapp/WEB-INF/views/employee/employee.jsp
+
+11. 실행 화면
+1) Boot Dashboard -> 2) BasicApplication -> 3) http://localhost:9091/employee/employee.do 접속
+[참고] Lombok eclipse plugin 설치, 버그 있음 ★★★★★
+- VO(DTO) class의 setter, getter를 자동으로 생성함.
+- 변수명이 대소문자가 혼합되면 정상적으로 getter, setter가 생성이 안되는 버그 있음 ★★★★★
+- STS 재시작시 getter, setter가 자동으로 생성되나 다른 클래스에서 인식 안되는 버그 있음 ★★★★★
+
+1. 공식 홈페이지: https://projectlombok.org
+2. https://projectlombok.org/download 접속
+3. 탐색기에서 lombok.jar 실행
+4. Specify location...
+5. STS가 설치된 폴더의 SpringToolSuite4.exe 실행 파일 지정
+6. Install / Update
+7. 설치 성공
+8. SpringToolSuite4.ini 변경
+▷ C:/ai6/sts-4.5.1\SpringToolSuite4.ini
+9. STS restart
+10. VO(DTO) class 제작
+
 ~~~
