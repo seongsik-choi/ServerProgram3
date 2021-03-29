@@ -95,7 +95,7 @@ EX) 개발시에는 localhost:9090/패키지명을 포함시키지만
 ▶ **Spring Boot(내장 톰캣) 실행 : http://localhost:9091    // ContextPath 명시 No**   
 ▶ **Spring Legacy(구형 톰캣) 실행 :  http://localhost:9090/start/    // ContextPath가 항상 명시**     
 
-* **0329 :[03] spring-boot-devtools 설정, jsp 파일 실행 설정, HTML 및 이미지 출력, CSS 실행, Javascript 실행, JSP+JSTL 실행(project: start)
+* **0329 :[03] spring-boot-devtools 설정, jsp 파일 실행 설정, HTML 및 이미지 출력, CSS 실행, Javascript 실행, JSP+JSTL 실행(project: start)**
 
 [01] 새로고침 인식을위한 spring-boot-devtools 설정
 1. http://mvnrepository.com
@@ -105,7 +105,8 @@ implementation group: 'org.springframework.boot', name: 'spring-boot-devtools', 
 3. gradle dependency 편집 : Spring Boot 버전과 일치 권장
 4. '/src/main/resources/application.properties' 변경
 server.port=9091
-# DEVTOOLS (DevToolsProperties)
+
+DEVTOOLS (DevToolsProperties)
 spring.devtools.livereload.enabled=true  <- 추가
 
 [02] jsp 파일 실행 설정
