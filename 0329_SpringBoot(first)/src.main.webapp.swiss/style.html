@@ -1,0 +1,20 @@
+<!-- 
+0329
+css 파일 적용한 html 출력 
+- 경로
+1)  /static/css/style.css  ->  /css/style.css
+2)  /static/images/finemae -> /images/puppy06.jpg
+ -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="EUC-KR">
+<title>CSS 테스트</title>
+<!-- /static 기준 -->
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+</head>
+<body>
+  <div>CSS 연동 이미지 출력 테스트</div>
+  <img src="/images/puppy06.jpg" style="width: 100%;"> <!-- /static/images/swiss.jpg 접근 -->
+</body>
+</html>
