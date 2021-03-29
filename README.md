@@ -101,7 +101,7 @@ EX) 개발시에는 localhost:9090/패키지명을 포함시키지만
 1. http://mvnrepository.com
 2. spring-boot-devtools 검색(Spring version 2.3.9과 일치를 권장)
 // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-devtools
-implementation group: 'org.springframework.boot', name: 'spring-boot-devtools', version: '2.3.9.RELEASE'
+compile group: 'org.springframework.boot', name: 'spring-boot-devtools', version: '2.3.9.RELEASE'  
 3. gradle dependency 편집 : Spring Boot 버전과 일치 권장
 
 [02] jsp 파일 실행 설정
