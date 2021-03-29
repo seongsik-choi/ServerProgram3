@@ -91,8 +91,8 @@ EX) 개발시에는 localhost:9090/패키지명을 포함시키지만
 <A class='top_menu_link'  href='${pageContext.request.contextPath}' >
 ~~~
 [참고] 고전적인 실행 방법(속도가 매우 늦고 JSP인식등의 문제로 권장하지 않음), 실행 주소에 Context Path 'start'가 출력됨.  
-- start 프로젝트 선택 -> Run As -> Run On Server
-▶ **Spring Boot(내장 톰캣) 실행 : http://localhost:9091    // ContextPath 명시 No**
-▶ **Spring Legacy(구형 톰캣) 실행 :  http://localhost:9090/start/    // ContextPath가 항상 명시** 
+- start 프로젝트 선택 -> Run As -> Run On Server  
+▶ **Spring Boot(내장 톰캣) 실행 : http://localhost:9091    // ContextPath 명시 No**  
+▶ **Spring Legacy(구형 톰캣) 실행 :  http://localhost:9090/start/    // ContextPath가 항상 명시**   
 
 
