@@ -212,9 +212,16 @@ spring.mvc.view.suffix=.jsp
 spring.devtools.livereload.enabled=true
 
 5. jsp 사용을위한 의존성 추가
-   - implementation 'javax.servlet:jstl': JSTL 사용 선언
-   - implementation 'org.apache.tomcat.embed:tomcat-embed-jasper': Tomcat JSP compile library 추가
-
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+  implementation 'javax.servlet:jstl'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
+}
 ▷ build.gradle 편집 -> Gradle -> Refresh Gradle Project
 
 6. jsp 폴더 생성
@@ -236,8 +243,8 @@ spring.devtools.livereload.enabled=true
 1) Boot Dashboard -> 2) BasicApplication -> 3) http://localhost:9091/employee/employee.do 접속
 [참고] Lombok eclipse plugin 설치, 버그 있음 ★★★★★
 - VO(DTO) class의 setter, getter를 자동으로 생성함.
-- 변수명이 대소문자가 혼합되면 정상적으로 getter, setter가 생성이 안되는 버그 있음 ★★★★★
-- STS 재시작시 getter, setter가 자동으로 생성되나 다른 클래스에서 인식 안되는 버그 있음 ★★★★★
+- 변수명이 대소문자가 혼합되면 정상적으로 getter, setter가 생성이 안되는 버그 있음★★★★★
+- STS 재시작시 getter, setter가 자동으로 생성되나 다른 클래스에서 인식 안되는 버그 있음★★★★★
 
 1. 공식 홈페이지: https://projectlombok.org
 2. https://projectlombok.org/download 접속
