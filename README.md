@@ -48,8 +48,8 @@ public class StartApplication {
 	}
 }
   ~~~
- * e. 8080 포트는 오라클이 사용중임으로 '/src/main/resources/application.properties'에 코드 추가  
-    * server.port = 9091
+ * **e. 8080 포트는 오라클이 사용중임으로 '/src/main/resources/application.properties'에 코드 추가**  
+    * **server.port = 9091**
  * **▶ Server실행 3가지 : Spring Boot App(내장톰캣) / Boot Dashboard(내장톰캣) / Run on Server(구형실행)**  
  * f. 프로젝트를 선택하고 'Spring Boot App'을 실행: 내장 톰캣 기반 실행  
     * Start 프로젝트 선택 -> Run As -> Spring Boot App  
@@ -63,22 +63,22 @@ public class StartApplication {
 
 [02] 문자열 출력하기(jsp 페이지 없이 Rest 형식의 출력)  
  ~~~
- 1. HelloCont.java class 추가
+// HelloCont.java
 package dev.boot.start;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@RestController       // Controller 중 JSP 없이 단순 출력(ex.JSON 출력)
 public class HelloCont {
-  @RequestMapping("/")
-  public String hello() {
-    return "안녕하세요. Spring Boot 입니다.";
+  @RequestMapping("/")  
+  public String hello() { // ModelAndView Return 타입이 아닌 일반 자료형 Return.
+    return "안녕하세요. Spring Boot 입니다 :D";
   }
 }
 ~~~
 -실행: DevTools가 설치되어 있지 않음으로 아직 자동 새로고침 안됨으로 서버를 재부팅  
-- 크롬 실행: http://localhost:9091
-
+▶ 크롬 실행: http://localhost:9091
+▶ **Spring의 경우 port 번호 뒤 /패키지명 필요했지만 Boot는 필요No(배포를 위해)**  
 [참고] 고전적인 실행 방법(속도가 매우 늦고 JSP인식등의 문제로 권장하지 않음), 실행 주소에 Context Path 'start'가 출력됨.  
 - start 프로젝트 선택 -> Run As -> Run On Server
 
