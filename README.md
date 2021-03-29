@@ -90,20 +90,9 @@ EX) 개발시에는 localhost:9090/패키지명을 포함시키지만
 ...
 <A class='top_menu_link'  href='${pageContext.request.contextPath}' >
 ~~~
-
 [참고] 고전적인 실행 방법(속도가 매우 늦고 JSP인식등의 문제로 권장하지 않음), 실행 주소에 Context Path 'start'가 출력됨.  
 - start 프로젝트 선택 -> Run As -> Run On Server
+▶ **Spring Boot(내장 톰캣) 실행 : http://localhost:9091    // ContextPath 명시 No**
+▶ **Spring Legacy(구형 톰캣) 실행 :  http://localhost:9090/start/    // ContextPath가 항상 명시** 
 
-**[03] Spring project의 주요 폴더 구조 + 추가**  
-- build.gradle  
-   a) gradle build 명세, 프로젝트에 필요한 라이브러리 정의, 빌드 및 배포 설정  
-   b) 스프링 부트의 버전을 명시  
-   c) 자바 버전 명시  
-   d) 의존성 옵션 
-       * implementation: 의존 라이브러리 수정시 본 모듈까지만 재빌드(재컴파일)  
-       * api: 의존 라이브러리 수정시 본 모듈을 의존하는 모듈들도 재빌드(재컴파일)  
-       * compileOnly: compile 시에만 빌드하고 빌드 결과물에는 포함하지 않음, runtime(실행)시 필요없는 라이브러리인 경우  
-       * runtimeOnly: runtime 시에만 필요한 라이브러리인 경우  
-       * providedRuntime: 실행시 제공되는 library  
-       * testImplementation: 테스트시 관련 library 제공  
 
