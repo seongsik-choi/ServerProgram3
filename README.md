@@ -78,8 +78,19 @@ public class HelloCont {
 ~~~
 -실행: DevTools가 설치되어 있지 않음으로 아직 자동 새로고침 안됨으로 서버를 재부팅  
 ▶ 크롬 실행: http://localhost:9091  
-▶ **Spring의 경우 port 번호 뒤 /패키지명 필요했지만 Boot는 필요No(배포를 위해)**  
-▶ **EX) 개발시에는 /패키지명을 포함시키지만 -> 배포시에는 /패키지명을 빼야** 
+▶ **Legacy의 경우 port 번호 뒤 /패키지명 필요했지만 Boot는 필요No(배포를 위해)** 
+~~~
+Legacy 기반 프로그램의 경우 : 경로 설정이 반드시 필요
+EX) 개발시에는 localhost:9090/패키지명을 포함시키지만
+  -> 배포시에는 패키지명 대신 localhost:9091/로 표시
+<% 
+// String root = request.getContextPath(); // /resort 
+// ${pageContext.request.contextPath}
+%>
+...
+<A class='top_menu_link'  href='${pageContext.request.contextPath}' >
+~~~
+
 [참고] 고전적인 실행 방법(속도가 매우 늦고 JSP인식등의 문제로 권장하지 않음), 실행 주소에 Context Path 'start'가 출력됨.  
 - start 프로젝트 선택 -> Run As -> Run On Server
 
