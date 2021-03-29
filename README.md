@@ -1,6 +1,6 @@
-# 2) 서버 프로그래밍3 (구현) : Spring Boot
+# 3) 서버 프로그래밍3 (구현) : Spring Boot
 ## STS4(Spring Tool Suite4) Tree Structure  
-  C:/dic/WS_FRAME/start  
+  **C:/dic/WS_FRAME/start**    
   **package 명 : dev.boot.start**  
 ├─bin/main/dev/boot  
 │               └─start    <-- JAVA class 실행: 내장 톰캣이 실행되어 동일하게 작동  
