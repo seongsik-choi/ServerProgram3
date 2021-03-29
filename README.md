@@ -103,11 +103,6 @@ EX) 개발시에는 localhost:9090/패키지명을 포함시키지만
 // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-devtools
 implementation group: 'org.springframework.boot', name: 'spring-boot-devtools', version: '2.3.9.RELEASE'
 3. gradle dependency 편집 : Spring Boot 버전과 일치 권장
-4. '/src/main/resources/application.properties' 변경
-server.port=9091
-
-DEVTOOLS (DevToolsProperties)  
-spring.devtools.livereload.enabled=true  <- 추가
 
 [02] jsp 파일 실행 설정
 1. jsp 사용을위한 의존성 추가 : dependencies에 추가!! 
@@ -115,6 +110,11 @@ spring.devtools.livereload.enabled=true  <- 추가
    - implementation 'org.apache.tomcat.embed:tomcat-embed-jasper': Tomcat JSP compile library 추가
    - maven web page에서 'JSTL', 'tomcat-embed-jasper' 검색하여 설치 가능
 ~~~
+▷ /src/main/resources/application.properties 변경(3line 추가)
+server.port=9091
+# DEVTOOLS (DevToolsProperties)
+spring.devtools.livereload.enabled=true  <- 추가
+
 ▷ build.gradle 편집 : 6 line 추가  
 dependencies {  
 	implementation 'org.springframework.boot:spring-boot-starter-web'  
