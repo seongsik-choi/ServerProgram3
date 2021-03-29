@@ -114,7 +114,7 @@ spring.devtools.livereload.enabled=true  <- 추가
    - implementation 'javax.servlet:jstl': JSTL 사용 선언
    - implementation 'org.apache.tomcat.embed:tomcat-embed-jasper': Tomcat JSP compile library 추가
    - maven web page에서 'JSTL', 'tomcat-embed-jasper' 검색하여 설치 가능
-
+~~~
 ▷ build.gradle 편집 : 6 line 추가  
 dependencies {  
 	implementation 'org.springframework.boot:spring-boot-starter-web'  
@@ -134,5 +134,5 @@ dependencies {
   // https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-jasper  
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-jasper', version: '10.0.4'  
 }  
-  
+ ~~~ 
 5. Gradlere fresh  : build.gradle 선택 -> Gradle -> Refresh -> Gradle Project
