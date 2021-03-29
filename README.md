@@ -77,7 +77,7 @@ public class HelloCont {
 }
 ~~~
 -실행: DevTools가 설치되어 있지 않음으로 아직 자동 새로고침 안됨으로 서버를 재부팅  
-▶ 크롬 실행: http://localhost:9091
+▶ 크롬 실행: http://localhost:9091  
 ▶ **Spring의 경우 port 번호 뒤 /패키지명 필요했지만 Boot는 필요No(배포를 위해)**  
 [참고] 고전적인 실행 방법(속도가 매우 늦고 JSP인식등의 문제로 권장하지 않음), 실행 주소에 Context Path 'start'가 출력됨.  
 - start 프로젝트 선택 -> Run As -> Run On Server
