@@ -20,15 +20,15 @@
   * a. FILE -> NEW -> 'Spring Starter Project' 실행
   * b. 보이지 않는 경우 : Windows -> perspective -> open perspective -> other -> Spring  
   * c. 프로젝트명: start, Package: dev.boot.start  
-    * 1) Service URL: https://start.spring.io 웹 상에서 프로젝트 기초 소스 생성  
-    * 2) Name: project name  
-    * 3) Type: library 관리 툴, Gradle  
-    * 4) Packaging: 배포 형태, War  
-    * 5) Group: dev.boot  
-    * 6) Artifact: start   
-    * 7) version: source version  
-    * 8) Package: project main source package  
-  * d. 의존 library 추가 : Spring boot Version(2.3.9)
+    * Service URL: https://start.spring.io 웹 상에서 프로젝트 기초 소스 생성  
+    * Name : project name  
+    * Type : library 관리 툴, Gradle  
+    * Packaging : 배포 형태, War  
+    * Group : dev.boot  
+    * Artifact : start   
+    * version : source version  
+    * Package : project main source package  
+  * d. 의존 library 추가 : Spring boot Version(2.3.9)  
     * 1) 'Web -> Spring Web'을 체크
     * 2) [Finish] 버튼을 클릭
   * e. 프로젝트가 생성되었음 : start/src/main/java/dev.boot.start.StartApplication.java
