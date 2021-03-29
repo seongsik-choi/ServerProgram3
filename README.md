@@ -61,11 +61,10 @@ public class StartApplication {
  * j. 웹에서 정상적으로 실행 확인 :  크롬 실행: http://localhost:9091  
  * k. Boot Dashboard를 이용한 서버 중지  
 
+[02] 문자열 출력하기(jsp 페이지 없이 Rest 형식의 출력)  
  ~~~
  1. HelloCont.java class 추가
- 2. 소스 입력
 package dev.boot.start;
-
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -77,31 +76,14 @@ public class HelloCont {
   }
 }
 ~~~
-
-3. 실행: DevTools가 설치되어 있지 않음으로 아직 자동 새로고침 안됨으로 서버를 재부팅할것.
+-실행: DevTools가 설치되어 있지 않음으로 아직 자동 새로고침 안됨으로 서버를 재부팅  
 - 크롬 실행: http://localhost:9091
 
-[참고] 고전적인 실행 방법(속도가 매우 늦고 JSP인식등의 문제로 권장하지 않음),
-        실행 주소에 Context Path 'start'가 출력됨.
- - start 프로젝트 선택 -> Run As -> Run On Server
+[참고] 고전적인 실행 방법(속도가 매우 늦고 JSP인식등의 문제로 권장하지 않음), 실행 주소에 Context Path 'start'가 출력됨.  
+- start 프로젝트 선택 -> Run As -> Run On Server
 
-[03] Spring project의 주요 폴더 구조
-1. /src/main/java: 자바 소스 폴더
-2. /src/main/java/dev.boot.start.StartApplication.java
-   1) main 메소드가 존재하는 자바 class
-   2) 구성과 최초 실행을 담당
-- JAVA class 실행: 내장 톰캣이 실행되어 동일하게 작동함.
-3. /src/main/resources/static
-   1) Image, CSS, Javascript등 정적 파일들 저장
-4. /src/main/resources/application.properties
-   1) 환경 설정에 사용할 properties 정의
-5. Project and External Dependencies
-   1) gradle에 명시한 라이브러리 목록
-
-6. src
-   1) JSP등 리소스 디렉토리
-
-7. build.gradle
+**[03] Spring project의 주요 폴더 구조 + 추가**  
+- build.gradle
    1) gradle build 명세, 프로젝트에 필요한 라이브러리 정의, 빌드 및 배포 설정
    2) 스프링 부트의 버전을 명시
    3) 자바 버전 명시
