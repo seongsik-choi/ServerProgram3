@@ -1,9 +1,9 @@
 # 3) 서버 프로그래밍3 (구현) : Spring Boot
 ## STS4(Spring Tool Suite4) Tree Structure  
-  **C:/dic/WS_FRAME/start**    
+  **C:/dic/WS_FRAME/start, basic**    
   **package 명 : dev.boot.start**  
 ├─bin/main/dev/boot  
-│               └─start    <-- JAVA class 실행: 내장 톰캣이 실행되어 동일하게 작동  
+│               └─start,basic    <-- JAVA class 실행: 내장 톰캣이 실행되어 동일하게 작동  
 ├─build.gradle	 <--  gradle build 명세, 프로젝트에 필요한 라이브러리 정의, 빌드 및 배포 설정, 스프링 부트의 버전을 명시, 자바 버전 명시, Jar library 의존성 옵션  
 │  
 ├─Project and External Dependencies	<-- gradle에 명시한 Spring project 의존 라이브러리 목록  
@@ -292,8 +292,23 @@ dependencies {
 ~~~
 ---
 * **0330 :[05] MyBATIS framework 3.4.1 개론, Website 개발 절차, MyBATIS 기초 코드 ★**
+**▶ 0329 복습**
 ~~~
-[01] MyBATIS framework 3.4.1 개론 
+Spring Boot는 Legacy 다르게 프로젝트명 사용 No, @RequestMapping에 명시한 대로 사용
+
+@RequestMapping(value="/employee/employee.do", method=RequestMethod.GET)
+ http://localhost:9091/employee/employee.do
+  
+ @RequestMapping("/")
+ // http://localhost:9091    /은 Root Dic
+
+ @RestController      
+ // Controller 중 JSP 없이 단순 출력(ex.JSON 출력)
+~~~
+
+~~~
+[01] MyBATIS framework 3.4.1 개론
+EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 다운 : /WEB-INF/lib/다운받은 jar 넣기
     - http://www.mybatis.org
     - download: https://github.com/mybatis/mybatis-3/releases 
     - SQL과 비즈니스 로직(자바)이 분리되어 있어 개발 및 배포 및 관리가 뛰어남. 
