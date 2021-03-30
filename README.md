@@ -321,6 +321,15 @@ dependencies {
 [01] MyBATIS framework 3.4.1 개론
 EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 다운 : /WEB-INF/lib/다운받은 jar 넣기
 --------------------------------------------------------------------------------------------------------
+★★정리) JAVA + DBMS 연동 기술 흐름★★
+ 1) Mybatis
+  - Spring -> MyBatis -> DBMS 접근위해 SQL 사용 -> DBMS 
+  -★ 대용량 DBMS에 대응하는 SQL 튜닝을 할수 있음★
+
+ 2) JPA
+ - Spring -> JPA -> DBMS 접근위해 SQL 사용(자동화) -> DBMS 
+ - ★ SQL를 생성하는 메소드가 지정되어, 대규모 DBMS의 SQL 최적화를 구현하기 어려움★
+
 [01] 고전적인 패턴
 - JAVA와 SQL은 성질이 다른 목적을 가지고 있음에도 강하게 결합되어 개발과 변경이 어려움
 - 개발자가 DBMS Open/Close를 모두 수동 작업하며 Close를 누락하면 불규칙하게 서버 다운 발생
@@ -328,73 +337,19 @@ EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 
 - SQL과 JAVA VO class의 연동 설정을 개발자가 모두 수동으로 해야
 
 - 아래의 코드를 MyBATIS 동적 SQL로 처리 할 수 있음.
-  public ArrayList<Pds4VO> list_category(
-      int categoryno, 
-      String col, 
-      String word, 
-      int offset,
-      int recordPerPage) {
-    ArrayList<Pds4VO> list = new ArrayList<Pds4VO>();
-
-    try {
+ try {
       con = dbopen.getConnection();
-  
+
       sql = new StringBuffer();
       sql.append(" SELECT pdsno, categoryno, rname, email, title, content, passwd, cnt,");
-      sql.append("            SUBSTRING(rdate, 1, 16) as rdate, web, file1, fstor1,");
+      sql.append("            SUBSTRING(rdate, 1, 10) as rdate, web, file1, fstor1,");
       sql.append("            thumb, size1, map, youtube, mp3, mp4, ip, visible");
       sql.append(" FROM pds4");
-      
-      if (col.equals("rname")) {
-        sql.append(" WHERE categoryno = ? AND rname LIKE ?");
-        sql.append(" ORDER BY pdsno DESC");
-        // sql.append(" LIMIT " + offset + ", " + record_per_page);
-        sql.append(" LIMIT ?, ?");
-        pstmt = con.prepareStatement(sql.toString());
-        pstmt.setInt(1, categoryno);
-        pstmt.setString(2, "%" + word + "%");
-        pstmt.setInt(3, offset);
-        pstmt.setInt(4, recordPerPage);
-      } else if (col.equals("title")) {
-        sql.append(" WHERE categoryno = ? AND  title LIKE ?");
-        sql.append(" ORDER BY pdsno DESC");
-        sql.append(" LIMIT ?, ?");
-        pstmt = con.prepareStatement(sql.toString());
-        pstmt.setInt(1, categoryno);
-        pstmt.setString(2, "%" + word + "%");
-        pstmt.setInt(3, offset);
-        pstmt.setInt(4, recordPerPage);
-      } else if (col.equals("content")) {
-        sql.append(" WHERE categoryno = ? AND  content LIKE ?");
-        sql.append(" ORDER BY pdsno DESC");
-        sql.append(" LIMIT ?, ?");
-        pstmt = con.prepareStatement(sql.toString());
-        pstmt.setInt(1, categoryno);
-        pstmt.setString(2, "%" + word + "%");
-        pstmt.setInt(3, offset);
-        pstmt.setInt(4, recordPerPage);
-      } else if (col.equals("title_content")) {
-        sql.append(" WHERE categoryno = ? AND (title LIKE ? OR content LIKE ?)");
-        sql.append(" ORDER BY pdsno DESC");
-        sql.append(" LIMIT ?, ?");
-        pstmt = con.prepareStatement(sql.toString());
-        pstmt.setInt(1, categoryno);
-        pstmt.setString(2, "%" + word + "%");
-        pstmt.setString(3, "%" + word + "%");
-        pstmt.setInt(4, offset);
-        pstmt.setInt(5, recordPerPage);
-      } else { // 검색하지 않는 경우
-        sql.append(" WHERE categoryno = ?");
-        sql.append(" ORDER BY pdsno DESC");
-        sql.append(" LIMIT ?, ?");
-        pstmt = con.prepareStatement(sql.toString());
-        pstmt.setInt(1, categoryno);
-        pstmt.setInt(2, offset);
-        pstmt.setInt(3, recordPerPage);
-      }
-  
+      sql.append(" ORDER BY pdsno DESC");
+
+      pstmt = con.prepareStatement(sql.toString());
       rs = pstmt.executeQuery(); // SELECT
-  
+
       while (rs.next() == true) {
         Pds4VO pds4VO = new Pds4VO();
         pds4VO.setPdsno(rs.getInt("pdsno")); // DBMS -> JAVA 객체
@@ -414,24 +369,19 @@ EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 
         pds4VO.setMap(rs.getString("map"));
         pds4VO.setYoutube(rs.getString("youtube"));
         pds4VO.setMp3(rs.getString("mp3"));
-        // System.out.println("rs.getString(\"mp3\"): " + rs.getString("mp3"));
-        // System.out.println("pds4VO.getMp3(\"mp3\"): " + pds4VO.getMp3());
-        pds4VO.setMp4(rs.getString("mp4"));
-  
+        pds4VO.setMp3(rs.getString("mp4"));
         pds4VO.setIp(rs.getString("ip"));
         pds4VO.setVisible(rs.getString("visible"));
-  
+
         list.add(pds4VO);
       }
-  
+
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
       dbclose.close(con, pstmt, rs);
     }
-  
-    return list;
-  }
+
 --------------------------------------
 [02] MyBATIS framework 3.4.1 개론 
     - http://www.mybatis.org
@@ -452,25 +402,27 @@ EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 
      - Spring은 MyBATIS가 선언한 SQL과 관련된 JAVA 코드를 자동으로 생성
      - MyBATIS는 SQL 튜닝 기법을 이용하여 우수한 성능을 갖는 웹페이지 제작이 가능
 
-1. 실행 아키텍쳐                                                            
-                          SqlMapConfig 
+1. 실행 아키텍쳐              
+ - 간략 : JAVA -> MyBatis -> JAVA 
+                       SqlMap Configuration 
                                  ↓ 
                           SQL Map 파일 
                                  ↓ 
-입력 ----------> SQL Mapping 구문 ----> MyBATIS 실행 ----> 출력 
+입력(JAVA)----> SQL Mapping 구문 ----> MyBATIS 실행 ----> 출력(JAVA)
 Hashtable                   XML                      ↓                   Hashtable  
-POJO                                                  DBMS                POJO(VO(DTO), ArrayList...) 
+POJO                                                   DBMS                POJO(VO(DTO), ArrayList...) 
 원시 타입                                            MySQL               원시 타입(int, double...)
-                                                        MariaDB
-                                                         Oracle
+                                                          MariaDB
+                                                          Oracle
   
 2. 다운 로드 및 설치(Spring을 사용하지 않는 경우, JSP Model 1 기반) 
     - iBATIS 2.0은 MyBATIS 2와 같음
     - iBATIS 3.0부터는 MyBATIS 3로 변경되고 Annotation 기반으로 문법이 일부 변경됨
     - 전자정부 프레임웍 및 대부분의 기업은 MyBATIS를 사용
  
-3. Spring의 경우 다운로드가 필요 없습니다. Maven 설정으로 자동 다운
+3. Spring의 경우 다운로드가 필요 no. Maven 설정으로 자동 다운
    - http://mvnrepository.com
+   -> 해당 Code는 XML 기반 코드, 사용 No
     <!-- MyBATIS -->
     <!-- https://mvnrepository.com/artifact/org.mybatis/mybatis -->
     <dependency>
@@ -506,7 +458,7 @@ POJO                                                  DBMS                POJO(V
 5. SQL Map 파일 
    - SQL 쿼리를 XML 파일로 매핑하여 저장한 후 호출하여 실행 
     
-6. Project 개발 순서(Spring MVC 기준) 
+6.★★★★Project 개발 순서(Spring MVC 기준) ★★★★
    
 1) 구현 기능 분석(업무 분석) 
 2) DB 모델링(TABLE 생성) 
@@ -516,23 +468,21 @@ POJO                                                  DBMS                POJO(V
          |               MyBATIS/iBATIS 
          +---------------┐ 
          |       SQL을 MyBATIS XML로 변환.  
-         |                    | 
+         |                         | 
          |       SQL XML Mapping File 생성 
-         |                    | 
+         |                         | 
          |    Execute Class 생성 (Spring은 자동화)
-         +<-------------┘ 
+         +<--------------┘ 
          | 
          | 
 5) DAO Interface 생성
-6) DAO Interface 구현(DBMS 관련 기능, MyBATIS 사용시는 자동 생성됨)
+6) DAO Interface 구현(클래스를 만듬, DBMS 관련 기능, MyBATIS 사용시는 자동 생성됨)
 7) Process Interface 생성(Business Logic, Manager/Service class)
 8) Process Interface 구현
 9) Spring Controller MVC Action class 생성 
 10) Controller, Beans(Tool(Utility 날짜 처리등 각종 메소드), Paging, Download)
 11) JSP 제작, Controller, Beans와 연동
 12) 테스트
-13) Python을 이용한 데이터 분석(통계) 
-14) Tensorflow를 이용한 기계 학습 적용
  ~~~~
 
 * **0330 :[06] MyBATIS  사용**
@@ -542,305 +492,139 @@ POJO                                                  DBMS                POJO(V
 1. 일반적인 SQL 사용
 - DBMS 컬럼이 null 허용을 하더라도 VO변수의 값이 null이면 {file1} 부분에서 1111 에러발생
 
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
- 
-<mapper namespace="blog">
- 
-  <insert id="create" parameterType="BlogVO">
-    INSERT INTO blog(blogno, blogcategoryno, title, content, good, file1, file2, size2, cnt, replycnt, rdate)  
-    VALUES((SELECT NVL(MAX(blogno), 0) + 1 as blogno FROM blog),
-      #{blogcategoryno}, #{title}, #{content}, 0, #{file1}, #{file2}, #{size2}, 0, 0, sysdate)
-  </insert>
- 
-  <select id="list" resultType="BlogVO">
-    SELECT blogno, blogcategoryno, title, content, good, file1, file2, size2, cnt, replycnt, rdate
-    FROM blog
-    ORDER BY blogno DESC
-  </select>
- 
-  <select id="list2" resultType="BlogVO" parameterType="int">
-    SELECT blogno, blogcategoryno, title, content, good, file1, file2, size2, cnt, replycnt, rdate
-    FROM blog
-    WHERE blogcategoryno=#{blogcategoryno}
-    ORDER BY blogno DESC
-  </select>
- 
-  <select id="read" resultType="BlogVO" parameterType="int">
-    SELECT blogno, blogcategoryno, title, content, good, file1, file2, size2, cnt, replycnt, rdate
-    FROM blog
-    WHERE blogno=#{blogno}
-  </select>
-  
-  <update id='update' parameterType="BlogVO">
-    UPDATE blog
-    SET title=#{title}, content=#{content}, file1=#{file1}, file2=#{file2}, size2=#{size2}
-    WHERE blogno=#{blogno}
-  </update>
- 
-  <delete id="delete" parameterType="int">
-    DELETE FROM blog
-    WHERE blogno=#{blogno}
-  </delete>        
-</mapper>  
-   
 2. 동적인 SQL 사용
-1) if문(if ~ else는 지원 안함) - MySQL
-   <if test="content == true">
-     OR CONTENT LIKE concat('%', #{search}, '%') 
-   </if> 
- 
-   <if test="writer == 'rik'">
-     AND NAME LIKE concat('%', #{search}, '%') 
-   </if> 
- 
-   <if test="pageSize > 0">
-     limit #{startIndex}, #{pageSize}
-   </if>
- 
-   <if test="firstName != null and firstName != ''">
-     AND FIRST_NAME = #{firstName}
-   </if>
- 
-   <select id="getAllEmployeeInfo"
-     parameterType="EmployeesVO" resultType="EmployeesVO">
-     SELECT employeeId, firstName
-            <if test="firstName != null and firstName != ''">
-              , lastName
-            </if>
-     FROM EMPLOYEES
-     WHERE LAST_NAME = #{lastName}
-     <if test="firstName != null and firstName != ''">
-       AND FIRST_NAME = #{firstName}
-     </if>
-  </select>
- 
-2) WHER를 분리한 경우 - Oracle
-.....
-   // HashMap hashMap = new HashMap();
-    HashMap<String, Object> hashMap = new HashMap<String, Object>();
-    hashMap.put("categoryno", 1);
-    hashMap.put("col", "titlte");
-    hashMap.put("word", "swiss");
-.....
-  <select id="list3" resultType="BlogVO" parameterType="HashMap" >
-    SELECT blogno, categoryno, title, content, good, file1, file2, size2, cnt, replycnt, rdate
-    FROM blog
-    WHERE blogcategoryno=#{categoryno}
-    
-    <choose>
-      <when test="col == 'title'">
-         AND title LIKE '%' || #{word} || '%' 
-      </when>
-      <when test="col == 'content'">
-         AND content LIKE '%' || #{word} || '%' 
-      </when>
-      <when test="col == 'title_content'">
-         AND title LIKE '%' || #{word} || '%'  OR content LIKE '%' || #{word} || '%' 
-      </when>      
-    </choose>
-    
-    ORDER BY blogno DESC
-  </select>    
- 
+ 1) if문(if ~ else는 지원 안함) - MySQL
+ 2) WHER를 분리한 경우 - Oracle
  3) WHER를 분리한 경우 - MySQL
-    SELECT pdsno, rname, email, title, content, passwd, cnt, rdate, url, file1, size1 
-    FROM pds3
-    WHERE title LIKE '%동그라미%'
-    ORDER BY pdsno DESC;
- 
- pdsno rname email title      content   passwd cnt rdate                 url                      file1       size1
- ----- ----- ----- ---------- --------- ------ --- --------------------- ------------------------ ----------- -----
-    25 베짱이   mail1 하얀 동그라미 재판 코카서스의 백묵원 123      0 2017-06-22 17:38:06.0 http://art.incheon.go.kr welcome.jpg  1000
- 
-    SELECT pdsno, rname, email, title, content, passwd, cnt, rdate, url, file1, size1 
-    FROM pds3
-    WHERE title LIKE CONCAT('%', '동그라미', '%')
-    ORDER BY pdsno DESC;
- 
- pdsno rname email title      content   passwd cnt rdate                 url                      file1       size1
- ----- ----- ----- ---------- --------- ------ --- --------------------- ------------------------ ----------- -----
-    25 베짱이   mail1 하얀 동그라미 재판 코카서스의 백묵원 123      0 2017-06-22 17:38:06.0 http://art.incheon.go.kr welcome.jpg  1000
-.....
-    HashMap<String, Object> hashMap = new HashMap<String, Object>();
-    
-    // 페이지에서 출력할 시작 레코드 번호 계산, nowPage는 1부터 시작
-    int offset = (productVO.getNowPage() -1) * Product.RECORD_PER_PAGE;
-    
-    hashMap.put("scategoryno", productVO.getScategoryno());
-    hashMap.put("word", productVO.getWord());
-    
-    hashMap.put("offset", offset);
-    hashMap.put("count", Product.RECORD_PER_PAGE);
-.....
-  <select id="list" resultType="ProductVO" parameterType="HashMap">
-    SELECT productno, scategoryno, profile, title, content, price, url, size1, thumb, word
-    FROM product
- 
-    <choose>
-      <when test="word == null or word == ''">
-        WHERE scategoryno=#{scategoryno}
-      </when>
-      <otherwise>
-        WHERE scategoryno=#{scategoryno} AND word LIKE CONCAT('%', #{word}, '%')
-      </otherwise>
-    </choose>
-    
-    ORDER BY productno DESC
-    LIMIT #{offset}, #{count}
-  </select>
  
 3. 정렬의 구현
-  <select id="list3" resultType="BlogVO" parameterType="HashMap" >
-    SELECT blogno, categoryno, title, content, good, file1, file2, size2, cnt, replycnt, rdate
-    FROM blog
-    WHERE blogcategoryno=#{categoryno}
-    
-    <choose>
-      <when test="vno == 1">
-         ORDER BY title ASC
-      </when>
-      <when test="vno == 2">
-         ORDER BY name ASC
-      </when>
-      <when test="vno == 3">
-         ORDER BY email ASC
-      </when>  
-      <otherwise>
-        ORDER BY rdate ASC
-      </otherwise>      
-    </choose>
-  </select>    
- 
 4. IN 함수의 사용
-- WHERE idno IN(1, 2, 3)
-
-<select id="list" resultType="MemberVO">
-  SELECT name, email
-  FROM member
-  WHERE ID in
-    <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
-      #{item}
-    </foreach>
-</select>
-  
 5. 함수 호출
-WHERE rdate BETWEEN TO_DATE(#{startdate}, 'YYYY-MM-DD') AND TO_DATE(#{enddate}, 'YYYY-MM-DD') 
- 
-WHERE rdate BETWEEN TO_DATE(#{startdate}, 'YYYY-MM-DD HH24:MI:SS') 
-                                AND  TO_DATE(#{enddata}, 'YYYY-MM-DD HH24:MI:SS')
-
 6. 등록된 PK를 리턴하는 스크립트
-1) Oracle에서 NVL(MAX(wno), 0) + 1을 사용하는 경우
-<!-- 등록, id: create, 입력: PK, 리턴: boardno -->
-  <insert id="create" parameterType="WriteVO" useGeneratedKeys="true" keyProperty="wno">
-     INSERT INTO write(wno, 
-                         wtitle, wcontent, wrecom, 
-                         wreplycnt, rdate, wword, boardno)
-     VALUES(#{wno},
-                #{wtitle}, #{wcontent}, 0,
-                0, sysdate, #{wword}, #{boardno})
-                
-     <selectKey keyProperty="wno" resultType="int" order="BEFORE">
-       SELECT NVL(MAX(wno), 0) + 1 as wno FROM write
-     </selectKey>                
-   </insert>
-
-2) Oracle sequence 받기
-  <insert id="create" parameterType="ContentsVO">
-    <!-- 등록후 ContentsVO class의 contentsno 컬럼에 PK return  -->
-    <selectKey keyProperty="contentsno" resultType="int" order="BEFORE">
-      SELECT contents_seq.nextval FROM dual
-    </selectKey>
-    INSERT INTO contents(contentsno, memberno, cateno, title, content, web, ip,
-                                     passwd, word, rdate)
-    VALUES(#{contentsno}, #{memberno}, #{cateno}, #{title}, #{content}, #{web}, #{ip},
-                #{passwd}, #{word}, sysdate)
-  </insert>
- 
-3) MySQL에서 AUTO_INCREMENT를 사용하는 경우
-<!-- 등록, id: create, 입력: PK, 리턴: boardno -->
-  <insert id="create" parameterType="WriteVO" useGeneratedKeys="true" keyProperty="wno">
-     INSERT INTO write(wtitle, wcontent, wrecom, 
-                         wreplycnt, rdate, wword, boardno)
-     VALUES(#{wtitle}, #{wcontent}, 0,
-                0, sysdate, #{wword}, #{boardno})             
-   </insert>
+ 1) Oracle에서 NVL(MAX(wno), 0) + 1을 사용하는 경우 
+ 2) Oracle sequence 받기
+ 3) MySQL에서 AUTO_INCREMENT를 사용하는 경우
 
 6. JOIN, resultMap 이용
+ 1) resultMap이용
+ 2) 1:1 Join, Map 이용
+ 3) 1) 1:다 Join, Map 이용
+ 4) 1:다 Join
+~~~
 
-1) resultMap이용
-    - column : 데이터베이스 컬럼명
-    - property : VO class의 필드명
-    - association: 하나의 VO 객체
-    - collection: VO class의 List 객체 
-    - javaType : VO class type, java.util.ArrayList: 다른 MyBATIS 호출 후 결과를 List로 받는 경우
-    - select: 다른 MyBATIS 호출 후 결과를 List로 받는 경우 다른 MyBATIS의 id명
+* **0330 : [07][Resort] Oracle 기반 리조트 application 제작, Oracle 데이터베이스 연결, hikari Connection pool 설정, MyBATIS 설정, Oracle Driver 설정(project: resort_v1sbm3a)**
+~~~
+[01] Spring Boot 프로젝트 생성
+1. 'Spring Starter Project' 실행
+2. 프로젝트명: resort_v1sbm3a, Package: dev.boot.resort_v1sbm3a
+- v1: version 1.0, sb: Spring Boot, m3: Mybatis 3.0
+3. 의존 library 추가
+- Oracle Driver 절대 설치하지 말것, 버그로 인해 드라이버 인식 불규칙하게됨 ★★★★★
+-> Spring Boot DevTools, Spring Web, MyBatis Framework, JDBC API
 
-2) 1:1 Join, Map 이용
-  <resultMap type="Categrp_Cate_VO" id="Categrp_Cate_VO_Map">
-    <association javaType="CategrpVO" property="categrpVO">
-      <result column="r_categrpno" property="categrpno"/>
-      <result column="r_name" property="name"/>
-      <result column="r_seqno" property="seqno"/>
-      <result column="r_visible" property="visible"/>
-      <result column="r_date" property="rdate"/>  
-    </association>
-    <association javaType="CateVO" property="cateVO">
-      <result column="c_cateno" property="cateno"/>
-      <result column="c_categrpno" property="categrpno"/>
-      <result column="c_name" property="name"/>
-      <result column="c_seqno" property="seqno"/>
-      <result column="c_visible" property="visible"/>  
-      <result column="c_rdate" property="rdate"/>  
-      <result column="c_cnt" property="cnt"/>  
-    </association>
-  </resultMap>
-  
-  <select id="read_categrp_cate" parameterType="int" resultMap="Categrp_Cate_VO_Map">
-    SELECT r.categrpno as r_categrpno, r.name as r_name, r.seqno as r_seqno,
-               r.visible as r_visible, r.rdate as r_date,
-               c.cateno as c_cateno, c.categrpno as c_categrpno, c.name as c_name,
-               c.seqno as c_seqno, c.visible as c_visible, c.rdate as c_rdate, c.cnt as c_cnt
-    FROM categrp r, cate c
-    WHERE r.categrpno = c.categrpno AND c.cateno=#{cateno}
-    ORDER BY r.categrpno ASC, c.cateno ASC
-  </select>  
+4. /src/main/resources/application.properties : 프로젝트에서 사용되는 오라클 계정 설정 + 포트설정 + DEVTOOLS 설정
+server.port = 9091
+# JSP View path
+spring.mvc.view.prefix=/WEB-INF/views/
+spring.mvc.view.suffix=.jsp
 
-3) 1) 1:다 Join, Map 이용
-  <select id="list_categrp_cate_vo" resultMap="Categrp_Cate_VO_Map">
-    SELECT r.categrpno as r_categrpno, r.name as r_name, r.seqno as r_seqno,
-               r.visible as r_visible, r.rdate as r_date,
-               c.cateno as c_cateno, c.categrpno as c_categrpno, c.name as c_name,
-               c.seqno as c_seqno, c.visible as c_visible, c.rdate as c_rdate, c.cnt as c_cnt
-    FROM categrp r, cate c
-    WHERE r.categrpno = c.categrpno
-    ORDER BY r.categrpno ASC, c.cateno ASC
-  </select>    
+# DEVTOOLS (DevToolsProperties)
+spring.devtools.livereload.enabled=true
 
-4) 1:다 Join
-  <resultMap type="Categrp_Cate_list" id="Categrp_Cate_list_Map">
-    <result column="categrpno" property="categrpno"/>
-    <result column="name" property="name"/>
-    <result column="seqno" property="seqno"/>
-    <result column="visible" property="visible"/>
-    <result column="rdate" property="rdate"/>  
-    <collection property="list" 
-                    column="categrpno" javaType="java.util.ArrayList" 
-                    select="list_categrp_cate_vo_collection_item"/>
-  </resultMap> 
+# MariaDB
+# spring.datasource.hikari.driver-class-name=com.mysql.cj.jdbc.Driver
+# spring.datasource.hikari.jdbc-url: jdbc:mysql://localhost:3306/resort?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
+# spring.datasource.hikari.username=root
+# spring.datasource.hikari.password=1234
+# spring.datasource.hikari.connection-test-query=SELECT 1
 
-  <select id="list_categrp_cate_vo_collection" resultMap="Categrp_Cate_list_Map" parameterType="int">
-    SELECT  categrpno, name, seqno, visible, rdate
-    FROM categrp
-    WHERE categrpno=#{categrpno}
-  </select>  
+# Oracle
+spring.datasource.hikari.driver-class-name=oracle.jdbc.driver.OracleDriver
+spring.datasource.hikari.jdbc-url: jdbc:oracle:thin:@localhost:1521:XE  # @localhost 부분에 IP주소 입력으로 다른 컴퓨터의 오라클 연결.
+spring.datasource.hikari.username=ai7
+spring.datasource.hikari.password=1234
 
-  <select id="list_categrp_cate_vo_collection_item"  resultType="CateVO" parameterType="int">
-    SELECT cateno, categrpno, name, seqno, visible, rdate, cnt
-    FROM cate
-    WHERE categrpno=#{categrpno}
-  </select>  
+# All DBMS
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.connection-timeout=5000
+
+5. jsp 사용을위한 의존성 추가
+ - implementation 'javax.servlet:jstl': JSTL 사용 선언
+ - implementation 'org.apache.tomcat.embed:tomcat-embed-jasper': Tomcat JSP compile library 추가
+▷ build.gradle 편집
+plugins {
+    id 'org.springframework.boot' version '2.4.3'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+    id 'war'
+}
+
+group = 'dev.mvc'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.1.4'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc8'
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    
+    implementation 'javax.servlet:jstl'  <- 추가
+    implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'  <- 추가
+    implementation 'org.springframework.boot:spring-boot-starter-validation'  <- 추가
+}
+
+test {
+    useJUnitPlatform()
+}
+
+6. Component scan "dev.mvc.resort_sbv2" 패키지 설정
+▷ dev.boot.resort_v1sbm3a.ResortV1sbm3aApplication.java
+package dev.mvc.resort_v1sbm3a;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+
+@SpringBootApplication
+@ComponentScan(basePackages = {"dev.mvc.resort_v1sbm3a"})
+public class ResortV1sbm3aApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(ResortV1sbm3aApplication.class, args);
+    }
+}
+
+ 
+7. 관련 폴더 생성
+1) JSP views: /src/main/webapp/WEB-INF/views
+2) CSS: /src/main/resources/static/css
+3) images: /src/main/resources/static/images
+4) Javascript: /src/main/resources/static/js
+
+[02] MyBatis 설정
+
+1. /src/main/resources/mapper 패키지 생성
+2. MyBatis 설정
+- @MapperScan(basePackages= {"dev.mvc.bbs"}): DAO interface 검색 패키지 설정
+▷ /src/main/java/dev.mvc.resort_v1sbm3a.DatabaseConfiguration.java 설정
+
+[03] Oracle Driver 설정 및 테스트
+1. Oracle Driver 설정
+- Oracle Driver 절대 설치하지 말것, 버그로 인해 드라이버 인식 불규칙하게됨 ★★★★★
+- Oracle 18C XE 버전의 경우 SQL Developer가 설치된 폴더의 F:/ai7/sqldeveloper/jdbc/lib/ojdbc8.jar을 복사하여 사용 할 것.
+
+2. MyBatis 설정 JUnit 테스트(/src/test/java 폴더에 테스트 기초 파일이 생성되어 있음 ★)
+▷ /src/test/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplicationTests.java 설정
+
+3. 테스트 실행: /src/test/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplicationTests.java 파일 선택 --> Debug as --> JUnit test
+4. 프로젝트 실행 테스트 : 프로젝트 선택 -> Run As -> Spring Boot App 실행
+5. Web 접속 테스트 :  http://localhost:9091
 ~~~
