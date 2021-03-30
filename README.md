@@ -300,10 +300,13 @@ dependencies {
 // http://localhost:9091/employee/employee.do
   
 3) @RequestMapping("/")
-// http://localhost:9091    /은 Root Dic
+// httpㅋ//localhost:9091    /은 Root Dic
 
- 4) @RestController      
- // Controller 중 JSP(/Webapp의 JSP)없이 단순 출력(ex.JSON 출력)
+4) @RestController      
+// Controller 중 JSP(/Webapp의 JSP)없이 단순 출력(ex.JSON 출력)
+
+5) Spring Boot의 Static resource 경로 표현 : 이미지 등 리소스
+// /static/css/style.css  ->  /css/style.css     /static/images/fname.jpg -> /images/fname.jpg
 ~~~
 
 ~~~
