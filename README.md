@@ -306,7 +306,8 @@ dependencies {
 // Controller 중 JSP(/Webapp의 JSP)없이 단순 출력(ex.JSON 출력)
 
 5) Spring Boot의 Static resource 경로 표현 : 이미지, css 등 리소스
-// /static/css/style.css  ->  /css/style.css     /static/images/fname.jpg -> /images/fname.jpg
+// /static/css/style.css       ->  /css/style.css     
+   /static/images/fname.jpg -> /images/fname.jpg
 
 6) Getter, Setter : EmployeeCont.java로  ModelAndView create() 생성해 @RequestMapping
 ~~~
