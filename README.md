@@ -300,7 +300,7 @@ dependencies {
 // http://localhost:9091/employee/employee.do
   
 3) @RequestMapping("/")
-// httpㅋ//localhost:9091    /은 Root Dic
+// http://localhost:9091    /은 Root Dic
 
 4) @RestController      
 // Controller 중 JSP(/Webapp의 JSP)없이 단순 출력(ex.JSON 출력)
