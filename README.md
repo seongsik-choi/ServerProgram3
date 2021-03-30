@@ -303,7 +303,7 @@ http://localhost:9091/employee/employee.do
 http://localhost:9091    /은 Root Dic
 
  @RestController      
- // Controller 중 JSP 없이 단순 출력(ex.JSON 출력)
+ // Controller 중 JSP(/Webapp의 JSP)없이 단순 출력(ex.JSON 출력)
 ~~~
 
 ~~~
