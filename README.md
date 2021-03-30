@@ -540,18 +540,21 @@ spring.devtools.livereload.enabled=true
 
 # Oracle
 spring.datasource.hikari.driver-class-name=oracle.jdbc.driver.OracleDriver
-spring.datasource.hikari.jdbc-url: jdbc:oracle:thin:@localhost:1521:XE  # @localhost 부분에 IP주소 입력으로 다른 컴퓨터의 오라클 연결.
+spring.datasource.hikari.jdbc-url: jdbc:oracle:thin:@localhost:1521:XE  
+# @localhost 부분에 IP주소 입력으로 다른 컴퓨터의 오라클 연결.
 spring.datasource.hikari.username=ai7
 spring.datasource.hikari.password=1234
 
 # All DBMS
-spring.datasource.hikari.maximum-pool-size=10
-spring.datasource.hikari.minimum-idle=5
-spring.datasource.hikari.connection-timeout=5000
+spring.datasource.hikari.maximum-pool-size=10		# 동시 접속자
+spring.datasource.hikari.minimum-idle=5			# 접속자 증가시 -> 많은 접속자 처리 -> but 속도 down
+spring.datasource.hikari.connection-timeout=5000       # 연결 지연 5초 이상시 -> Error.
 
 5. jsp 사용을위한 의존성 추가
  - implementation 'javax.servlet:jstl': JSTL 사용 선언
  - implementation 'org.apache.tomcat.embed:tomcat-embed-jasper': Tomcat JSP compile library 추가
+ - implementation 'org.springframework.boot:spring-boot-starter-validation': 폼 값 검증
+
 ▷ build.gradle 편집
 plugins {
     id 'org.springframework.boot' version '2.4.3'
@@ -587,7 +590,121 @@ test {
 }
 
 6. Component scan "dev.mvc.resort_sbv2" 패키지 설정
+- Controller, DAO, Process class 등을 자동으로 인식할 패키지 선언.
 ▷ dev.boot.resort_v1sbm3a.ResortV1sbm3aApplication.java
+package dev.mvc.resort_v1sbm3a;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+
+@SpringBootApplication
+@ComponentScan(basePackages = {"dev.mvc.resort_v1sbm3a"
+public class ResortV1sbm3aApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(ResortV1sbm3aApplication.class, args);
+    }
+}
+ 
+7. 관련 폴더 생성
+1) JSP views: /src/main/webapp/WEB-INF/views
+2) JSP views: /src/main/webapp/WEB-INF/lib : .jar이 들어감
+3) CSS: /src/main/resources/static/css
+4) images: /src/main/resources/static/images
+5) Javascript: /src/main/resources/static/js
+
+[02] MyBatis 설정
+1. /src/main/resources/mybatis 패키지 생성
+2. MyBatis 설정
+- @MapperScan(basePackages= {"dev.mvc.bbs"}): DAO interface 검색 패키지 설정
+★★중요한점 : application.properties 끌어다 쓰고, classpath:/mybatis 필요★★
+▷ /src/main/java/dev.mvc.resort_v1sbm3a.DatabaseConfiguration.java 설정
+package dev.mvc.resort_v1sbm3a;
+import javax.sql.DataSource;
+import org.mybatis.spring.annotation.MapperScan;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+@Configuration
+@PropertySource("classpath:/application.properties")  // 설정 파일 위치
+@MapperScan(basePackages= {""})
+public class DatabaseConfiguration {
+    
+    @Autowired
+    private ApplicationContext applicationContext;
+    
+    @Bean
+    @ConfigurationProperties(prefix="spring.datasource.hikari")  // 설정 파일의 접두사 선언 spring.datasource.hikari....
+    public HikariConfig hikariConfig() {
+        return new HikariConfig();
+    }
+    
+    @Bean
+    public DataSource dataSource() throws Exception{
+        DataSource dataSource = new HikariDataSource(hikariConfig());
+        System.out.println(dataSource.toString());  // 정상적으로 연결 되었는지 해시코드로 확인
+        return dataSource;
+    }
+    
+    @Bean
+    public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception{
+        SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
+        sqlSessionFactoryBean.setDataSource(dataSource);
+        // "/src/main/resources/mybatis" 폴더의 파일명이 "xml"로 끝나는 파일 매핑
+        sqlSessionFactoryBean.setMapperLocations(applicationContext.getResources("classpath:/mybatis/**/*.xml"));
+        
+        return sqlSessionFactoryBean.getObject();
+    }
+    
+    @Bean
+    public SqlSessionTemplate sqlSessionTemplate(SqlSessionFactory sqlSessionFactory){
+        return new SqlSessionTemplate(sqlSessionFactory);
+    }
+}
+
+
+[03] Oracle Driver 설정 및 테스트
+1. Oracle Driver 설정
+★★build.gradle에서 Oracle Driver 절대 설치하지 말것, 버그로 인해 드라이버 인식 불규칙하게됨 ★★★★★
+JSP views: /src/main/webapp/WEB-INF/lib/ojdbc8.jar
+- Oracle 18C XE 버전의 경우 SQL Developer가 설치된 폴더의 F:/ai7/sqldeveloper/jdbc/lib/ojdbc8.jar을 복사하여 사용 할 것.
+
+2. MyBatis 설정 JUnit 테스트(/src/test/java 폴더에 테스트 기초 파일이 생성되어 있음 ★)
+▷ /src/test/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplicationTests.java 설정
+ -> /src/main/java가 아닌 -> /src/test/java
+package dev.mvc.resort_v1sbm3a;
+import org.junit.jupiter.api.Test;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+@SpringBootTest
+class ResortV1sbm3aApplicationTests {
+  @Autowired
+  private SqlSessionTemplate sqlSession;  // Send -> receive로 Oracle과 Spring 연결 확인
+  
+  @Test
+  public void contextLoads() {
+  }
+  @Test
+  public void testSqlSession() throws Exception{
+    System.out.println(sqlSession.toString());
+  }
+}
+
+3. 테스트 실행: /src/test/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplicationTests.java 파일 선택 --> Debug as --> JUnit test
+4. 프로젝트 실행 테스트 : 프로젝트 선택 -> Run As -> Spring Boot App 실행
+▷ /src/test/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplication.java
+
 package dev.mvc.resort_v1sbm3a;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -601,30 +718,5 @@ public class ResortV1sbm3aApplication {
         SpringApplication.run(ResortV1sbm3aApplication.class, args);
     }
 }
-
- 
-7. 관련 폴더 생성
-1) JSP views: /src/main/webapp/WEB-INF/views
-2) CSS: /src/main/resources/static/css
-3) images: /src/main/resources/static/images
-4) Javascript: /src/main/resources/static/js
-
-[02] MyBatis 설정
-
-1. /src/main/resources/mapper 패키지 생성
-2. MyBatis 설정
-- @MapperScan(basePackages= {"dev.mvc.bbs"}): DAO interface 검색 패키지 설정
-▷ /src/main/java/dev.mvc.resort_v1sbm3a.DatabaseConfiguration.java 설정
-
-[03] Oracle Driver 설정 및 테스트
-1. Oracle Driver 설정
-- Oracle Driver 절대 설치하지 말것, 버그로 인해 드라이버 인식 불규칙하게됨 ★★★★★
-- Oracle 18C XE 버전의 경우 SQL Developer가 설치된 폴더의 F:/ai7/sqldeveloper/jdbc/lib/ojdbc8.jar을 복사하여 사용 할 것.
-
-2. MyBatis 설정 JUnit 테스트(/src/test/java 폴더에 테스트 기초 파일이 생성되어 있음 ★)
-▷ /src/test/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplicationTests.java 설정
-
-3. 테스트 실행: /src/test/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplicationTests.java 파일 선택 --> Debug as --> JUnit test
-4. 프로젝트 실행 테스트 : 프로젝트 선택 -> Run As -> Spring Boot App 실행
 5. Web 접속 테스트 :  http://localhost:9091
 ~~~
