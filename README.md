@@ -292,15 +292,15 @@ dependencies {
 ~~~
 ---
 * **0330 :[05] MyBATIS framework 3.4.1 개론, Website 개발 절차, MyBATIS 기초 코드 ★**
-**▶ 0329 복습**
+**▶ 0329 복습**  
 ~~~
 Spring Boot는 Legacy 다르게 프로젝트명 사용 No, @RequestMapping에 명시한 대로 사용
 
 @RequestMapping(value="/employee/employee.do", method=RequestMethod.GET)
- http://localhost:9091/employee/employee.do
+http://localhost:9091/employee/employee.do
   
- @RequestMapping("/")
- // http://localhost:9091    /은 Root Dic
+@RequestMapping("/")
+http://localhost:9091    /은 Root Dic
 
  @RestController      
  // Controller 중 JSP 없이 단순 출력(ex.JSON 출력)
