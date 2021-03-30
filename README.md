@@ -702,8 +702,12 @@ class ResortV1sbm3aApplicationTests {
 }
 
 3. 테스트 실행: /src/test/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplicationTests.java 파일 선택 --> Debug as --> JUnit test
+ -> build.gradle refresh 필요!
 4. 프로젝트 실행 테스트 : 프로젝트 선택 -> Run As -> Spring Boot App 실행
-▷ /src/test/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplication.java
+▷ /src/main/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplication.java
+[실행 화면]
+......
+HikariDataSource (HikariPool-1)
 
 package dev.mvc.resort_v1sbm3a;
 import org.springframework.boot.SpringApplication;
