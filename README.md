@@ -309,12 +309,131 @@ dependencies {
 // /static/css/style.css       ->  /css/style.css     
    /static/images/fname.jpg -> /images/fname.jpg
 
-6) Getter, Setter : EmployeeCont.java로  ModelAndView create() 생성해 @RequestMapping
+6) Getter, Setter : 
+    EmployeeCont.java로  ModelAndView create() 생성해 @RequestMapping
+    -> boot가 동작 -> view.jsp 실행
+
+7) FrameWork : 기초 소스 뿐만이 아닌 개발 방법론을 제공해, 원하는 패턴으로 개발이 가능하다
+    Library : 단순 활용가능한 도구들의 집합으로, 클래스에서 호출해 사용한다.
 ~~~
 
 ~~~
 [01] MyBATIS framework 3.4.1 개론
 EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 다운 : /WEB-INF/lib/다운받은 jar 넣기
+--------------------------------------------------------------------------------------------------------
+[01] 고전적인 패턴
+- JAVA와 SQL은 성질이 다른 목적을 가지고 있음에도 강하게 결합되어 개발과 변경이 어려움
+- 개발자가 DBMS Open/Close를 모두 수동 작업하며 Close를 누락하면 불규칙하게 서버 다운 발생
+- 개발자의 고도의 집중력이 필요
+- SQL과 JAVA VO class의 연동 설정을 개발자가 모두 수동으로 해야
+
+- 아래의 코드를 MyBATIS 동적 SQL로 처리 할 수 있음.
+  public ArrayList<Pds4VO> list_category(
+      int categoryno, 
+      String col, 
+      String word, 
+      int offset,
+      int recordPerPage) {
+    ArrayList<Pds4VO> list = new ArrayList<Pds4VO>();
+
+    try {
+      con = dbopen.getConnection();
+  
+      sql = new StringBuffer();
+      sql.append(" SELECT pdsno, categoryno, rname, email, title, content, passwd, cnt,");
+      sql.append("            SUBSTRING(rdate, 1, 16) as rdate, web, file1, fstor1,");
+      sql.append("            thumb, size1, map, youtube, mp3, mp4, ip, visible");
+      sql.append(" FROM pds4");
+      
+      if (col.equals("rname")) {
+        sql.append(" WHERE categoryno = ? AND rname LIKE ?");
+        sql.append(" ORDER BY pdsno DESC");
+        // sql.append(" LIMIT " + offset + ", " + record_per_page);
+        sql.append(" LIMIT ?, ?");
+        pstmt = con.prepareStatement(sql.toString());
+        pstmt.setInt(1, categoryno);
+        pstmt.setString(2, "%" + word + "%");
+        pstmt.setInt(3, offset);
+        pstmt.setInt(4, recordPerPage);
+      } else if (col.equals("title")) {
+        sql.append(" WHERE categoryno = ? AND  title LIKE ?");
+        sql.append(" ORDER BY pdsno DESC");
+        sql.append(" LIMIT ?, ?");
+        pstmt = con.prepareStatement(sql.toString());
+        pstmt.setInt(1, categoryno);
+        pstmt.setString(2, "%" + word + "%");
+        pstmt.setInt(3, offset);
+        pstmt.setInt(4, recordPerPage);
+      } else if (col.equals("content")) {
+        sql.append(" WHERE categoryno = ? AND  content LIKE ?");
+        sql.append(" ORDER BY pdsno DESC");
+        sql.append(" LIMIT ?, ?");
+        pstmt = con.prepareStatement(sql.toString());
+        pstmt.setInt(1, categoryno);
+        pstmt.setString(2, "%" + word + "%");
+        pstmt.setInt(3, offset);
+        pstmt.setInt(4, recordPerPage);
+      } else if (col.equals("title_content")) {
+        sql.append(" WHERE categoryno = ? AND (title LIKE ? OR content LIKE ?)");
+        sql.append(" ORDER BY pdsno DESC");
+        sql.append(" LIMIT ?, ?");
+        pstmt = con.prepareStatement(sql.toString());
+        pstmt.setInt(1, categoryno);
+        pstmt.setString(2, "%" + word + "%");
+        pstmt.setString(3, "%" + word + "%");
+        pstmt.setInt(4, offset);
+        pstmt.setInt(5, recordPerPage);
+      } else { // 검색하지 않는 경우
+        sql.append(" WHERE categoryno = ?");
+        sql.append(" ORDER BY pdsno DESC");
+        sql.append(" LIMIT ?, ?");
+        pstmt = con.prepareStatement(sql.toString());
+        pstmt.setInt(1, categoryno);
+        pstmt.setInt(2, offset);
+        pstmt.setInt(3, recordPerPage);
+      }
+  
+      rs = pstmt.executeQuery(); // SELECT
+  
+      while (rs.next() == true) {
+        Pds4VO pds4VO = new Pds4VO();
+        pds4VO.setPdsno(rs.getInt("pdsno")); // DBMS -> JAVA 객체
+        pds4VO.setCategoryno(rs.getInt("categoryno"));
+        pds4VO.setRname(rs.getString("rname"));
+        pds4VO.setEmail(rs.getString("email"));
+        pds4VO.setTitle(rs.getString("title"));
+        pds4VO.setContent(rs.getString("content"));
+        pds4VO.setPasswd(rs.getString("passwd"));
+        pds4VO.setCnt(rs.getInt("cnt"));
+        pds4VO.setRdate(rs.getString("rdate"));
+        pds4VO.setWeb(rs.getString("web"));
+        pds4VO.setFile1(rs.getString("file1"));
+        pds4VO.setFstor1(rs.getString("fstor1"));
+        pds4VO.setThumb(rs.getString("thumb"));
+        pds4VO.setSize1(rs.getLong("size1"));
+        pds4VO.setMap(rs.getString("map"));
+        pds4VO.setYoutube(rs.getString("youtube"));
+        pds4VO.setMp3(rs.getString("mp3"));
+        // System.out.println("rs.getString(\"mp3\"): " + rs.getString("mp3"));
+        // System.out.println("pds4VO.getMp3(\"mp3\"): " + pds4VO.getMp3());
+        pds4VO.setMp4(rs.getString("mp4"));
+  
+        pds4VO.setIp(rs.getString("ip"));
+        pds4VO.setVisible(rs.getString("visible"));
+  
+        list.add(pds4VO);
+      }
+  
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      dbclose.close(con, pstmt, rs);
+    }
+  
+    return list;
+  }
+--------------------------------------
+[02] MyBATIS framework 3.4.1 개론 
     - http://www.mybatis.org
     - download: https://github.com/mybatis/mybatis-3/releases 
     - SQL과 비즈니스 로직(자바)이 분리되어 있어 개발 및 배포 및 관리가 뛰어남. 
@@ -414,7 +533,10 @@ POJO                                                  DBMS                POJO(V
 12) 테스트
 13) Python을 이용한 데이터 분석(통계) 
 14) Tensorflow를 이용한 기계 학습 적용
-  
+ ~~~~
+
+* **0330 :[06] MyBATIS  사용**
+ ~~~
 [02] MyBATIS 사용
 
 1. 일반적인 SQL 사용
