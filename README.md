@@ -831,6 +831,7 @@ public class HomeCont {
 ~~~
 
 * **0330: [10][Resort] Amateras ERD/UML 설계툴, Resort 관리 시스템 제작 DBMS 모델링, Entity 산출, resort.erd 제작**  
+▶ 프로젝트는 보통 3번까지 3개의 Table 이용★★
 ~~~
 [01] ERD/UML 툴 설치  
 1. STS(Eclipse) GEF plugin 설치
@@ -903,7 +904,25 @@ public class HomeCont {
        - 국내에 속한 카테고리: 서울/인천, 경기도, 강원도, 충청북도, 충청남도...
    3) 여행 후기: trip
        - 강원도에 속한 여행: 카페산 카페, 대관령 삼양목장, 선돌관광지
+      
+★★5. 다양한 형태의 대응 구조★★
+★★프로젝트는 보통 3번까지 3개의 Table 이용★★
+1) 카테고리 그룹(categrp) : 영화, 여행, 이용후기, Q/A
+2) 카테고리(cate) : 
+ - 영화에 속한 장르 : SF, 스릴러, 드라마 등
+ - 여행에 속한 구분 : 국내, 해외
+ - 이용후기에 속한 구분 : 객실, 식당, 게임장, 마켓
+3) 컨텐츠(contents) :
+ - SF에 속한 여행 소개
+ - 국내에 속한 여행지 안내
+ - 식당에 속한 이용 후기
 
+4) 첨부파일(attachfile) : 국내 여행지에 속한 첨부파일 200장
+5) 댓글(reply) : 관광지에 속한 댓글
+6) 회원(member) : 글을 쓸 수있는 권한
+7) 관리자(admin) : 문제 컨텐츠의 관리
+
+[03] Amateras ERD 툴을 이용한 DBMS 모델링
 3. 테이블 생성
 - Oracle JDBC Driver Download
    - https://www.oracle.com/kr/database/technologies/appdev/jdbc-downloads.html
@@ -917,16 +936,18 @@ public class HomeCont {
    - https://www.oracle.com/kr/database/technologies/appdev/jdbc-downloads.html
      -> Oracle Database 18c (18.3) drivers -> ojdbc8.jar
 4) ERD 정보 입력
-    - JAR File : ai8에 ojdbc8.jar로 설정
+    - JAR File : ai8에 ojdbc8.jar로 설정 
+      + /src/main/webapp/WEB-INF/lib에도 ojdbc8.jar Overwrite
     - JDBC Driver: oracle.jdbc.driver.OracleDriver
     - Oracle 설정: jdbc:oracle:thin:@localhost:1521:XE 
 5) 테이블 생성
-6) 논리적 모델링 테이블: 실제 생성되는 테이블명이 아니라 저장되는 내용을 참고하여
-                                       이름 지정, 데이터베이스 결정되지 않아도 상관 없음.
+
+6) 논리적 모델링 : 실제 생성되는 테이블명이 아니라 저장되는 내용을 참고하여
+                            이름 지정, 데이터베이스 결정되지 않아도 상관 없음.
     물리적 테이블: 실제 물리적으로 DBMS 디스크상에 생성해야할 테이블명,
                            DBMS결정되어있어야함.
    - categrp 카테고리 그룹 테이블 생성
-  - cate 테이블 생성
+   - cate 테이블 생성
    - contents 테이블생성
    - member 테이블생성
      . 논리적 테이블 이름: 회원
@@ -936,6 +957,59 @@ public class HomeCont {
   - 논리적 모델링 - 물리적 모델링
 ~~~
 ---
-* **0331 : [11][Resort] CSS 제작**   
+
+* **0331 : [11][Categrp] Categrp DBMS 설계, 논리적 모델링, 물리적 모델링, PK, FK 관계(Relationship) 설정**   
 ~~~
+[01]  DBMS 설계, SQL
+
+1. 컬럼명 설계의 규칙 결정
+① ★★기본적인 컬럼명 명시(해당 방법 사용)★★
+    - 간결해서 개발자에게 편리함을 제공
+    - 일부 컬럼들이 Join시에 컬럼명 충돌이 발생할 수 있음으로
+       as등의 키워드를 이용하여 컬럼명을 새로 지정함
+   CREATE TABLE categrp(
+       categrpno       NUMBER(7)       NOT NULL    PRIMARY KEY,
+       name             VARCHAR2(50)  NOT NULL,
+       seqno             NUMBER(7)       DEFAULT 0     NOT NULL
+   );
+
+② 테이블명을 결합한 컬럼명 명시 : 복잡, 충돌은 No
+   - 고유한 테이블명이 결합됨으로 Join 시에 충돌이 발생하지 않음
+   - 개발자가 코딩시에 코딩량이 많이 증가
+   CREATE TABLE categrp(
+       categrpno       NUMBER(7)       NOT NULL    PRIMARY KEY,
+       cagegrpname   VARCHAR2(50)  NOT NULL,
+       categrpseqno   NUMBER(7)       DEFAULT 0     NOT NULL
+   );
+ 
+③ 테이블명 + '_'를 결합한 컬럼명 명시
+   - 고유한 테이블명이 결합됨으로 Join 시에 충돌이 발생하지 않슴
+   - 개발자가 코딩시에 코딩량이 많이 증가.
+   CREATE TABLE categrp(
+       categrp_no       NUMBER(7)       NOT NULL    PRIMARY KEY,
+       cagegrp_name   VARCHAR2(50)  NOT NULL,
+       categrp_seqno   NUMBER(7)       DEFAULT 0     NOT NULL
+   );
+  
+2. PK(Primary Key) 설계 
+- PK 컬럼명은 프로젝트 전체에서 고유하게 해야함, 중복되면 join시 문제 발생
+- 숫자일경우: 테이블명 + no  /문자일경우: 테이블명 + id
+
+1) 카테고리 그룹 테이블 PK 추가 : 
+ - 더블클릭(column -> add Coluumn)
+ - 논리 컬럼명 : 카테고리 그룹 번호 / 물리 컬럼명, catefrpno / type : number/ pk, not nulll check
+2) 카테고리 테이블 PK 추가  3) 컨텐츠 테이블 PK 추가  4) 회원 테이블 PK 추가
+3. PK 적용된 ERD 형태
+   -> 카테고리그룹(table) 
+  1) 논리적 모델링 : 카테고리 그룹 번호(Numeric(10))
+  2) 물리적 모델링 :  categrpno(Number(10))
+
+4. FK 설계 : 다른 테이블의 PK를 지정
+- 관계형 데이터베이스(RDBMS)는 테이블간에 종속(부모/자식, 그룹/구성원) 관계가 FK로 선언됨
+- Foreign Key(FK): 현재 레코드가 어느 그룹에 속하는지의 정보를 나타냄
+- INSERT SQL 실행시 다른 테이블의 PK 값이 있어야함.
+- 정상적인 관계(relationship) 설정이되어야 JAVA등의 application으로 구현이 원활
+1) 논리적 모델링
+2) 물리적 모델링
+
 ~~~
