@@ -1022,11 +1022,11 @@ public class HomeCont {
 DROP TABLE categrp;
  
 CREATE TABLE categrp(
-    categrpno                        NUMBER(10)     NOT NULL    PRIMARY KEY,
-    name                              VARCHAR(50)    NOT NULL,					-- 한글(/3)도 16도정도
-    seqno                             NUMBER(7)       DEFAULT 0     NOT NULL,
-    visible                             CHAR(1)           DEFAULT 'Y'     NOT NULL,
-    rdate                               DATE              NOT NULL
+    categrpno         NUMBER(10)     NOT NULL    PRIMARY KEY,
+    name                VARCHAR(50)    NOT NULL,			     -- 한글(/3)도 16도정도
+    seqno               NUMBER(7)       DEFAULT 0     NOT NULL,
+    visible               CHAR(1)           DEFAULT 'Y'     NOT NULL,
+    rdate                 DATE              NOT NULL
 );
  
 COMMENT ON TABLE categrp is '카테고리 그룹';
@@ -1039,8 +1039,8 @@ COMMENT ON COLUMN categrp.rdate is '그룹 생성일';
  - 논리적/물리적 모델링 결과 확인
   
 2. SQL 생성
- 1) Export -> DDL
- 2) ALTER TABLE을 이용한 제약 조건의 선언
+ 1) 우마 -> Export -> DDL
+ 2) ALTER TABLE을 이용한 제약 조건의 선언 : Generates constraints  as ALTER TABLE 체크 해제
  3) 테이블 구조 생성시 제약 조건 선언  
  4) resort.ddl -> categrp_c.sql로 변경
  5) 파일 열기
