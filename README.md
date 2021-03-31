@@ -1005,6 +1005,7 @@ public class HomeCont {
   2) 물리적 모델링 :  categrpno(Number(10))
 
 4. FK 설계 : 다른 테이블의 PK를 지정
+★★FK가 존재하지 않는 경우 무조건 에러 발생, INSERT 불가.★★
 - 관계형 데이터베이스(RDBMS)는 테이블간에 종속(부모/자식, 그룹/구성원) 관계가 FK로 선언됨
 - Foreign Key(FK): 현재 레코드가 어느 그룹에 속하는지의 정보를 나타냄
 - INSERT SQL 실행시 다른 테이블의 PK 값이 있어야함.
