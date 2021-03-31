@@ -1069,6 +1069,7 @@ CREATE SEQUENCE memo_seq
 ->10.3.28 version 다운
 ~~~
 ![image](https://user-images.githubusercontent.com/76051264/113117184-2a9afb80-9249-11eb-9ce7-0cba5d13e88b.png)  
+---
 ![image](https://user-images.githubusercontent.com/76051264/113117263-3ab2db00-9249-11eb-8e1d-b9e38e45172d.png)  
 
 
