@@ -1040,10 +1040,32 @@ COMMENT ON COLUMN categrp.rdate is '그룹 생성일';
   
 2. SQL 생성
  1) 우마 -> Export -> DDL
- 2) ALTER TABLE을 이용한 제약 조건의 선언 : Generates constraints  as ALTER TABLE 체크 해제
- 3) 테이블 구조 생성시 제약 조건 선언  
+  + UTF-8 Encoding 설정 필수
+ 2) ALTER TABLE을 이용한 제약 조건의 선언
+ 3) 테이블 구조 생성시 제약 조건 선언  : Generates constraints as ALTER TABLE 체크 해제
  4) resort.ddl -> categrp_c.sql로 변경
- 5) 파일 열기
+ 5) 파일 열기 : Open with -> Text Editor.
 
+-> sqldeveloper -> 도구 -> 'environment -> 인코딩(UFT-8로) : 안하면 한글깨짐
+-> sqldeveloper ->  파일 -> 열기 -> categrp_c.sql 파일 열기
+
+-> SQL developer에서 테이블 만들어주기
+-> categrp_c.sql에서 Create TABLE ~ COMMENT 마지막 부분까지 블록 지정해 -> 명령문 실행
+-> 옆에 ai8 -> 테이블 열면 CATEGRP 있음
+
+-> Sequence 함수 작성해주기(COMMENT 밑에 추가해주고, 명령문 실행)
+DROP SEQUENCE memo_seq;		-- DROP은 지우는거니까 하지말기.
+
+CREATE SEQUENCE memo_seq
+  START WITH 1           -- 시작 번호
+  INCREMENT BY 1       -- 증가값
+  MAXVALUE 9999999999  -- 최대값: 9999999999 --> NUMBER(10) 대응
+  CACHE 2                  -- 2번은 메모리에서만 계산
+  NOCYCLE;                 -- 다시 1부터 생성되는 것을 방지
+
+-> Oracle은 여기서 끝
+
+- mariaDB 설치 : DB/SQL 응용 페이지 -> http://soldeskit3.cafe24.com/pds/read.jsp?pdsgrpno=390&pdsno=18193&grpno=&col=&word=&currentPage=0&visible=
+->10.3.28 version 다운
 ~~~
 
