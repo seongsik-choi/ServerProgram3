@@ -736,11 +736,12 @@ public class ResortV1sbm3aApplication {
 
 * **0330: [09][Resort] index.do 페이지 제작 , 화면 상단, 하단 Menu 파일, index.jsp 제작**  
 ~~~
+-------------------------------------------------------------------------------------
 [01] 메뉴 구성
 - http://localhost:9091
- 
 1. Controller
 ▷ dev.mvc.resort_v1sbm3a.HomeCont.java
+-------------------------------------------------------------------------------------
 package dev.mvc.resort_v1sbm3a;
 
 import org.springframework.stereotype.Controller;
@@ -764,7 +765,7 @@ public class HomeCont {
   }
 }
 
- 
+-------------------------------------------------------------------------------------
 2. 화면 상단 메뉴
 - 자주 사용되는 EL 값의 활용: <c:set var="root" value="${pageContext.request.contextPath}" />
 						 ${root}
@@ -793,10 +794,8 @@ public class HomeCont {
 ▷ /webapp/WEB-INF/views/menu/bottom.jsp
 -------------------------------------------------------------------------------------
 <%@ page contentType="text/html; charset=UTF-8" %>
- 
   </DIV> <%-- 내용 종료 --%>
 
-  
   <%-- 화면 하단 메뉴 --%>
   <DIV class='copyright'>
     Copyright Spring Boot All rights reserved.
@@ -893,34 +892,46 @@ public class HomeCont {
     종속: PK 컬럼(1) <---> 피 종속: FK 컬럼(*)
 ⑤ 일반 컬럼 추가
 ⑥ SQL 생성 및 테스트
- 
+  
 2. 테이블 종류
    - 종류 1: 데이터를 나타내는 테이블  예) 상품
    - 종류 2: 데이터의 운영에의해서 발생하는 테이블 예) 쇼핑카트, 구입, 주문, 배송
    - 종류 3: 다른 시스템에서 상품을 가져오는 경우 예) 다음 쇼핑/네이버 쇼핑 --> Auction, 쿠팡
 
-   1) categrp: 카테고리 그룹
-   2) category: 카테고리 그룹에 속한 카테고리
-   3) contents: 블로그, 상품
-   4) reply    : 댓글, 상품평
-   5) cart      : 쇼핑 카트
-   6) reservation: 예약
-   7) resitem  : 예약 항목
-   8) point    : 포인트  
-   9) member: 회원
-   10) admin  : 사원
-   11) auth    : 권한(직책)
-   12) url      :접속 가능 주소 
-   13) urlauth: 권한별 접근 URL
-   14) survey : 설문 조사
-   15) surveyitem : 설문 조사 항목
-   16) surveyparti : 설문 참여
-   17) log     : 로그
-   18) gallery: 갤러리
-   19) qna: 질문답변
-   
-3. 테이블 생성 및 import
- 
+   1) categrp: 카테고리 그룹   2) category: 카테고리 그룹에 속한 카테고리
+   3) contents: 블로그, 상품    4) reply    : 댓글, 상품평
+   5) cart      : 쇼핑 카트   6) reservation: 예약
+   7) resitem  : 예약 항목   8) point    : 포인트  
+   9) member: 회원   10) admin  : 사원
+   11) auth    : 권한(직책)   12) url      :접속 가능 주소 
+   13) urlauth: 권한별 접근 URL   14) survey : 설문 조사
+   15) surveyitem : 설문 조사 항목   16) surveyparti : 설문 참여
+   17) log     : 로그   18) gallery: 갤러리   19) qna: 질문답변   
+
+3. 그룹 : 그룹의 사용은 필연
+EX) 소셜 미디어의 그룹사용
+-> 전자기기 -> 노트북/PC -> 노트북 -> LG 노트북
+3. 그룹의 사용: 영화
+   1) 장르: genre
+       - SF, 스릴러, 드라마, 유머, 가족...
+   2) 장르에 속한 영화: movie
+       - SF 속한 영화: 인터스텔라, AI
+       - 드라마: 맘마미아, 월터의 상상은 현실이된다., 악마는 프라다를 입는다.
+
+4. 그룹의 사용: 여행
+   1) 여행 카테고리 그룹: tripcategrp
+      - 국내, 해외, 화성...
+   2) 여행 카테고리: tripcate
+       - 국내에 속한 카테고리: 서울/인천, 경기도, 강원도, 충청북도, 충청남도...
+   3) 여행 후기: trip
+       - 강원도에 속한 여행: 카페산 카페, 대관령 삼양목장, 선돌관광지
+
+3. 테이블 생성
+- Oracle JDBC Driver Download
+   - https://www.oracle.com/kr/database/technologies/appdev/jdbc-downloads.html
+     -> Oracle Database 18c (18.3) drivers -> ojdbc8.jar
+   - 다운후 용량은 4,065 KB 이어야함.
+
 1) '/WEB-INF/doc/카테고리그룹' 폴더를 생성한 후 선택하고 새로운 파일을 생성합니다.
 2) 데이터베이스 선택
    - File name: .    / - SQL Dialect: Oracle 선택   
@@ -928,24 +939,25 @@ public class HomeCont {
    - https://www.oracle.com/kr/database/technologies/appdev/jdbc-downloads.html
      -> Oracle Database 18c (18.3) drivers -> ojdbc8.jar
 4) ERD 정보 입력
+    - JAR File : ai8에 ojdbc8.jar로 설정
     - JDBC Driver: oracle.jdbc.driver.OracleDriver
     - Oracle 설정: jdbc:oracle:thin:@localhost:1521:XE 
 5) 테이블 생성
 6) 논리적 모델링 테이블: 실제 생성되는 테이블명이 아니라 저장되는 내용을 참고하여
-                                 이름 지정, 데이터베이스 결정되지 않아도 상관 없음.
+                                       이름 지정, 데이터베이스 결정되지 않아도 상관 없음.
     물리적 테이블: 실제 물리적으로 DBMS 디스크상에 생성해야할 테이블명,
-                        DBMS결정되어있어야함.
+                           DBMS결정되어있어야함.
    - categrp 카테고리 그룹 테이블 생성
   - cate 테이블 생성
    - contents 테이블생성
    - member 테이블생성
      . 논리적 테이블 이름: 회원
      . 물리적 테이블 이름: member
+
 4. 테이블이 추가된 형태(Ctrl+D: 논리적/물리적 view 전환)
-  - 논리적 모델링
-  - 물리적 모델링
+  - 논리적 모델링 - 물리적 모델링
 ~~~
 ---
-* **0331 : [08][Resort] CSS 제작**   
+* **0331 : [11][Resort] CSS 제작**   
 ~~~
 ~~~
