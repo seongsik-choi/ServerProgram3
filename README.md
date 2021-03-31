@@ -1012,5 +1012,8 @@ public class HomeCont {
 - 정상적인 관계(relationship) 설정이되어야 JAVA등의 application으로 구현이 원활
 1) 논리적 모델링
 2) 물리적 모델링
-
 ~~~
+![image](https://user-images.githubusercontent.com/76051264/113097565-113a8500-9232-11eb-85a7-2b2421731abd.png) 
+
+* **0331 : **   
+
