@@ -724,3 +724,228 @@ public class ResortV1sbm3aApplication {
 }
 5. Web 접속 테스트 :  http://localhost:9091
 ~~~
+
+* **0330 : [08][Resort] CSS 제작**  
+~~~
+[01]  CSS 제작
+1. CSS
+- @CHARSET "UTF-8";: CSS 인코딩 방식 지정
+▷ /src/main/resources/static/css/style.css
+첨부 파일 참고
+~~~
+
+* **0330: [09][Resort] index.do 페이지 제작 , 화면 상단, 하단 Menu 파일, index.jsp 제작**  
+~~~
+[01] 메뉴 구성
+- http://localhost:9091
+ 
+1. Controller
+▷ dev.mvc.resort_v1sbm3a.HomeCont.java
+package dev.mvc.resort_v1sbm3a;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
+
+@Controller
+public class HomeCont {
+  public HomeCont() {
+    System.out.println("--> HomeCont created.");
+  }
+
+  // http://localhost:9091
+  @RequestMapping(value = {"/", "/index.do"}, method = RequestMethod.GET)
+  public ModelAndView home() {
+    ModelAndView mav = new ModelAndView();
+    mav.setViewName("/index");  // /WEB-INF/views/index.jsp
+    
+    return mav;
+  }
+}
+
+ 
+2. 화면 상단 메뉴
+- 자주 사용되는 EL 값의 활용: <c:set var="root" value="${pageContext.request.contextPath}" />
+						 ${root}
+▷ /webapp/WEB-INF/views/menu/top.jsp
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<DIV class='container_main' style='width: 100%;'> 
+  <%-- 화면 상단 메뉴 --%>
+  <DIV class='top_img'>
+    <DIV class='top_menu_label'>Resort 0.1 영화와 여행이있는 리조트</DIV>
+    <NAV class='top_menu'>
+      <span style='padding-left: 0.5%;'></span>
+      <A class='menu_link'  href='/' >힐링 리조트</A><span class='top_menu_sep'> </span>
+      <A class='menu_link'  href='/categrp/list.do'>카테고리 그룹</A><span class='top_menu_sep'> </span>    
+            
+    </NAV>
+  </DIV>
+  
+  <%-- 내용 --%> 
+  <DIV class='content'>
+
+-------------------------------------------------------------------------------------
+3. 화면 하단 메뉴
+▷ /webapp/WEB-INF/views/menu/bottom.jsp
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+ 
+  </DIV> <%-- 내용 종료 --%>
+
+  
+  <%-- 화면 하단 메뉴 --%>
+  <DIV class='copyright'>
+    Copyright Spring Boot All rights reserved.
+  </DIV>
+  
+</DIV> <%-- container_main 종료 --%>
+   
+------------------------------------------------------------------------------------- 
+[02] index.jsp 시작 페이지
+1. JSP
+▷ /webapp/WEB-INF/views/index.jsp
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+ 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+<!-- /static 기준 -->
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+ 
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<!-- Bootstrap -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    
+</head>
+<body>
+<jsp:include page="./menu/top.jsp" flush='false' />
+  
+  <DIV style='width: 100%; margin: 30px auto; text-align: center;'>
+    <IMG src='/menu/images/resort01.jpg' style='width: 60%;'>
+  </DIV>
+  
+  <DIV style='margin: 0px auto; width: 90%;'>
+    <DIV style='float: left; width: 50%;'>
+     </DIV>
+     <DIV style='float: left; width: 50%;'>
+    </DIV>  
+  </DIV>
+ 
+  <DIV style='width: 94.8%; margin: 0px auto;'>
+  </DIV>  
+ 
+<jsp:include page="./menu/bottom.jsp" flush='false' />
+ 
+</body>
+</html>
+-------------------------------------------------------------------------------------
+~~~
+
+* **0330: [10][Resort] Amateras ERD/UML 설계툴, Resort 관리 시스템 제작 DBMS 모델링, Entity 산출, resort.erd 제작**  
+~~~
+[01] ERD/UML 툴 설치  
+1. STS(Eclipse) GEF plugin 설치
+1) STS를 종료합니다. 
+2) http://www.eclipse.org/gef/downloads/index.php  
+3) GEF4 Update Site ->'GEF3-Update-4.0.0.zip' 다운로드 
+4) 'GEF3-Update-4.0.0.zip' 폴더에 압축을 풉니다. 
+5) 'GEF3-Update-4.0.0' 폴더의 모든 내용을 '/sts-4.6.0' 폴더에 복사하여 덮어 씁니다. 
+2015-08-18  오후 02:28    <DIR>          features
+2015-08-18  오후 02:28    <DIR>          plugins
+2015-07-09  오후 03:51             4,108 artifacts.jar
+2015-07-09  오후 03:51            41,974 content.jar
+  
+2. Amateras UML 설치
+   http://amateras.sourceforge.jp/cgi-bin/fswiki_en/wiki.cgi  
+   -> Download -> AmaterasUML_1.3.4.zip 
+   net.java.amateras.umleditor.java_1.3.4.jar 
+   net.java.amateras.umleditor_1.3.4.jar 
+   net.java.amateras.xstream_1.3.4.jar  
+   위의 3개의 파일을 /sts-4.6.0/plugins 폴더에 복사합니다. 
+
+3. Amateras ERD 설치(Amateras UML을 먼저 설치해야합니다.) 
+   http://amateras.sourceforge.jp/cgi-bin/fswiki_en/wiki.cgi  
+   -> Download -> AmaterasERD 
+   -> net.java.amateras.db_1.0.9.jar 다운로드 
+   위의 1개의 파일을 /sts-4.6.0/plugins 폴더에 복사합니다. 
+
+4. STS를 다시 시작 합니다. 
+5. 설치가 성공적으로 되었습니다.
+
+[02] Amateras ERD 툴을 이용한 DBMS 모델링
+1. 테이블 설계
+① 업무 분석
+② 테이블명 명사 도출
+③ 테이블의 레코드를 고유하게 구분할 Primary Key 컬럼 산출
+④ 테이블간 종속 관계 설정: 1 대 다
+    종속: PK 컬럼(1) <---> 피 종속: FK 컬럼(*)
+⑤ 일반 컬럼 추가
+⑥ SQL 생성 및 테스트
+ 
+2. 테이블 종류
+   - 종류 1: 데이터를 나타내는 테이블  예) 상품
+   - 종류 2: 데이터의 운영에의해서 발생하는 테이블 예) 쇼핑카트, 구입, 주문, 배송
+   - 종류 3: 다른 시스템에서 상품을 가져오는 경우 예) 다음 쇼핑/네이버 쇼핑 --> Auction, 쿠팡
+
+   1) categrp: 카테고리 그룹
+   2) category: 카테고리 그룹에 속한 카테고리
+   3) contents: 블로그, 상품
+   4) reply    : 댓글, 상품평
+   5) cart      : 쇼핑 카트
+   6) reservation: 예약
+   7) resitem  : 예약 항목
+   8) point    : 포인트  
+   9) member: 회원
+   10) admin  : 사원
+   11) auth    : 권한(직책)
+   12) url      :접속 가능 주소 
+   13) urlauth: 권한별 접근 URL
+   14) survey : 설문 조사
+   15) surveyitem : 설문 조사 항목
+   16) surveyparti : 설문 참여
+   17) log     : 로그
+   18) gallery: 갤러리
+   19) qna: 질문답변
+   
+3. 테이블 생성 및 import
+ 
+1) '/WEB-INF/doc/카테고리그룹' 폴더를 생성한 후 선택하고 새로운 파일을 생성합니다.
+2) 데이터베이스 선택
+   - File name: .    / - SQL Dialect: Oracle 선택   
+3) Oracle JDBC Driver Download
+   - https://www.oracle.com/kr/database/technologies/appdev/jdbc-downloads.html
+     -> Oracle Database 18c (18.3) drivers -> ojdbc8.jar
+4) ERD 정보 입력
+    - JDBC Driver: oracle.jdbc.driver.OracleDriver
+    - Oracle 설정: jdbc:oracle:thin:@localhost:1521:XE 
+5) 테이블 생성
+6) 논리적 모델링 테이블: 실제 생성되는 테이블명이 아니라 저장되는 내용을 참고하여
+                                 이름 지정, 데이터베이스 결정되지 않아도 상관 없음.
+    물리적 테이블: 실제 물리적으로 DBMS 디스크상에 생성해야할 테이블명,
+                        DBMS결정되어있어야함.
+   - categrp 카테고리 그룹 테이블 생성
+  - cate 테이블 생성
+   - contents 테이블생성
+   - member 테이블생성
+     . 논리적 테이블 이름: 회원
+     . 물리적 테이블 이름: member
+4. 테이블이 추가된 형태(Ctrl+D: 논리적/물리적 view 전환)
+  - 논리적 모델링
+  - 물리적 모델링
+~~~
+---
+* **0331 : [08][Resort] CSS 제작**   
+~~~
+~~~
