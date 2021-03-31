@@ -270,26 +270,6 @@ dependencies {
 ▷ /src/main/webapp/WEB-INF/views/employee/employee.jsp
 ~~~
 
-~~~
-11. 실행 화면
-1) Boot Dashboard -> 2) BasicApplication -> 3) http://localhost:9091/employee/employee.do 접속
-[참고] Lombok eclipse plugin 설치, 버그 있음 ★★★★★
-- VO(DTO) class의 setter, getter를 자동으로 생성함.
-- 변수명이 대소문자가 혼합되면 정상적으로 getter, setter가 생성이 안되는 버그 있음★★★★★
-- STS 재시작시 getter, setter가 자동으로 생성되나 다른 클래스에서 인식 안되는 버그 있음★★★★★
-
-1. 공식 홈페이지: https://projectlombok.org
-2. https://projectlombok.org/download 접속
-3. 탐색기에서 lombok.jar 실행
-4. Specify location...
-5. STS가 설치된 폴더의 SpringToolSuite4.exe 실행 파일 지정
-6. Install / Update
-7. 설치 성공
-8. SpringToolSuite4.ini 변경
-▷ C:/ai6/sts-4.5.1\SpringToolSuite4.ini
-9. STS restart
-10. VO(DTO) class 제작
-~~~
 ---
 * **0330 :[05] MyBATIS framework 3.4.1 개론, Website 개발 절차, MyBATIS 기초 코드 ★**
 **▶ 0329 복습**  
@@ -618,6 +598,7 @@ public class ResortV1sbm3aApplication {
 2. MyBatis 설정
 - @MapperScan(basePackages= {"dev.mvc.bbs"}): DAO interface 검색 패키지 설정
 ★★중요한점 : application.properties 끌어다 쓰고, classpath:/mybatis 필요★★
+
 ▷ /src/main/java/dev.mvc.resort_v1sbm3a.DatabaseConfiguration.java 설정
 package dev.mvc.resort_v1sbm3a;
 import javax.sql.DataSource;
@@ -631,7 +612,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -648,14 +628,12 @@ public class DatabaseConfiguration {
     public HikariConfig hikariConfig() {
         return new HikariConfig();
     }
-    
     @Bean
     public DataSource dataSource() throws Exception{
         DataSource dataSource = new HikariDataSource(hikariConfig());
         System.out.println(dataSource.toString());  // 정상적으로 연결 되었는지 해시코드로 확인
         return dataSource;
     }
-    
     @Bean
     public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception{
         SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
@@ -665,23 +643,23 @@ public class DatabaseConfiguration {
         
         return sqlSessionFactoryBean.getObject();
     }
-    
     @Bean
     public SqlSessionTemplate sqlSessionTemplate(SqlSessionFactory sqlSessionFactory){
         return new SqlSessionTemplate(sqlSessionFactory);
     }
 }
 
-
 [03] Oracle Driver 설정 및 테스트
 1. Oracle Driver 설정
 ★★build.gradle에서 Oracle Driver 절대 설치하지 말것, 버그로 인해 드라이버 인식 불규칙하게됨 ★★★★★
+
 JSP views: /src/main/webapp/WEB-INF/lib/ojdbc8.jar
-- Oracle 18C XE 버전의 경우 SQL Developer가 설치된 폴더의 F:/ai7/sqldeveloper/jdbc/lib/ojdbc8.jar을 복사하여 사용 할 것.
+- Oracle 18C XE 버전의 경우 SQL Developer가 설치된 폴더의 F:/ai7/sqldeveloper/jdbc/lib/ojdbc8.jar을 복사하여 사용
 
 2. MyBatis 설정 JUnit 테스트(/src/test/java 폴더에 테스트 기초 파일이 생성되어 있음 ★)
 ▷ /src/test/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplicationTests.java 설정
  -> /src/main/java가 아닌 -> /src/test/java
+
 package dev.mvc.resort_v1sbm3a;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -908,9 +886,9 @@ public class HomeCont {
    15) surveyitem : 설문 조사 항목   16) surveyparti : 설문 참여
    17) log     : 로그   18) gallery: 갤러리   19) qna: 질문답변   
 
-3. 그룹 : 그룹의 사용은 필연
-EX) 소셜 미디어의 그룹사용
--> 전자기기 -> 노트북/PC -> 노트북 -> LG 노트북
+★★3. 그룹 : 그룹의 사용은 필연★★
+★★EX) 소셜 미디어의 그룹사용★★
+-> 전자기기(대분류) -> 노트북/PC(중분류) -> 노트북 -> LG 노트북(소분류) -> cpu, gpu...(내용)
 3. 그룹의 사용: 영화
    1) 장르: genre
        - SF, 스릴러, 드라마, 유머, 가족...
