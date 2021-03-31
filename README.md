@@ -1010,10 +1010,40 @@ public class HomeCont {
 - Foreign Key(FK): 현재 레코드가 어느 그룹에 속하는지의 정보를 나타냄
 - INSERT SQL 실행시 다른 테이블의 PK 값이 있어야함.
 - 정상적인 관계(relationship) 설정이되어야 JAVA등의 application으로 구현이 원활
-1) 논리적 모델링
-2) 물리적 모델링
+1) 논리적 모델링 : 우리가 알아보는 이름(한글) + Numeric
+2) 물리적 모델링 : DMBS에 저장되는 이름(영어) + Number
 ~~~
 ![image](https://user-images.githubusercontent.com/76051264/113097565-113a8500-9232-11eb-85a7-2b2421731abd.png) 
 
-* **0331 : **   
+* **0331 : [12][Categrp] Categrp 테이블 논리적 모델링, 물리적 모델링**   
+~~~
+[01] categrp 테이블 논리적/물리적 모델링
+1. 카테고리 그룹 : Column 추가해주기
+DROP TABLE categrp;
+ 
+CREATE TABLE categrp(
+    categrpno                        NUMBER(10)     NOT NULL    PRIMARY KEY,
+    name                              VARCHAR(50)    NOT NULL,					-- 한글(/3)도 16도정도
+    seqno                             NUMBER(7)       DEFAULT 0     NOT NULL,
+    visible                             CHAR(1)           DEFAULT 'Y'     NOT NULL,
+    rdate                               DATE              NOT NULL
+);
+ 
+COMMENT ON TABLE categrp is '카테고리 그룹';
+COMMENT ON COLUMN categrp.categrpno is '카테고리 그룹 번호';
+COMMENT ON COLUMN categrp.name is '이름';
+COMMENT ON COLUMN categrp.seqno is '출력 순서';
+COMMENT ON COLUMN categrp.visible is '출력 모드';
+COMMENT ON COLUMN categrp.rdate is '그룹 생성일';
+ 
+ - 논리적/물리적 모델링 결과 확인
+  
+2. SQL 생성
+ 1) Export -> DDL
+ 2) ALTER TABLE을 이용한 제약 조건의 선언
+ 3) 테이블 구조 생성시 제약 조건 선언  
+ 4) resort.ddl -> categrp_c.sql로 변경
+ 5) 파일 열기
+
+~~~
 
