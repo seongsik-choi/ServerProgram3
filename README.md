@@ -1065,7 +1065,10 @@ CREATE SEQUENCE memo_seq
 
 -> Oracle은 여기서 끝
 
-- mariaDB 설치 : DB/SQL 응용 페이지 -> http://soldeskit3.cafe24.com/pds/read.jsp?pdsgrpno=390&pdsno=18193&grpno=&col=&word=&currentPage=0&visible=
+- mariaDB 설치 : DB/SQL 응용 페이지 
 ->10.3.28 version 다운
 ~~~
+![image](https://user-images.githubusercontent.com/76051264/113117184-2a9afb80-9249-11eb-9ce7-0cba5d13e88b.png)  
+![image](https://user-images.githubusercontent.com/76051264/113117263-3ab2db00-9249-11eb-8e1d-b9e38e45172d.png)  
+
 
