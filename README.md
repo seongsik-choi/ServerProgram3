@@ -1327,6 +1327,4 @@ public class CategrpCont {
  -> 서버 프로그램 Client 화면구현(Bootstrap/JavaScript/Ajax/JSON/jQuery)]
 [01][Bootstrap] CSS framework 부트스트랩의 설정, GRID 화면 분할
 1. [01] CSS framework 부트스트랩의 사용
-
-
 ~~~
