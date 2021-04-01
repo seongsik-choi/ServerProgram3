@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<!-- dev.mvc.categrp.CategrpDAOInter 패키지에 등록된 interface 명시,
+      패키지명과 인터페이스명은 실제로 존재해야함,
+      Spring이 내부적으로 자동으로 interface를 구현해줌. -->
+<mapper namespace="dev.mvc.categrp.CategrpDAOInter"> 
+  <!-- 
+  insert: INSERT SQL 실행
+  id: Spring에서 호출시 사용
+  parameterType: 전달받는 데이터 객체
+  return: 등록한 레코드 갯수 리턴
+  SQL선언시 ';'은 삭제
+  #{}: 컬럼의 값
+  #{name}: public String getName(){...
+  -->
+  <insert id="create" parameterType="dev.mvc.categrp.CategrpVO">
+    INSERT INTO categrp(categrpno, name, seqno, visible, rdate)
+    VALUES(categrp_seq.nextval, #{name}, #{seqno}, #{visible}, sysdate)
+  </insert>
+ 
+   
+</mapper> 
