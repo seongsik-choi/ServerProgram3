@@ -1328,3 +1328,5 @@ public class CategrpCont {
 [01][Bootstrap] CSS framework 부트스트랩의 설정, GRID 화면 분할
 1. [01] CSS framework 부트스트랩의 사용
 ~~~
+
+**0401 : 개인프로젝트 진행 : 서버 프로그램 구현 3(Spring Boot)] - [07] 기반 진행**
