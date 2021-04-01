@@ -1330,3 +1330,8 @@ public class CategrpCont {
 ~~~
 
 **0401 : 개인프로젝트 진행 : 서버 프로그램 구현 3(Spring Boot)] - [07] 기반 진행**  
+~~~
+build.gradle에
+runtimeOnly 'mysql:mysql-connector-java': MariaDB, MySQL Driver 설정(추가 지정)
+
+~~~
