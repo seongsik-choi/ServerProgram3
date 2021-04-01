@@ -1145,10 +1145,12 @@ CREATE SEQUENCE categrp_seq
     ⑥ JSP 
 
 - 세부 작업 절차
-    ① /WEB-INF/doc/dbms/categrp.sql
-    ② dev.mvc.categrp.CategrpVO.java
+    ① /WEB-INF/doc/dbms/categrp.sql   : 테이블 생성과 5개의 컬럼, 3개의 테이블 입력
+    ② dev.mvc.categrp.CategrpVO.java  : sql에서 입력한 컬럼에 대한 Getter, Setter 값 
+
+    - XMl의 ID = DAD의 Method,  parameterType 값 = Method의 Types
     ③ /src/main/resources/mybatis/categrp.xml  ◁─+
-    ④ dev.mvc.categrp.CategrDAOInter.java ────┘◁─+
+    ④ dev.mvc.categrp.CategrDAOInter.java ────┘◁─+  
     ⑤ DAO class Spring (자동 구현됨)                               │
     ⑥ dev.mvc.categrp.CategrProcInter.java ───────┘ ◁─+
     ⑦ dev.mvc.categrp.CategrpProc.java                                      │
