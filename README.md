@@ -1054,9 +1054,9 @@ COMMENT ON COLUMN categrp.rdate is '그룹 생성일';
 -> 옆에 ai8 -> 테이블 열면 CATEGRP 있음
 
 -> Sequence 함수 작성해주기(COMMENT 밑에 추가해주고, 명령문 실행)
-DROP SEQUENCE memo_seq;		
+DROP SEQUENCE categrp_seq;		
 
-CREATE SEQUENCE memo_seq
+CREATE SEQUENCE categrp_seq
   START WITH 1           -- 시작 번호
   INCREMENT BY 1       -- 증가값
   MAXVALUE 9999999999  -- 최대값: 9999999999 --> NUMBER(10) 대응
@@ -1072,7 +1072,40 @@ CREATE SEQUENCE memo_seq
 * **0331 : mariaDB 설치 : DB/SQL 응용 페이지 -> DB/SQL README.md 참고**  
 * **0331 : [MariaDB 01] MariaDB 10.3.27 다운로드 및 설정, 계정 생성, resort DB 생성**  
 ---
+
 * **0401 : [13][Categrp] Categrp Categrp SQL 제작, categrp.sql, Categrp VO(DTO)**  
 ~~~
+++ sql 한글 깨짐시 : EditPlus로 열어서 복붙
+[01] SQL 제작
+- 테이블 구조 생성후 최소 3건의 등록된 레코드 필요.
+- SQL Developer를 이용한 SQL 작업 진행
+
+1. 카테고리 그룹
+  ▷ /WEB-INF/doc/dbms/categrp_c.sql(ddl)
+  -> sequence까지 추가된 테이블 형태(0331 부분 그대로) + 그 밑 테이블 생성 구문은 지우기.
+ 
+ ex)
+-- Physical Modeling 
+  CREATE TABLE categrp(
+		categrpno        NUMBER(10)        NOT NULL        PRIMARY KEY, ....);
+
+ -- Logical Modeling
+  COMMENT ON TABLE categrp is '카테고리 그룹';
+ 
+ ▷ sequence 밑에 추가
+ ▷ SQL의 기본 구현 6가지 : CRUD + List + Count
+ -- Create, 등록
+ -- List, 목록
+ -- Read, 조회
+ -- Update, 수정
+ -- Delete, 삭제
+ -- Count(갯수)
+
+
+[02] VO, MyBATIS 설정
+1. VO
+▷ dev.mvc.categrp.CategrpVO.java
+
+3. MyBATIS DAO package 폴더 등록
 
 ~~~
