@@ -1139,8 +1139,8 @@ CREATE SEQUENCE categrp_seq
 - 작업 절차
     ① SQL 
     ② MyBATIS  ◁──+
-    ③ DAO ─────┘ ◁─+  Interface 선언시 Spring이 자동으로 구현
-    ④ Process ───────┘  ◁─+
+    ③ DAO(실행객체)-┘ ◁─+  Interface 선언시 Spring이 자동으로 구현
+    ④ Process(제어문)--──┘  ◁─+
     ⑤ Controller  ─────────┘
         ↑GET. POST     ↓결과 출력
     ⑥ JSP 
@@ -1213,7 +1213,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 </mapper> 
 -----------------------------------------------------------------------------------
 
- 3. DAO interface
+ 3. DAO interface 
+ - DAO : data Access Object, DMBS 실행 객체
  - Spring은 MyBATIS에 선언된 <insert id="create" parameterType="CategrpVO"> 태그를
   참조하여 자동으로 DAO class 생성
  - 자동으로 생성된 DAO class는 MyBATIS를 호출하는 역할
@@ -1240,6 +1241,7 @@ public interface CategrpDAOInter {
 -----------------------------------------------------------------------------------
 
  4. Process interface
+ - Process(Manager, Service) : DBMS 접속이 아닌 알고리즘 및 제어문 선언
  - 신규로 추가도 되지만 DAO Interface의 많은 메소드가 Process Interface에서 재사용
 -------------------------------------------------------------------------------------
 package dev.mvc.categrp;
@@ -1270,28 +1272,61 @@ public interface CategrpProcInter {
 ▷ dev.mvc.categrp.CategrpProc.java
 -------------------------------------------------------------------------------------
 package dev.mvc.categrp;
- 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
- 
 
-@Component("dev.mvc.categrp.CategrpProc")
+// Controller에서 AutoWired 기능에 의해 호출될때 사용되는 이름
+@Component("dev.mvc.categrp.CategrpProc")   
+
 public class CategrpProc implements CategrpProcInter {
-  @Autowired  // DI, Spring framework이 자동 구현한 DAO가 자동 할당됨.
+  @Autowired  //  DI, Spring framework가 자동 구현한 DAO class 객체를 할당.
   private CategrpDAOInter categrpDAO;
+  // private CategrpDAOInter categrpDAO = new categrpDAO();
+  // interface는 객체 생성할 수 없기에 인터페이스 = new 구현클래스()
   
   @Override
   public int create(CategrpVO categrpVO) {
-    int cnt = 0;
-    cnt = this.categrpDAO.create(categrpVO);
-    return cnt;
+    int cnt = this.categrpDAO.create(categrpVO);
+    return cnt;  // 등록한 레코드 갯수 리턴
   }
 
 }
 -------------------------------------------------------------------------------------
+
+6. Controller class
+- 실행 주소의 조합
+  http://localhost:9090/blog/categrp/create.jsp 
+  → http://localhost:9090/blog/categrp/create.do
+
+-> ★호출 규칙★
+ Cont -> proc -> procIneter -> DAOInter -> Mybatis
+
+-> 실행 디렉토리 설정 : Application.java
+@ComponentScan(basePackages = {"dev.mvc"})  // 전체 디렉토리로 지정
+
+▷ dev.mvc.categrp.CategrpCont.java
+-------------------------------------------------------------------------------------
+package dev.mvc.categrp;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Controller;
+
+@Controller
+public class CategrpCont {
+ @Autowired // CategrpProcInter 인터페이스를 구현한 CategrpProc.java가 할당
+ @Qualifier("dev.mvc.categrp.CategrpProc") // proc에게 전송
+ private CategrpProcInter categrpProc; 
+ 
+ public CategrpCont() {
+   System.out.println(" -> CategrpCont created.");
+ }
+ 
+}
+-------------------------------------------------------------------------------------
+
+ -> 서버 프로그램 Client 화면구현(Bootstrap/JavaScript/Ajax/JSON/jQuery)]
+[01][Bootstrap] CSS framework 부트스트랩의 설정, GRID 화면 분할
+1. [01] CSS framework 부트스트랩의 사용
 
 
 ~~~
