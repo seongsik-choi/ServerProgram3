@@ -1065,13 +1065,12 @@ CREATE SEQUENCE memo_seq
 
 -> Oracle 실습은 여기서 끝.
 ~~~
-* **0331 : mariaDB 설치 : DB/SQL 응용 페이지 -> DB/SQL README.md 참고**  
-* **0331 : [MariaDB 01] MariaDB 10.3.27 다운로드 및 설정, 계정 생성, resort DB 생성**  
----
 ![image](https://user-images.githubusercontent.com/76051264/113117184-2a9afb80-9249-11eb-9ce7-0cba5d13e88b.png)  
 ---
 ![image](https://user-images.githubusercontent.com/76051264/113117263-3ab2db00-9249-11eb-8e1d-b9e38e45172d.png)  
-
+---
+* **0331 : mariaDB 설치 : DB/SQL 응용 페이지 -> DB/SQL README.md 참고**  
+* **0331 : [MariaDB 01] MariaDB 10.3.27 다운로드 및 설정, 계정 생성, resort DB 생성**  
 ---
 * **0401 : [13][Categrp] Categrp Categrp SQL 제작, categrp.sql, Categrp VO(DTO)**  
 ~~~
