@@ -1054,7 +1054,7 @@ COMMENT ON COLUMN categrp.rdate is '그룹 생성일';
 -> 옆에 ai8 -> 테이블 열면 CATEGRP 있음
 
 -> Sequence 함수 작성해주기(COMMENT 밑에 추가해주고, 명령문 실행)
-DROP SEQUENCE memo_seq;		-- DROP은 지우는거니까 하지말기.
+DROP SEQUENCE memo_seq;		
 
 CREATE SEQUENCE memo_seq
   START WITH 1           -- 시작 번호
@@ -1063,13 +1063,17 @@ CREATE SEQUENCE memo_seq
   CACHE 2                  -- 2번은 메모리에서만 계산
   NOCYCLE;                 -- 다시 1부터 생성되는 것을 방지
 
--> Oracle은 여기서 끝
-
-- mariaDB 설치 : DB/SQL 응용 페이지 
-->10.3.28 version 다운
+-> Oracle 실습은 여기서 끝.
 ~~~
+* **0331 : mariaDB 설치 : DB/SQL 응용 페이지 -> DB/SQL README.md 참고**  
+* **0331 : [MariaDB 01] MariaDB 10.3.27 다운로드 및 설정, 계정 생성, resort DB 생성**  
+---
 ![image](https://user-images.githubusercontent.com/76051264/113117184-2a9afb80-9249-11eb-9ce7-0cba5d13e88b.png)  
 ---
 ![image](https://user-images.githubusercontent.com/76051264/113117263-3ab2db00-9249-11eb-8e1d-b9e38e45172d.png)  
 
+---
+* **0401 : [13][Categrp] Categrp Categrp SQL 제작, categrp.sql, Categrp VO(DTO)**  
+~~~
 
+~~~
