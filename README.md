@@ -1113,8 +1113,8 @@ CREATE SEQUENCE categrp_seq
   INSERT INTO categrp(categrpno, name, seqno, visible, rdate)
   VALUES(categrp_seq.nextval, '음악', 3, 'Y', sysdate);
 
- --6) Count(갯수)
-
+ --6) Count(갯수)  : 3
+  SELECT count(*) FROM categrp;
 
 [02] VO, MyBATIS 설정
 1. VO
