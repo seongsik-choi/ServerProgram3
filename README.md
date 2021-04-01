@@ -1005,7 +1005,7 @@ public class HomeCont {
   2) 물리적 모델링 :  categrpno(Number(10))
 
 4. FK 설계 : 다른 테이블의 PK를 지정
-★★FK가 존재하지 않는 경우 무조건 에러 발생, INSERT 불가.★★
+ㅊFK가 존재하지 않는 경우 무조건 에러 발생, INSERT 불가.★★
 - 관계형 데이터베이스(RDBMS)는 테이블간에 종속(부모/자식, 그룹/구성원) 관계가 FK로 선언됨
 - Foreign Key(FK): 현재 레코드가 어느 그룹에 속하는지의 정보를 나타냄
 - INSERT SQL 실행시 다른 테이블의 PK 값이 있어야함.
@@ -1077,29 +1077,32 @@ CREATE SEQUENCE categrp_seq
 ~~~
 ++ sql 한글 깨짐시 : EditPlus로 열어서 복붙
 [01] SQL 제작
-- 테이블 구조 생성후 최소 3건의 등록된 레코드 필요.
-- SQL Developer를 이용한 SQL 작업 진행
+- 테이블 구조 생성후 최소 3건의 등록된 레코드, SQL Developer를 이용한 SQL 작업 진행
 
 1. 카테고리 그룹
-  ▷ /WEB-INF/doc/dbms/categrp_c.sql(ddl)
+ ▷ /WEB-INF/doc/dbms/categrp_c.sql(ddl)
   -> sequence까지 추가된 테이블 형태(0331 부분 그대로) + 그 밑 테이블 생성 구문은 지우기.
- 
- ex)
--- Physical Modeling 
-  CREATE TABLE categrp(
-		categrpno        NUMBER(10)        NOT NULL        PRIMARY KEY, ....);
 
- -- Logical Modeling
-  COMMENT ON TABLE categrp is '카테고리 그룹';
- 
- ▷ sequence 밑에 추가
- ▷ SQL의 기본 구현 6가지 : CRUD + List + Count
- -- Create, 등록
- -- List, 목록
- -- Read, 조회
- -- Update, 수정
- -- Delete, 삭제
- -- Count(갯수)
+ ▷★★SQL의 기본 구현 6가지 : CRUD + List + Count★★
+ --1) Create, 등록
+  INSERT INTO categrp(categrpno, name, seqno, visible, rdate)
+  VALUES(categrp_seq.nextval, '영화', 1, 'Y', sysdate);
+
+ --2) List, 목록 : 여러 건의 레코드를 읽는 것
+  SELECT categrpno, name, seqno, visible, rdate FROM categrp
+  ORDER BY categrpno ASC;
+
+ --3) Read, 조회 : 한 건의 레코드를 읽는 것
+  SELECT categrpno, name, seqno, visible, rdate FROM categrp
+  WHERE categrpno = 1;
+
+ --4) Update, 수정 : PK는 update 불가능
+ --UPDATE 테이블명 SET에 바꿀 조건, WHERE에 PK조건을 명시
+
+ --5) Delete, 삭제
+  
+
+ --6) Count(갯수)
 
 
 [02] VO, MyBATIS 설정
