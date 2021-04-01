@@ -1113,13 +1113,131 @@ CREATE SEQUENCE categrp_seq
   INSERT INTO categrp(categrpno, name, seqno, visible, rdate)
   VALUES(categrp_seq.nextval, '음악', 3, 'Y', sysdate);
 
- --6) Count(갯수)  : 3
+ --6) Count(갯수) : 그룹화 함수이자 Column명
+ -- 컬럼에 null이 있는경우 갯수 산정에 제외됨.
   SELECT count(*) FROM categrp;
 
+  -- count(*) 보완 : AS는 컬럼별명을 지정.
+  SELECT COUNT(*) AS cnt FROM categrp;
+
+ + commit;  // DB로 전송
+ 
 [02] VO, MyBATIS 설정
 1. VO
-▷ dev.mvc.categrp.CategrpVO.java
+▷ dev.mvc.categrp 패지지 생성후 -> CategrpVO.java  : 컬럼 값들 기반 Getter Setter 생성 
 
 3. MyBATIS DAO package 폴더 등록
+▷ DatabaseConfiguration.java로 이동해 VO가 저장된 dev.mvc.categrp 패키지 등록.
+ @MapperScan(basePackages= {"dev.mvc.resort_v1sbm3a", "dev.mvc.categrp"})  <-- "dev.mvc.categrp" 추가
+~~~
+---
+
+* **0401 :[14][Categrp] Categrp 등록 기능 제작(INSERT~)**  
+~~~
+[01] Categrp 등록 기능 제작(INSERT~ )
+- 작업 절차
+    ① SQL 
+    ② MyBATIS  ◁──+
+    ③ DAO ─────┘ ◁─+  Interface 선언시 Spring이 자동으로 구현
+    ④ Process ───────┘  ◁─+
+    ⑤ Controller  ─────────┘
+        ↑GET. POST     ↓결과 출력
+    ⑥ JSP 
+
+- 세부 작업 절차
+    ① /WEB-INF/doc/dbms/categrp.sql
+    ② dev.mvc.categrp.CategrpVO.java
+    ③ /src/main/resources/mybatis/categrp.xml  ◁─+
+    ④ dev.mvc.categrp.CategrDAOInter.java ────┘◁─+
+    ⑤ DAO class Spring (자동 구현됨)                               │
+    ⑥ dev.mvc.categrp.CategrProcInter.java ───────┘ ◁─+
+    ⑦ dev.mvc.categrp.CategrpProc.java                                      │
+    ⑧ dev.mvc.categrp.CategrpCont.java   ───────────┘
+    ⑨ JSP View
+
+ 1. SQL
+▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
+ -> 테이블 추가 후 commit;으로 DB로 값 전달
+▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
+-----------------------------------------------------------------------------------
+1) INSERT
+INSERT INTO categrp(categrpno, name, seqno, visible, rdate)
+VALUES(categrp_seq.nextval, '영화', 1, 'Y', sysdate);
+ 
+INSERT INTO categrp(categrpno, name, seqno, visible, rdate)
+VALUES(categrp_seq.nextval, '여행', 2, 'Y', sysdate);
+ 
+INSERT INTO categrp(categrpno, name, seqno, visible, rdate)
+VALUES(categrp_seq.nextval, '캠핑', 3, 'Y', sysdate);
+
+commit; 
+-----------------------------------------------------------------------------------
+
+ 2. MyBATIS
+ 1) MyBATIS가 지원하는 자동화 기능
+ - 데이터베이스 연결/해제 자동 지원
+ - JDBC 사용시 꼭 필요한 try ~ catch ~ 문 자동 지원
+ - java.sql.PreparedStatement 객체 자동 생성
+ - ?에 해당하는 컬럼의 값 자동 대입
+ - executeUpdate() 자동 실행
+▷ /src/main/resources/mybatis/categrp.xml 
+-----------------------------------------------------------------------------------
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<!-- dev.mvc.categrp.CategrpDAOInter 패키지에 등록된 interface 명시,
+      패키지명과 인터페이스명은 실제로 존재해야함,
+      Spring이 내부적으로 자동으로 interface를 구현해줌. -->
+<mapper namespace="dev.mvc.categrp.CategrpDAOInter"> 
+  <!-- 
+  insert: INSERT SQL 실행
+  id: Spring에서 호출시 사용
+  parameterType: 전달받는 데이터 객체
+  return: 등록한 레코드 갯수 리턴
+  SQL선언시 ';'은 삭제
+  #{}: ? 동일
+  #{name}: public String getName(){...
+  -->
+  <insert id="create" parameterType="dev.mvc.categrp.CategrpVO">
+    INSERT INTO categrp(categrpno, name, seqno, visible, rdate)
+    VALUES(categrp_seq.nextval, #{name}, #{seqno}, #{visible}, sysdate)
+  </insert>
+ 
+</mapper> 
+-----------------------------------------------------------------------------------
+
+ 3. DAO interface
+ - Spring은 MyBATIS에 선언된 <insert id="create" parameterType="CategrpVO"> 태그를
+  참조하여 자동으로 DAO class 생성
+ - 자동으로 생성된 DAO class는 MyBATIS를 호출하는 역할
+ -> DB(Mybatis) 연결을 Spring에서 담당.
+▷ dev.mvc.categrp.CategrpDAOInter.java 
+-----------------------------------------------------------------------------------
+package dev.mvc.categrp;
+ 
+// MyBATIS의 <mapper namespace="dev.mvc.categrp.CategrpDAOInter">에 선언
+// 스프링이 자동으로 구현
+public interface CategrpDAOInter {
+  /**
+   * 등록
+   * @param categrpVO
+   * @return 등록된 레코드 갯수
+   */
+
+    // Method 이름 create -> categrp.xml과 mapping
+  // XMl의 ID = DAD의 Method,    parameterType 값 = Method의 Types
+  // <insert id="create" parameterType="dev.mvc.categrp.CategrpVO">
+  public int create(CategrpVO categrpVO);
+ 
+}
+-----------------------------------------------------------------------------------
+
+ 4. Process interface
+ - 신규로 추가도 되지만 DAO Interface의 많은 메소드가 Process Interface에서 재사용
+
+
 
 ~~~
