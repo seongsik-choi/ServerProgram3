@@ -1082,9 +1082,10 @@ CREATE SEQUENCE categrp_seq
 1. 카테고리 그룹
  ▷ /WEB-INF/doc/dbms/categrp_c.sql(ddl)
   -> sequence까지 추가된 테이블 형태(0331 부분 그대로) + 그 밑 테이블 생성 구문은 지우기.
+ ▷ TABLE 명 : categrp / Column 5가지, PK(categrpno) / Sequence명 : categrp_seq
 
  ▷★★SQL의 기본 구현 6가지 : CRUD + List + Count★★
- --1) Create, 등록
+ --1) Create, 등록 : CREATE + INSERT
   INSERT INTO categrp(categrpno, name, seqno, visible, rdate)
   VALUES(categrp_seq.nextval, '영화', 1, 'Y', sysdate);
 
@@ -1098,9 +1099,19 @@ CREATE SEQUENCE categrp_seq
 
  --4) Update, 수정 : PK는 update 불가능
  --UPDATE 테이블명 SET에 바꿀 조건, WHERE에 PK조건을 명시
+  UPDATE categrp SET name='영화에서영화2로', seqno=5, visible='N'
+  WHERE categrpno=1;
+
+ -- 복구
+  UPDATE categrp SET name='영화', seqno=1, visible='Y'
+  WHERE categrpno=1;
 
  --5) Delete, 삭제
-  
+  DELETE FROM categrp WHERE categrpno=3;
+
+ -- 복구 : categrpno는 3이 아닌 4 or 5 그 이상 nuum으로 : PK는 재생성 NO
+  INSERT INTO categrp(categrpno, name, seqno, visible, rdate)
+  VALUES(categrp_seq.nextval, '음악', 3, 'Y', sysdate);
 
  --6) Count(갯수)
 
