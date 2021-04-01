@@ -1152,9 +1152,9 @@ CREATE SEQUENCE categrp_seq
     - xml의 #{name}, #{seqno}는 CategrpVo.java의 값에서 전달
     ③ /src/main/resources/mybatis/categrp.xml  ◁─+
     ④ dev.mvc.categrp.CategrDAOInter.java ────┘◁─+  
-    ⑤ DAO class Spring (자동 구현됨)                               │
+    ⑤ DAO class Spring (자동 구현됨)                           │
     ⑥ dev.mvc.categrp.CategrProcInter.java ───────┘ ◁─+
-    ⑦ dev.mvc.categrp.CategrpProc.java                                      │
+    ⑦ dev.mvc.categrp.CategrpProc.java                          │
     ⑧ dev.mvc.categrp.CategrpCont.java   ───────────┘
     ⑨ JSP View
 
