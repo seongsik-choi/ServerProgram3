@@ -18,9 +18,9 @@ COMMENT ON COLUMN categrp.seqno is '출력 순서';
 COMMENT ON COLUMN categrp.visible is '출력 모드';
 COMMENT ON COLUMN categrp.rdate is '그룹 생성일';
 
-DROP SEQUENCE memo_seq;
+DROP SEQUENCE categrp_seq;
 
-CREATE SEQUENCE memo_seq
+CREATE SEQUENCE categrp_seq
   START WITH 1           -- 시작 번호
   INCREMENT BY 1       -- 증가값
   MAXVALUE 9999999999  -- 최대값: 9999999999 --> NUMBER(10) 대응
