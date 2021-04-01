@@ -1148,7 +1148,8 @@ CREATE SEQUENCE categrp_seq
     ① /WEB-INF/doc/dbms/categrp.sql   : 테이블 생성과 5개의 컬럼, 3개의 테이블 입력
     ② dev.mvc.categrp.CategrpVO.java  : sql에서 입력한 컬럼에 대한 Getter, Setter 값 
 
-    - XMl의 ID = DAD의 Method,  parameterType 값 = Method의 Types
+    - Mapping : XMl의 ID = DAD의 Method,  parameterType 값 = Method의 Types
+    - xml의 #{name}, #{seqno}는 CategrpVo.java의 값에서 전달
     ③ /src/main/resources/mybatis/categrp.xml  ◁─+
     ④ dev.mvc.categrp.CategrDAOInter.java ────┘◁─+  
     ⑤ DAO class Spring (자동 구현됨)                               │
@@ -1200,7 +1201,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   parameterType: 전달받는 데이터 객체
   return: 등록한 레코드 갯수 리턴
   SQL선언시 ';'은 삭제
-  #{}: ? 동일
+  #{}: 컬럼의 값
   #{name}: public String getName(){...
   -->
   <insert id="create" parameterType="dev.mvc.categrp.CategrpVO">
@@ -1239,7 +1240,57 @@ public interface CategrpDAOInter {
 
  4. Process interface
  - 신규로 추가도 되지만 DAO Interface의 많은 메소드가 Process Interface에서 재사용
+-------------------------------------------------------------------------------------
+package dev.mvc.categrp;
+ 
+public interface CategrpProcInter {
+  /**
+   * 등록
+   * @param categrpVO
+   * @return 등록된 레코드 갯수
+   */
+  public int create(CategrpVO categrpVO);
+ 
+}
+-------------------------------------------------------------------------------------
 
+5. Process class
+- @Component("dev.mvc.categrp.CategrpProc"): 자동으로 객체 생성이 필요한 Class에만 선언 가능 
+
+1) DI(Dependency Injection: 의존 주입)의 구현
+     - IoC(Inversion of Control, 제어의 역전): 개발자가 객체를 생성하는 것이 아니라,
+       개발자가 객체를 사용하는 순간, Spring 콘트롤러가 객체를 생성하여 개발자에게 제공.
+     - 필요한 객체를 개발자는 선언만하고 객체 생성은 Framework이 하도록하는 기법.
+
+2) 스프링이 빈을 자동으로 생성 선언
+   @Component("dev.mvc.categrp.CategrpProc")
+   public class CategrpProc implements CategrpProcInter {
+
+▷ dev.mvc.categrp.CategrpProc.java
+-------------------------------------------------------------------------------------
+package dev.mvc.categrp;
+ 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+ 
+
+@Component("dev.mvc.categrp.CategrpProc")
+public class CategrpProc implements CategrpProcInter {
+  @Autowired  // DI, Spring framework이 자동 구현한 DAO가 자동 할당됨.
+  private CategrpDAOInter categrpDAO;
+  
+  @Override
+  public int create(CategrpVO categrpVO) {
+    int cnt = 0;
+    cnt = this.categrpDAO.create(categrpVO);
+    return cnt;
+  }
+
+}
+-------------------------------------------------------------------------------------
 
 
 ~~~
