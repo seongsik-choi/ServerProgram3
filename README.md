@@ -752,7 +752,7 @@ public class HomeCont {
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<DIV class='container_main' style='width: 100%;'> 
+<DIV class='container_main'> 
   <%-- 화면 상단 메뉴 --%>
   <DIV class='top_img'>
     <DIV class='top_menu_label'>Resort 0.1 영화와 여행이있는 리조트</DIV>
@@ -767,12 +767,14 @@ public class HomeCont {
   <%-- 내용 --%> 
   <DIV class='content'>
 
+
 -------------------------------------------------------------------------------------
 3. 화면 하단 메뉴
 ▷ /webapp/WEB-INF/views/menu/bottom.jsp
 -------------------------------------------------------------------------------------
 <%@ page contentType="text/html; charset=UTF-8" %>
-  </DIV> <%-- 내용 종료 --%>
+ 
+  </DIV> <%-- content 내용 종료 --%>
 
   <%-- 화면 하단 메뉴 --%>
   <DIV class='copyright'>
@@ -810,7 +812,7 @@ public class HomeCont {
 <jsp:include page="./menu/top.jsp" flush='false' />
   
   <DIV style='width: 100%; margin: 30px auto; text-align: center;'>
-    <IMG src='/menu/images/resort01.jpg' style='width: 60%;'>
+    <IMG src='/images/resort01.jpg' style='width: 60%;'>
   </DIV>
   
   <DIV style='margin: 0px auto; width: 90%;'>
@@ -1462,6 +1464,7 @@ runtimeOnly 'mysql:mysql-connector-java': MariaDB, MySQL Driver 설정(추가 �
  
 2) 등록 처리 메시지 화면
 ▷ /webapp/WEB-INF/views/categrp/create_msg.jsp 
+http://localhost:9091/categrp/create.do
 -----------------------------------------------------------------------------------
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
