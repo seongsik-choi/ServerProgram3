@@ -1151,10 +1151,10 @@ CREATE SEQUENCE categrp_seq
 
     - Mapping : XMl의 ID = DAD의 Method,  parameterType 값 = Method의 Types
     - xml의 #{name}, #{seqno}는 CategrpVo.java의 값에서 전달
-    ③ /src/main/resources/mybatis/categrp.xml  ◁─+
+    ③ /src/main/resources/mybatis/categrp.xml  ◁─+  : xml을 통해 mybatis 연결
     ④ dev.mvc.categrp.CategrDAOInter.java ────┘◁─+  
     ⑤ DAO class Spring (자동 구현됨)                           │
-    ⑥ dev.mvc.categrp.CategrProcInter.java ───────┘ ◁─+
+    ⑥ dev.mvc.categrp.CategrProcInter.java ───────┘ ◁─+  : DAOInter와 동일
     ⑦ dev.mvc.categrp.CategrpProc.java                          │
     ⑧ dev.mvc.categrp.CategrpCont.java   ───────────┘
     ⑨ JSP View
@@ -1232,9 +1232,9 @@ public interface CategrpDAOInter {
    * @return 등록된 레코드 갯수
    */
 
-    // Method 이름 create -> categrp.xml과 mapping
-  // XMl의 ID = DAD의 Method,    parameterType 값 = Method의 Types
-  // <insert id="create" parameterType="dev.mvc.categrp.CategrpVO">
+   // Method 이름 create -> categrp.xml과 mapping
+   // XMl의 ID = DAD의 Method,    parameterType 값 = Method의 Types
+   // <insert id="create" parameterType="dev.mvc.categrp.CategrpVO">
   public int create(CategrpVO categrpVO);
  
 }
@@ -1286,7 +1286,7 @@ public class CategrpProc implements CategrpProcInter {
   
   @Override
   public int create(CategrpVO categrpVO) {
-    int cnt = this.categrpDAO.create(categrpVO);
+    int cnt = categrpDAO.create(categrpVO);
     return cnt;  // 등록한 레코드 갯수 리턴
   }
 
@@ -1326,7 +1326,10 @@ public class CategrpCont {
 
  -> 서버 프로그램 Client 화면구현(Bootstrap/JavaScript/Ajax/JSON/jQuery)]
 [01][Bootstrap] CSS framework 부트스트랩의 설정, GRID 화면 분할
-1. [01] CSS framework 부트스트랩의 사용
+[01] CSS framework 부트스트랩의 사용
+[02][Bootstrap] TABLE 적용, Bootstrap 3, 4의 사용
+[03][Bootstrap] FORM 적용, Button, Image 태그  
+[04][Bootstrap] Glyphicon 사용(Bootstrap 4에서는 지원 안함)
 ~~~
 
 **0401 : 개인프로젝트 진행 : 서버 프로그램 구현 3(Spring Boot)] - [07] 기반 진행**  
@@ -1334,4 +1337,191 @@ public class CategrpCont {
 build.gradle에
 runtimeOnly 'mysql:mysql-connector-java': MariaDB, MySQL Driver 설정(추가 지정)
 
+-> Junit Test까지 진행
+~~~
+
+**0402 : [14][Categrp] Categrp 등록 기능 제작(INSERT~ ) 이어서**  
+~~~
+6. Controller class
+▷ dev.mvc.categrp.CategrpCont.java
+-------------------------------------------------------------------------------------
+// http://localhost:9090/categrp/create.do
+  /**
+   * 등록 폼
+   * @return
+   */
+  @RequestMapping(value="/categrp/create.do", method=RequestMethod.GET )
+  public ModelAndView create() {
+    ModelAndView mav = new ModelAndView();
+    mav.setViewName("/categrp/create"); // webapp/WEB-INF/views/categrp/create.jsp
+    
+    return mav; // forward
+  }
+  
+  // http://localhost:9090/categrp/create.do
+  /**
+   * 등록 처리
+   * @param categrpVO
+   * @return
+   */
+  @RequestMapping(value="/categrp/create.do", method=RequestMethod.POST )
+  public ModelAndView create(CategrpVO categrpVO) {
+    // CategrpVO categrpVO <FORM> 태그의 값으로 자동 생성됨.
+    // request.setAttribute("categrpVO", categrpVO); 자동 실행
+    
+    ModelAndView mav = new ModelAndView();
+    
+    int cnt = this.categrpProc.create(categrpVO); // 등록 처리
+    mav.addObject("cnt", cnt); // request에 저장, request.setAttribute("cnt", cnt)
+    
+    mav.setViewName("/categrp/create_msg"); // /webapp/WEB-INF/views/categrp/create_msg.jsp
+
+    return mav; // forward
+  }
+}
+-------------------------------------------------------------------------------------
+
+7. View: JSP
+ 
+1) 등록 화면
+▷ /webapp/WEB-INF/views/categrp/create.jsp
+-----------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+ 
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<!-- Bootstrap -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    
+<script type="text/javascript">
+  $(function(){
+ 
+  });
+</script>
+ 
+</head> 
+ 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+<DIV class='title_line'>카테고리 그룹  > 등록</DIV>
+ 
+<FORM name='frm' method='POST' action='./create.do' class="form-horizontal">
+  <div class="form-group">
+     <label class="control-label col-md-3">카테고리 그룹 이름</label>
+     <div class="col-md-9">
+       <input type='text' name='name' value='' required="required" 
+                  autofocus="autofocus" class="form-control" style='width: 50%;'>
+     </div>
+  </div>
+  <div class="form-group">
+     <label class="control-label col-md-3">출력 순서</label>
+     <div class="col-md-9">
+       <input type='number' name='seqno' value='1' required="required" 
+                 placeholder="${seqno }" min="1" max="1000" step="1" 
+                 style='width: 30%;' class="form-control" >
+     </div>
+  </div>  
+  <div class="form-group">
+     <label class="control-label col-md-3">출력 형식</label>
+     <div class="col-md-9">
+        <select name='visible' class="form-control" style='width: 20%;'>
+          <option value='Y' selected="selected">Y</option>
+          <option value='N'>N</option>
+        </select>
+     </div>
+  </div>   
+
+  <div class="content_bottom_menu" style="padding-right: 20%;">
+    <button type="submit" class="btn">등록</button>
+    <button type="button" onclick="location.href='./list.do'" class="btn">목록</button>
+  </div>
+
+</FORM>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+ 
+</html>
+ 
+-----------------------------------------------------------------------------------
+
+ 
+2) 등록 처리 메시지 화면
+▷ /webapp/WEB-INF/views/categrp/create_msg.jsp 
+-----------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+  
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+
+<DIV class='title_line'>카테고리 그룹 > 알림</DIV>
+
+<DIV class='message'>
+  <fieldset class='fieldset_basic'>
+    <UL>
+      <c:choose>
+        <c:when test="${cnt == 1}">
+          <LI class='li_none'>
+            <span class="span_success">새로운 카테고리 그룹 [${categrpVO.name }]을 등록했습니다.</span>
+          </LI>
+        </c:when>
+        <c:otherwise>
+          <LI class='li_none_left'>
+            <span class="span_fail">새로운 카테고리 그룹 [${categrpVO.name }] 등록에 실패했습니다.</span>
+          </LI>
+          <LI class='li_none_left'>
+            <span class="span_fail">다시 시도해주세요.</span>
+          </LI>
+        </c:otherwise>
+      </c:choose>
+      <LI class='li_none'>
+        <br>
+        <button type='button' onclick="location.href='./list.do'">새로운 카테고리 그룹 등록</button>
+        <button type='button' onclick="location.href='./list.do'">목록</button>
+      </LI>
+    </UL>
+  </fieldset>
+
+</DIV>
+
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+
+</html>
+
+-----------------------------------------------------------------------------------
+
+
+http://localhost:9091/categrp/create.do
 ~~~
