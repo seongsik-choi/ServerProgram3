@@ -13,12 +13,22 @@
 ▷ dev.mvc.categrp.CategrpProc.java
  */
 package dev.mvc.categrp;
-public class CategrpProc implements CategrpProcInter {
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+// Controller에서 AutoWired 기능에 의해 호출될때 사용되는 이름
+@Component("dev.mvc.categrp.CategrpProc")   
+
+public class CategrpProc implements CategrpProcInter {
+  @Autowired  //  DI, Spring framework가 자동 구현한 DAO class 객체를 할당.
+  private CategrpDAOInter categrpDAO;
+  // private CategrpDAOInter categrpDAO = new categrpDAO();
+  // interface는 객체 생성할 수 없기에 인터페이스 = new 구현클래스()
+  
   @Override
   public int create(CategrpVO categrpVO) {
-    // TODO Auto-generated method stub
-    return 0;
+    int cnt = categrpDAO.create(categrpVO);
+    return cnt;  // 등록한 레코드 갯수 리턴
   }
 
 }
