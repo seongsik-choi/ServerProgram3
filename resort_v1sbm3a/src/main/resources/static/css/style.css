@@ -1,4 +1,4 @@
-  /* ver 1.3 */
+/* ver 1.4 */
   /* 모든 태그에 적용 */
   *{
      font-family: Malgun Gothic; 
@@ -14,17 +14,13 @@
   }
   
   /* 이미지 사용시 경로 지정
-  권장하지 않는 경우: background-image: url('/jsp_test/menu/images/top_image.jpg');
-  권장하는 경우: background-image: url('./images/top_image.jpg');
-  style.css 파일이 include(link)되는 폴더가 자동으로 현재 폴더로 인식됨.
-  style.css 파일이 있는 폴더가 현재 폴더로 인식됨.
-  /blog_v2jc/css/style.css 사용하는 경우
-  /blog_v2jc/css/images/top_image.jpg 형태로 구성됨.
-   */
+  /css/images/top_image_1920.jpg
+  Spring Boot: /static/css/images/top_image_1920.jpg
+  */
   .top_img {
     width: 100%;
     height: 100px;
-    background-image: url('/menu/images/top_image_1920.jpg');
+    background-image: url('/css/images/top_image_1920.jpg');
   }
   
   .top_menu_label {
@@ -44,9 +40,9 @@
   }
   
   /* 화면 상단 메뉴 세로 구분선
-     <span class='top_menu_sep'>&nbsp;</span> */
+     <span class='top_menu_sep'> </span> */
   .top_menu_sep { 
-    background: url('/menu/images/gray.jpg') center center no-repeat;
+    background: url('/css/images/gray.jpg') center center no-repeat;
     background-size: 1px;
     width:1px;
     margin-left: 10px;
@@ -297,7 +293,7 @@
   .li_left_menu_1 { /* 화면 좌측 대분류 */
     list-style: none;
     margin-top: 25px;
-    background: url(/menu/images/li_left_menu_1.png) left center no-repeat;
+    background: url(/css/images/li_left_menu_1.png) left center no-repeat;
     background-size: 16px;
     padding-left: 25px;
     line-height: 15px;
@@ -306,7 +302,7 @@
   .li_left_menu_2 { /* 화면 좌측 중분류 */
     list-style: none;
     margin: 15px 10px;
-    background: url(/menu/images/li_left_menu_2.png) left center no-repeat;
+    background: url(/css/images/li_left_menu_2.png) left center no-repeat;
     background-size: 16px;
     padding-left: 25px;
     line-height: 15px;
@@ -389,9 +385,3 @@
     padding-top: 0px;
     padding-left: 20px; 
   }
-
-
-  
-    
-  
-  
