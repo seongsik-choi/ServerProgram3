@@ -933,7 +933,7 @@ public class HomeCont {
 
 1) '/WEB-INF/doc/카테고리그룹' 폴더를 생성한 후 선택하고 새로운 파일을 생성합니다.
 2) 데이터베이스 선택
-   - File name: .    / - SQL Dialect: Oracle 선택   
+   - File name: .    / - SQL Dialect: Oracle 선택     + MairaDB의 경우 MYSQL 선택!!!!
 3) Oracle JDBC Driver Download
    - https://www.oracle.com/kr/database/technologies/appdev/jdbc-downloads.html
      -> Oracle Database 18c (18.3) drivers -> ojdbc8.jar
@@ -942,6 +942,10 @@ public class HomeCont {
       + /src/main/webapp/WEB-INF/lib에도 ojdbc8.jar Overwrite
     - JDBC Driver: oracle.jdbc.driver.OracleDriver
     - Oracle 설정: jdbc:oracle:thin:@localhost:1521:XE 
+
+    + MairaDB의 경우 :  - MariaDB(MySQL)
+      JDBC Driver: oracle.jdbc.driver.OracleDriver
+      Oracle 설정: jdbc:mysql://localhost:3306/javadb
 5) 테이블 생성
 
 6) 논리적 모델링 : 실제 생성되는 테이블명이 아니라 저장되는 내용을 참고하여
@@ -1301,7 +1305,7 @@ public class CategrpProc implements CategrpProcInter {
   → http://localhost:9090/blog/categrp/create.do
 
 -> ★호출 규칙★
- Cont -> proc -> procIneter -> DAOInter -> Mybatis
+ Controller -> Proc -> DAO(자동화) -> MyBatis -> SQL
 
 -> 실행 디렉토리 설정 : Application.java
 @ComponentScan(basePackages = {"dev.mvc"})  // 전체 디렉토리로 지정
@@ -1367,13 +1371,13 @@ runtimeOnly 'mysql:mysql-connector-java': MariaDB, MySQL Driver 설정(추가 �
    * @return
    */
   @RequestMapping(value="/categrp/create.do", method=RequestMethod.POST )
-  public ModelAndView create(CategrpVO categrpVO) {
+  public ModelAndView create(CategrpVO categrpVO) {  // categrpVO 자동생성 Form - VO 클래스로 자동저장
     // CategrpVO categrpVO <FORM> 태그의 값으로 자동 생성됨.
     // request.setAttribute("categrpVO", categrpVO); 자동 실행
     
     ModelAndView mav = new ModelAndView();
     
-    int cnt = this.categrpProc.create(categrpVO); // 등록 처리
+    int cnt = this.categrpProc.create(categrpVO); // 등록 처리(인터페이스 호출, 클래스를 할당받았었음)
     mav.addObject("cnt", cnt); // request에 저장, request.setAttribute("cnt", cnt)
     
     mav.setViewName("/categrp/create_msg"); // /webapp/WEB-INF/views/categrp/create_msg.jsp
@@ -1522,7 +1526,6 @@ http://localhost:9091/categrp/create.do
 </body>
 
 </html>
-
 -----------------------------------------------------------------------------------
 
 
