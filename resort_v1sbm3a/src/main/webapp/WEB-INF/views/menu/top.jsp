@@ -8,7 +8,7 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<DIV class='container_main' style='width: 100%;'> 
+<DIV class='container_main'> 
   <%-- 화면 상단 메뉴 --%>
   <DIV class='top_img'>
     <DIV class='top_menu_label'>Resort 0.1 영화와 여행이있는 리조트</DIV>
@@ -22,4 +22,3 @@
   
   <%-- 내용 --%> 
   <DIV class='content'>
-</html>

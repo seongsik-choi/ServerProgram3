@@ -5,7 +5,7 @@
 --%>
 <%@ page contentType="text/html; charset=UTF-8" %>
  
-  </DIV> <%-- 내용 종료 --%>
+  </DIV> <%-- content 내용 종료 --%>
 
   <%-- 화면 하단 메뉴 --%>
   <DIV class='copyright'>

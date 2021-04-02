@@ -28,7 +28,7 @@
 <jsp:include page="./menu/top.jsp" flush='false' />
   
   <DIV style='width: 100%; margin: 30px auto; text-align: center;'>
-    <IMG src='/menu/images/resort01.jpg' style='width: 60%;'>
+    <IMG src='/images/resort01.jpg' style='width: 60%;'>
   </DIV>
   
   <DIV style='margin: 0px auto; width: 90%;'>
