@@ -1298,25 +1298,9 @@ public class CategrpCont {
  }
  
 }
--------------------------------------------------------------------------------------
-
- -> 서버 프로그램 Client 화면구현(Bootstrap/JavaScript/Ajax/JSON/jQuery)]
-[01][Bootstrap] CSS framework 부트스트랩의 설정, GRID 화면 분할
-[01] CSS framework 부트스트랩의 사용
-[02][Bootstrap] TABLE 적용, Bootstrap 3, 4의 사용
-[03][Bootstrap] FORM 적용, Button, Image 태그  
-[04][Bootstrap] Glyphicon 사용(Bootstrap 4에서는 지원 안함)
 ~~~
 
-**0401 : 개인프로젝트 진행 : 서버 프로그램 구현 3(Spring Boot)] - [07] 기반 진행**  
-~~~
-build.gradle에
-runtimeOnly 'mysql:mysql-connector-java': MariaDB, MySQL Driver 설정(추가 지정)
-
--> Junit Test까지 진행
-~~~
-
-**0402 : [14][Categrp] Categrp 등록 기능 제작(INSERT~ ) 이어서**  
+**0402 : [14][Categrp] Categrp 등록 기능 제작(INSERT~) Controller class 이어서**  
 ~~~
 6. Controller class
 ▷ dev.mvc.categrp.CategrpCont.java
@@ -1358,7 +1342,6 @@ runtimeOnly 'mysql:mysql-connector-java': MariaDB, MySQL Driver 설정(추가 �
 -------------------------------------------------------------------------------------
 
 7. View: JSP
- 
 1) 등록 화면
 ▷ /webapp/WEB-INF/views/categrp/create.jsp
 -----------------------------------------------------------------------------------
@@ -1432,7 +1415,6 @@ runtimeOnly 'mysql:mysql-connector-java': MariaDB, MySQL Driver 설정(추가 �
 </body>
  
 </html>
- 
 -----------------------------------------------------------------------------------
 
  
@@ -1498,6 +1480,6 @@ http://localhost:9091/categrp/create.do
 </html>
 -----------------------------------------------------------------------------------
 
-
+-> 실행 주소
 http://localhost:9091/categrp/create.do
 ~~~
