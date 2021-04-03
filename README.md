@@ -428,7 +428,7 @@ EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 
 5. SQL Map 파일 
    - SQL 쿼리를 XML 파일로 매핑하여 저장한 후 호출하여 실행 
 ~~~
-6.★★★★Project 개발 순서(Spring MVC 기준) ★★★★  
+6.Project 개발 순서(Spring MVC 기준)  
 ![image](https://user-images.githubusercontent.com/76051264/113471877-49dc9780-949a-11eb-9ff5-ee199076a31c.png)  
 ---
 * **0330 :[06] MyBATIS  사용**
