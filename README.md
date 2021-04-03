@@ -703,21 +703,19 @@ public class ResortV1sbm3aApplication {
 ~~~
 [01]  CSS 제작
 1. CSS
-- @CHARSET "UTF-8";: CSS 인코딩 방식 지정
+- @CHARSET "UTF-8"; : CSS 인코딩 방식 지정
 ▷ /src/main/resources/static/css/style.css
 첨부 파일 참고 : 상시 업데이트
 ~~~
 
 * **0330: [09][Resort] index.do 페이지 제작 , 화면 상단, 하단 Menu 파일, index.jsp 제작**  
 ~~~
--------------------------------------------------------------------------------------
 [01] 메뉴 구성
 - http://localhost:9091
 1. Controller
 ▷ dev.mvc.resort_v1sbm3a.HomeCont.java
 -------------------------------------------------------------------------------------
 package dev.mvc.resort_v1sbm3a;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -738,8 +736,8 @@ public class HomeCont {
     return mav;
   }
 }
-
 -------------------------------------------------------------------------------------
+
 2. 화면 상단 메뉴
 - 자주 사용되는 EL 값의 활용: <c:set var="root" value="${pageContext.request.contextPath}" />
 						 ${root}
@@ -765,6 +763,7 @@ public class HomeCont {
 
 
 -------------------------------------------------------------------------------------
+
 3. 화면 하단 메뉴
 ▷ /webapp/WEB-INF/views/menu/bottom.jsp
 -------------------------------------------------------------------------------------
@@ -780,6 +779,7 @@ public class HomeCont {
 </DIV> <%-- container_main 종료 --%>
    
 ------------------------------------------------------------------------------------- 
+
 [02] index.jsp 시작 페이지
 1. JSP
 ▷ /webapp/WEB-INF/views/index.jsp
@@ -833,32 +833,29 @@ public class HomeCont {
 ~~~
 [01] ERD/UML 툴 설치  
 1. STS(Eclipse) GEF plugin 설치
-1) STS를 종료합니다. 
+1) STS를 종료. 
 2) http://www.eclipse.org/gef/downloads/index.php  
 3) GEF4 Update Site ->'GEF3-Update-4.0.0.zip' 다운로드 
-4) 'GEF3-Update-4.0.0.zip' 폴더에 압축을 풉니다. 
-5) 'GEF3-Update-4.0.0' 폴더의 모든 내용을 '/sts-4.6.0' 폴더에 복사하여 덮어 씁니다. 
+4) 'GEF3-Update-4.0.0.zip' 폴더에 압축을 해제
+5) 'GEF3-Update-4.0.0' 폴더의 모든 내용을 '/sts-4.6.0' 폴더에 복사하여 덮어 씀
 2015-08-18  오후 02:28    <DIR>          features
 2015-08-18  오후 02:28    <DIR>          plugins
 2015-07-09  오후 03:51             4,108 artifacts.jar
 2015-07-09  오후 03:51            41,974 content.jar
-  
 2. Amateras UML 설치
    http://amateras.sourceforge.jp/cgi-bin/fswiki_en/wiki.cgi  
    -> Download -> AmaterasUML_1.3.4.zip 
    net.java.amateras.umleditor.java_1.3.4.jar 
    net.java.amateras.umleditor_1.3.4.jar 
    net.java.amateras.xstream_1.3.4.jar  
-   위의 3개의 파일을 /sts-4.6.0/plugins 폴더에 복사합니다. 
-
-3. Amateras ERD 설치(Amateras UML을 먼저 설치해야합니다.) 
+   위의 3개의 파일을 /sts-4.6.0/plugins 폴더에 복사
+3. Amateras ERD 설치(Amateras UML을 먼저 설치해야) 
    http://amateras.sourceforge.jp/cgi-bin/fswiki_en/wiki.cgi  
    -> Download -> AmaterasERD 
    -> net.java.amateras.db_1.0.9.jar 다운로드 
-   위의 1개의 파일을 /sts-4.6.0/plugins 폴더에 복사합니다. 
-
-4. STS를 다시 시작 합니다. 
-5. 설치가 성공적으로 되었습니다.
+   위의 1개의 파일을 /sts-4.6.0/plugins 폴더에 복사
+4. STS를 다시 시작
+5. 설치가 성공
 
 [02] Amateras ERD 툴을 이용한 DBMS 모델링
 1. 테이블 설계
@@ -927,9 +924,9 @@ public class HomeCont {
      -> Oracle Database 18c (18.3) drivers -> ojdbc8.jar
    - 다운후 용량은 4,065 KB 이어야함.
 
-1) '/WEB-INF/doc/카테고리그룹' 폴더를 생성한 후 선택하고 새로운 파일을 생성합니다.
+1) '/WEB-INF/doc/카테고리그룹' 폴더를 생성한 후 선택하고 새로운 파일을 생성.
 2) 데이터베이스 선택
-   - File name: .    / - SQL Dialect: Oracle 선택     + MairaDB의 경우 MYSQL 선택!!!!
+   - File name: .    / - SQL Dialect: Oracle 선택  + MairaDB의 경우 MYSQL 선택!!!!
 3) Oracle JDBC Driver Download
    - https://www.oracle.com/kr/database/technologies/appdev/jdbc-downloads.html
      -> Oracle Database 18c (18.3) drivers -> ojdbc8.jar
@@ -937,16 +934,16 @@ public class HomeCont {
     - JAR File : ai8에 ojdbc8.jar로 설정 
       + /src/main/webapp/WEB-INF/lib에도 ojdbc8.jar Overwrite
     - JDBC Driver: oracle.jdbc.driver.OracleDriver
-    - Oracle 설정: jdbc:oracle:thin:@localhost:1521:XE 
+    - Oracle 설정(Database url): jdbc:oracle:thin:@localhost:1521:XE 
 
     + MairaDB의 경우 :  - MariaDB(MySQL)
       JDBC Driver: oracle.jdbc.driver.OracleDriver
-      Oracle 설정: jdbc:mysql://localhost:3306/javadb
-5) 테이블 생성
+      Oracle 설정(Database url): jdbc:mysql://localhost:3306/db이름
 
+5) 테이블 생성
 6) 논리적 모델링 : 실제 생성되는 테이블명이 아니라 저장되는 내용을 참고하여
                             이름 지정, 데이터베이스 결정되지 않아도 상관 없음.
-    물리적 테이블: 실제 물리적으로 DBMS 디스크상에 생성해야할 테이블명,
+    물리적 테이블: 실제 물리적으로 DBMS 디스크상에 생성해야할 테이블명
                            DBMS결정되어있어야함.
    - categrp 카테고리 그룹 테이블 생성
    - cate 테이블 생성
@@ -1007,7 +1004,7 @@ public class HomeCont {
   2) 물리적 모델링 :  categrpno(Number(10))
 
 4. FK 설계 : 다른 테이블의 PK를 지정
-ㅊFK가 존재하지 않는 경우 무조건 에러 발생, INSERT 불가.★★
+   FK가 존재하지 않는 경우 무조건 에러 발생, INSERT 불가.★★
 - 관계형 데이터베이스(RDBMS)는 테이블간에 종속(부모/자식, 그룹/구성원) 관계가 FK로 선언됨
 - Foreign Key(FK): 현재 레코드가 어느 그룹에 속하는지의 정보를 나타냄
 - INSERT SQL 실행시 다른 테이블의 PK 값이 있어야함.
@@ -1041,9 +1038,9 @@ COMMENT ON COLUMN categrp.rdate is '그룹 생성일';
  - 논리적/물리적 모델링 결과 확인
   
 2. SQL 생성
- 1) 우마 -> Export -> DDL
+ 1) '우마' -> Export -> DDL
   + UTF-8 Encoding 설정 필수
- 2) ALTER TABLE을 이용한 제약 조건의 선언
+ 2) ALTER TABLE을 이용한 제약 조건의 선언(no)
  3) 테이블 구조 생성시 제약 조건 선언  : Generates constraints as ALTER TABLE 체크 해제
  4) resort.ddl -> categrp_c.sql로 변경
  5) 파일 열기 : Open with -> Text Editor.
@@ -1071,7 +1068,7 @@ CREATE SEQUENCE categrp_seq
 ---
 ![image](https://user-images.githubusercontent.com/76051264/113117263-3ab2db00-9249-11eb-8e1d-b9e38e45172d.png)  
 ---
-* **0331 : mariaDB 설치 : DB/SQL 응용 페이지 -> DB/SQL README.md 참고**  
+* **0331 : mariaDB 설치 : DB/SQL 응용 페이지 -> DB/SQL2 README.md 참고**  
 * **0331 : [MariaDB 01] MariaDB 10.3.27 다운로드 및 설정, 계정 생성, resort DB 생성**  
 ---
 
@@ -1138,28 +1135,6 @@ CREATE SEQUENCE categrp_seq
 ![image](https://user-images.githubusercontent.com/76051264/113247752-91c2b980-92f6-11eb-9ed8-09e6e8dcf683.png)  
 ~~~
 [01] Categrp 등록 기능 제작(INSERT~ )
-- 작업 절차
-    ① SQL 
-    ② MyBATIS  ◁──+
-    ③ DAO(실행객체)-┘ ◁─+  Interface 선언시 Spring이 자동으로 구현
-    ④ Process(제어문)--──┘  ◁─+
-    ⑤ Controller  ─────────┘
-        ↑GET. POST     ↓결과 출력
-    ⑥ JSP 
-
-- 세부 작업 절차
-    ① /WEB-INF/doc/dbms/categrp.sql   : 테이블 생성과 5개의 컬럼, 3개의 테이블 입력
-    ② dev.mvc.categrp.CategrpVO.java  : sql에서 입력한 컬럼에 대한 Getter, Setter 값 
-
-    - Mapping : XMl의 ID = DAD의 Method,  parameterType 값 = Method의 Types
-    - xml의 #{name}, #{seqno}는 CategrpVo.java의 값에서 전달
-    ③ /src/main/resources/mybatis/categrp.xml  ◁─+  : xml을 통해 mybatis 연결
-    ④ dev.mvc.categrp.CategrDAOInter.java ────┘◁─+  
-    ⑤ DAO class Spring (자동 구현됨)                           │
-    ⑥ dev.mvc.categrp.CategrProcInter.java ───────┘ ◁─+  : DAOInter와 동일
-    ⑦ dev.mvc.categrp.CategrpProc.java                          │
-    ⑧ dev.mvc.categrp.CategrpCont.java   ───────────┘
-    ⑨ JSP View
 
  1. SQL
 ▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
