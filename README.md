@@ -381,20 +381,10 @@ EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 
      - 파라미터와 제어문을 이용하여 동적으로 실행 할 SQL을 지정할 수 있음
      - Spring은 MyBATIS가 선언한 SQL과 관련된 JAVA 코드를 자동으로 생성
      - MyBATIS는 SQL 튜닝 기법을 이용하여 우수한 성능을 갖는 웹페이지 제작이 가능
-
-1. 실행 아키텍쳐              
- - 간략 : JAVA -> MyBatis -> JAVA 
-                  SqlMap Configuration 
-                            ↓ 
-                      SQL Map 파일 
-                            ↓ 
-입력(JAVA)----> SQL Mapping 구문 ----> MyBATIS 실행 ----> 출력(JAVA)
-Hashtable                   XML                    ↓                   Hashtable  
-POJO                                                DBMS                POJO(VO(DTO), ArrayList...) 
-원시 타입                                         MySQL               원시 타입(int, double...)
-                                                         MariaDB
-                                                         Oracle
-  
+~~~
+1. 실행 아키텍쳐   
+![image](https://user-images.githubusercontent.com/76051264/113471790-c7ec6e80-9499-11eb-8125-c182971c703a.png)  
+~~~ 
 2. 다운 로드 및 설치(Spring을 사용하지 않는 경우, JSP Model 1 기반) 
     - iBATIS 2.0은 MyBATIS 2와 같음
     - iBATIS 3.0부터는 MyBATIS 3로 변경되고 Annotation 기반으로 문법이 일부 변경됨
