@@ -705,7 +705,7 @@ public class ResortV1sbm3aApplication {
 1. CSS
 - @CHARSET "UTF-8";: CSS 인코딩 방식 지정
 ▷ /src/main/resources/static/css/style.css
-첨부 파일 참고
+첨부 파일 참고 : 상시 업데이트
 ~~~
 
 * **0330: [09][Resort] index.do 페이지 제작 , 화면 상단, 하단 Menu 파일, index.jsp 제작**  
