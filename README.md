@@ -1132,10 +1132,9 @@ CREATE SEQUENCE categrp_seq
 ---
 
 * **0401 :[14][Categrp] Categrp 등록 기능 제작(INSERT~)**  
-![image](https://user-images.githubusercontent.com/76051264/113247752-91c2b980-92f6-11eb-9ed8-09e6e8dcf683.png)  
+  * [01] Categrp 등록 기능 제작(INSERT~ )
+![image](https://user-images.githubusercontent.com/76051264/113473874-3f74ca80-94a7-11eb-9401-403f972faaa6.png)  
 ~~~
-[01] Categrp 등록 기능 제작(INSERT~ )
-
  1. SQL
 ▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
  -> 테이블 추가 후 commit;으로 DB로 값 전달
