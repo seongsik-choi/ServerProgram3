@@ -39,16 +39,16 @@
  
 <FORM name='frm' method='POST' action='./create.do' class="form-horizontal">
   <div class="form-group">
-     <label class="control-label col-md-3">카테고리 그룹 이름</label>
-     <div class="col-md-9">
+     <label class="control-label col-md-4">카테고리 그룹 이름</label>
+     <div class="col-md-8">
        <input type='text' name='name' value='' required="required" 
                   autofocus="autofocus" class="form-control" style='width: 50%;'>
      </div>
   </div>
   
   <div class="form-group">
-     <label class="control-label col-md-3">출력 순서</label>
-     <div class="col-md-9">
+     <label class="control-label col-md-4">출력 순서</label>
+     <div class="col-md-8">
        <input type='number' name='seqno' value='1' required="required" 
                  placeholder="${seqno }" min="1" max="1000" step="1" 
                  style='width: 30%;' class="form-control" >
@@ -56,8 +56,8 @@
   </div>
     
   <div class="form-group">
-     <label class="control-label col-md-3">출력 형식</label>
-     <div class="col-md-9">
+     <label class="control-label col-md-4">출력 형식</label>
+     <div class="col-md-8">
         <select name='visible' class="form-control" style='width: 20%;'>
           <option value='Y' selected="selected">Y</option>
           <option value='N'>N</option>
