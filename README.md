@@ -151,8 +151,8 @@ dependencies {
 
 ~~~
 ★ Spring Boot 경로 표현 ★
-1)  /static/css/style.css  ->  /css/style.css
-2)  /static/images/finemae -> /images/puppy06.jpg
+1) /static/css/style.css  ->  /css/style.css
+2) /static/images/finemae -> /images/puppy06.jpg
 3) /static/js/function.js -> /js/function.js
 
 3. 폴더 생성: /webapp/WEB-INF/views 대소문자 일치시킬것 ★
@@ -192,7 +192,7 @@ dependencies {
 - 패키지 자동 import: Ctrl + Shift + O
 
 1. 'Spring Starter Project' 실행
-2. 프로젝트명: basic, Package: dev.boot.basic
+2. 프로젝트명: basic, / Package명: dev.boot.basic / Packaging : War / Language : JAVA
 3. 의존 library 추가
 1) Available: Spring Boot DevTools 입력하여 검색해서 추가
 2) Web -> Spring Web을 체크하여 추가
@@ -213,6 +213,8 @@ spring.mvc.view.suffix=.jsp
 spring.devtools.livereload.enabled=true
 
 5. jsp 사용을위한 의존성 추가
+   - implementation 'javax.servlet:jstl': JSTL 사용 선언
+   - implementation 'org.apache.tomcat.embed:tomcat-embed-jasper': Tomcat JSP compile library 추가
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -220,7 +222,7 @@ dependencies {
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
-  implementation 'javax.servlet:jstl'
+  implementation 'javax.servlet:jstl' 
   implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
 }
 ▷ build.gradle 편집 -> Gradle -> Refresh Gradle Project
@@ -230,17 +232,17 @@ dependencies {
 6. jsp 폴더 생성
 /src/main/webapp/WEB-INF/views
 
-7. VO(DTO) 생성 : getter, Setterr
+7. VO(DTO) 생성 : getter, Setterr로 private 멤버변수 접근 허용 클래스
 ▷ /src/main/java/dev.boot.basic/EmployeeVO.java
 
-8. VO(DTO) test class 제작 : getter, setter 사용 예제
+8. VO(DTO) test class 제작 : getter, setter 호출 예제
 ▷ /src/main/java/dev.boot.basic/EmployeeVOUse.java
 
-9. Controller class 제작 : view.jsp로 넘기기 위한 Controller(ModelAndView create())
+9. Controller class 제작 : view.jsp로 넘기기 위한 함수 Controller(ModelAndView create())
 ▷ /src/main/java/dev.boot.basic/EmployeeCont.java 
 
   // Legacy 다르게 프로젝트명 사용 No, @RequestMapping에 명시한 대로 사용
-  // http://localhost:9091/employee/employee.do
+  // 실행 주소 :  http://localhost:9091/employee/employee.do
   @RequestMapping(value="/employee/employee.do", method=RequestMethod.GET )
   public ModelAndView create() {
     ModelAndView mav = new ModelAndView();
@@ -252,16 +254,16 @@ dependencies {
     employeeVO.setTot(300);
     employeeVO.setAvg(100);
     
-    mav.addObject("employeeVO", employeeVO); // request.setAttritube("employeeVO", employeeVO);
+    mav.addObject("employeeVO", employeeVO); // == request.setAttritube("employeeVO", employeeVO);
     
     /* 
      /src/main/webapp/WEB-INF/views/employee/employee.jsp
     application.properties의
-     spring.mvc.view.prefix=/WEB-INF/views/ 와
+     spring.mvc.view.prefix=/WEB-INF/views/와
      mav.setViewName("/employee/employee"); 가 조합
      /WEB-INF/views/employee/employee의 경로완성
      */
-    mav.setViewName("/employee/employee");
+    mav.setViewName("/employee/employee"); // view.jsp 호출
     
     return mav;
   }
@@ -271,7 +273,7 @@ dependencies {
 ~~~
 
 ---
-* **0330 :[05] MyBATIS framework 3.4.1 개론, Website 개발 절차, MyBATIS 기초 코드 ★**
+* **0330 :[05] MyBATIS framework 3.4.1 개론, Website 개발 절차, MyBATIS 기초 코드 ★**  
 **▶ 0329 복습**  
 ~~~
 1) Spring Boot는 Legacy 다르게 프로젝트명 사용 No, @RequestMapping에 명시한 대로 사용
@@ -283,18 +285,18 @@ dependencies {
 // http://localhost:9091    /은 Root Dic
 
 4) @RestController      
-// Controller 중 JSP(/Webapp의 JSP)없이 단순 출력(ex.JSON 출력)
+    Controller 중 JSP(/Webapp의 JSP)없이 단순 출력(ex.JSON 출력)
 
 5) Spring Boot의 Static resource 경로 표현 : 이미지, css 등 리소스
-// /static/css/style.css       ->  /css/style.css     
+    /static/css/style.css       ->  /css/style.css     
    /static/images/fname.jpg -> /images/fname.jpg
 
 6) Getter, Setter : 
     EmployeeCont.java로  ModelAndView create() 생성해 @RequestMapping
-    -> boot가 동작 -> view.jsp 실행
+    -> Spring Framework가 동작 -> view.jsp 실행
 
-7) FrameWork : 기초 소스 뿐만이 아닌 개발 방법론을 제공해, 원하는 패턴으로 개발이 가능하다
-    Library : 단순 활용가능한 도구들의 집합으로, 클래스에서 호출해 사용한다.
+7) FrameWork : 기초 소스 뿐만이 아닌 개발 방법론을 제공해, 원하는 패턴으로 개발이 가능
+    Library : 단순 활용가능한 도구들의 집합으로, 클래스에서 호출해 사용
 ~~~
 
 ~~~
@@ -319,7 +321,6 @@ EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 
 - 아래의 코드를 MyBATIS 동적 SQL로 처리 할 수 있음.
  try {
       con = dbopen.getConnection();
-
       sql = new StringBuffer();
       sql.append(" SELECT pdsno, categoryno, rname, email, title, content, passwd, cnt,");
       sql.append("            SUBSTRING(rdate, 1, 10) as rdate, web, file1, fstor1,");
@@ -355,7 +356,6 @@ EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 
 
         list.add(pds4VO);
       }
-
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
@@ -384,16 +384,16 @@ EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 
 
 1. 실행 아키텍쳐              
  - 간략 : JAVA -> MyBatis -> JAVA 
-                       SqlMap Configuration 
-                                 ↓ 
-                          SQL Map 파일 
-                                 ↓ 
+                  SqlMap Configuration 
+                            ↓ 
+                      SQL Map 파일 
+                            ↓ 
 입력(JAVA)----> SQL Mapping 구문 ----> MyBATIS 실행 ----> 출력(JAVA)
-Hashtable                   XML                      ↓                   Hashtable  
-POJO                                                   DBMS                POJO(VO(DTO), ArrayList...) 
-원시 타입                                            MySQL               원시 타입(int, double...)
-                                                          MariaDB
-                                                          Oracle
+Hashtable                   XML                    ↓                   Hashtable  
+POJO                                                DBMS                POJO(VO(DTO), ArrayList...) 
+원시 타입                                         MySQL               원시 타입(int, double...)
+                                                         MariaDB
+                                                         Oracle
   
 2. 다운 로드 및 설치(Spring을 사용하지 않는 경우, JSP Model 1 기반) 
     - iBATIS 2.0은 MyBATIS 2와 같음
