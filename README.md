@@ -44,7 +44,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class StartApplication {
-	public static void main(String[] args) {
+	public static void main(String[] args) {  
 		SpringApplication.run(StartApplication.class, args);  // Spring FrameWork의 기능을 갖게됨.
 	}
 }
@@ -461,15 +461,27 @@ EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 
 
 * **0330 : [07][Resort] Oracle 기반 리조트 application 제작, Oracle 데이터베이스 연결, hikari Connection pool 설정, MyBATIS 설정, Oracle Driver 설정(project: resort_v1sbm3a)**
 ~~~
-[01] Spring Boot 프로젝트 생성
-1. 'Spring Starter Project' 실행
-2. 프로젝트명: resort_v1sbm3a, Package: dev.boot.resort_v1sbm3a
-- v1: version 1.0, sb: Spring Boot, m3: Mybatis 3.0
-3. 의존 library 추가
-- Oracle Driver 절대 설치하지 말것, 버그로 인해 드라이버 인식 불규칙하게됨 ★★★★★
--> Spring Boot DevTools, Spring Web, MyBatis Framework, JDBC API
+1. Spring Boot 프로젝트 생성 
+  * a. FILE -> NEW -> 'Spring Starter Project' 실행
+  * b. 보이지 않는 경우 : Windows -> perspective -> open perspective -> other -> Spring  
+2. 프로젝트명: resort_v1sbm3a, / Package: dev.boot.resort_v1sbm3a
+    * Service URL : https://start.spring.io 웹 상에서 프로젝트 기초 소스 생성  
+    * Type : library 관리 툴, Gradle  
+    * Packaging : 배포 형태, War  
+    * Group : dev.boot  
+    * Artifact : resort_v1sbm3a   
+    * version : source version  
+    * Package : project main source package  
+    - v1: version 1.0, sb: Spring Boot, m3: Mybatis 3.0
+3. 의존 library 추가 : Spring boot Version(2.3.9)  
+    * Spring Boot Version : 2.4.3
+    * Spring Boot DevTools, Spring Web, MyBatis Framework, JDBC API : 4가지 의존성 추가
+    * [Finish] 버튼을 클릭 
+    - Oracle Driver 절대 설치하지 말것, 버그로 인해 드라이버 인식 불규칙하게됨 ★★★★★
 
-4. /src/main/resources/application.properties : 프로젝트에서 사용되는 오라클 계정 설정 + 포트설정 + DEVTOOLS 설정
+4. /src/main/resources/application.properties 
+: 프로젝트에서 사용되는 오라클 계정 설정 + 포트설정 + DEVTOOLS 설정
+-------------------------------------------------------------------------------------------
 server.port = 9091
 # JSP View path
 spring.mvc.view.prefix=/WEB-INF/views/
@@ -478,7 +490,7 @@ spring.mvc.view.suffix=.jsp
 # DEVTOOLS (DevToolsProperties)
 spring.devtools.livereload.enabled=true
 
-# MariaDB
+# MariaDB #개인 프로젝트 생성시 사용
 # spring.datasource.hikari.driver-class-name=com.mysql.cj.jdbc.Driver
 # spring.datasource.hikari.jdbc-url: jdbc:mysql://localhost:3306/resort?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
 # spring.datasource.hikari.username=root
@@ -496,12 +508,13 @@ spring.datasource.hikari.password=1234
 spring.datasource.hikari.maximum-pool-size=10		# 동시 접속자
 spring.datasource.hikari.minimum-idle=5			# 접속자 증가시 -> 많은 접속자 처리 -> but 속도 down
 spring.datasource.hikari.connection-timeout=5000       # 연결 지연 5초 이상시 -> Error.
+-------------------------------------------------------------------------------------------
 
 5. jsp 사용을위한 의존성 추가
  - implementation 'javax.servlet:jstl': JSTL 사용 선언
  - implementation 'org.apache.tomcat.embed:tomcat-embed-jasper': Tomcat JSP compile library 추가
  - implementation 'org.springframework.boot:spring-boot-starter-validation': 폼 값 검증
-
+-------------------------------------------------------------------------------------------
 ▷ build.gradle 편집
 plugins {
     id 'org.springframework.boot' version '2.4.3'
@@ -535,10 +548,13 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+-------------------------------------------------------------------------------------------
 
 6. Component scan "dev.mvc.resort_sbv2" 패키지 설정
-- Controller, DAO, Process class 등을 자동으로 인식할 패키지 선언.
+- Controller, DAO, Process class 등을 자동으로 인식할 패키지 선언
+★★ 프로젝트별 파일명 : 프로젝트명Application.java★★
 ▷ dev.boot.resort_v1sbm3a.ResortV1sbm3aApplication.java
+-------------------------------------------------------------------------------------------
 package dev.mvc.resort_v1sbm3a;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -552,7 +568,8 @@ public class ResortV1sbm3aApplication {
         SpringApplication.run(ResortV1sbm3aApplication.class, args);
     }
 }
- 
+-------------------------------------------------------------------------------------------
+
 7. 관련 폴더 생성
 1) JSP views: /src/main/webapp/WEB-INF/views
 2) JSP views: /src/main/webapp/WEB-INF/lib : .jar이 들어감
@@ -564,9 +581,10 @@ public class ResortV1sbm3aApplication {
 1. /src/main/resources/mybatis 패키지 생성
 2. MyBatis 설정
 - @MapperScan(basePackages= {"dev.mvc.bbs"}): DAO interface 검색 패키지 설정
-★★중요한점 : application.properties 끌어다 쓰고, classpath:/mybatis 필요★★
+★★application.properties 끌어다 쓰고, classpath:/mybatis 필요★★
 
 ▷ /src/main/java/dev.mvc.resort_v1sbm3a.DatabaseConfiguration.java 설정
+-------------------------------------------------------------------------------------------
 package dev.mvc.resort_v1sbm3a;
 import javax.sql.DataSource;
 import org.mybatis.spring.annotation.MapperScan;
@@ -615,18 +633,22 @@ public class DatabaseConfiguration {
         return new SqlSessionTemplate(sqlSessionFactory);
     }
 }
+-------------------------------------------------------------------------------------------
 
 [03] Oracle Driver 설정 및 테스트
-1. Oracle Driver 설정
-★★build.gradle에서 Oracle Driver 절대 설치하지 말것, 버그로 인해 드라이버 인식 불규칙하게됨 ★★★★★
+1. Oracle JDBC Driver Download
+   - https://www.oracle.com/kr/database/technologies/appdev/jdbc-downloads.html
+   -> Oracle Database 18c (18.3) drivers -> ojdbc8.jar
+   - 다운후 용량은 4,065 KB 이어야함.
+★★build.gradle에서 Oracle Driver 절대 설치하지 말것, 버그로 인해 드라이버 인식 불규칙★★
 
-JSP views: /src/main/webapp/WEB-INF/lib/ojdbc8.jar
-- Oracle 18C XE 버전의 경우 SQL Developer가 설치된 폴더의 F:/ai7/sqldeveloper/jdbc/lib/ojdbc8.jar을 복사하여 사용
+- JSP views: /src/main/webapp/WEB-INF/lib/ojdbc8.jar
+- Oracle 18C XE 버전의 경우 SQL Developer가 설치된 폴더의 F:/ai8/sqldeveloper/jdbc/lib/ojdbc8.jar을 복사하여 사용
 
 2. MyBatis 설정 JUnit 테스트(/src/test/java 폴더에 테스트 기초 파일이 생성되어 있음 ★)
 ▷ /src/test/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplicationTests.java 설정
  -> /src/main/java가 아닌 -> /src/test/java
-
+-------------------------------------------------------------------------------------------
 package dev.mvc.resort_v1sbm3a;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -645,11 +667,15 @@ class ResortV1sbm3aApplicationTests {
     System.out.println(sqlSession.toString());
   }
 }
+-------------------------------------------------------------------------------------------
 
-3. 테스트 실행: /src/test/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplicationTests.java 파일 선택 --> Debug as --> JUnit test
- -> build.gradle refresh 필요!
+3. 테스트 실행: /src/test/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplicationTests.java 파일 선택 
+   -> build.gradle refresh 후
+   -> Debug as -> JUnit test -> 성공시 HikariDataSource (HikariPool-1) 문구와 초록색 progress bar 보임
+
 4. 프로젝트 실행 테스트 : 프로젝트 선택 -> Run As -> Spring Boot App 실행
 ▷ /src/main/java/dev.mvc.resort_v1sbm3a.ResortV1sbm3aApplication.java
+-------------------------------------------------------------------------------------------
 [실행 화면]
 ......
 HikariDataSource (HikariPool-1)
@@ -667,7 +693,10 @@ public class ResortV1sbm3aApplication {
         SpringApplication.run(ResortV1sbm3aApplication.class, args);
     }
 }
+-------------------------------------------------------------------------------------------
+
 5. Web 접속 테스트 :  http://localhost:9091
+ -> White Lable 출력시 성공
 ~~~
 
 * **0330 : [08][Resort] CSS 제작**  
