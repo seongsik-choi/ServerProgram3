@@ -427,34 +427,10 @@ EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 
  
 5. SQL Map 파일 
    - SQL 쿼리를 XML 파일로 매핑하여 저장한 후 호출하여 실행 
-    
-6.★★★★Project 개발 순서(Spring MVC 기준) ★★★★
-   
-1) 구현 기능 분석(업무 분석) 
-2) DB 모델링(TABLE 생성) 
-3) SQL 생성 및 테스트 
-4) VO(DTO) 생성 
-         | 
-         |               MyBATIS/iBATIS 
-         +---------------┐ 
-         |       SQL을 MyBATIS XML로 변환.  
-         |                         | 
-         |       SQL XML Mapping File 생성 
-         |                         | 
-         |    Execute Class 생성 (Spring은 자동화)
-         +<--------------┘ 
-         | 
-         | 
-5) DAO Interface 생성
-6) DAO Interface 구현(클래스를 만듬, DBMS 관련 기능, MyBATIS 사용시는 자동 생성됨)
-7) Process Interface 생성(Business Logic, Manager/Service class)
-8) Process Interface 구현
-9) Spring Controller MVC Action class 생성 
-10) Controller, Beans(Tool(Utility 날짜 처리등 각종 메소드), Paging, Download)
-11) JSP 제작, Controller, Beans와 연동
-12) 테스트
- ~~~~
-
+~~~
+6.★★★★Project 개발 순서(Spring MVC 기준) ★★★★  
+![image](https://user-images.githubusercontent.com/76051264/113471877-49dc9780-949a-11eb-9ff5-ee199076a31c.png)  
+---
 * **0330 :[06] MyBATIS  사용**
  ~~~
 [02] MyBATIS 사용
