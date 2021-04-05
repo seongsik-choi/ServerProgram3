@@ -1495,10 +1495,88 @@ http://localhost:9091/categrp/create.do
 5. enum 열거형을 이용한 코드의 처리(ArrayList<Pay>)
 ~~~
 
+* **0405 : [16][Categrp] Categrp 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), Bootstrap 적용, 등록 기능의 결합**  
 ~~~
 -> create.do에서 3개의 테이블 추가(영화, 음악, 드라마)
 -> 실행절차 복습
 ★Sping Controller GET -> Process Interface -> Process class -> DAO interface -> DAO class
 -> MyBATIS -> SQL -> DBMS★
+
+1. SQL
+▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
+-- 출력 순서에따른 전체 목록(우선 참고만)
+SELECT categrpno, name, seqno, visible, rdate
+FROM categrp
+ORDER BY seqno ASC;
+CATEGRPNO NAME SEQNO VISIBLE RDATE
+
+2. MyBATIS
+- Interface는 객체를 생성할 수 없습.  
+  List<String> list = new List<String>();  // Cannot instantiate the type List<String>
+- id : list_categrpno_asc
+- 레코드 갯수 만큼 CategrpVO 객체를 만들어 ArrayList에 저장하여 리턴,
+  List<CategrpVO> list = new ArrayList<CategrpVO>(); 
+▷ /src/main/resources/categrp.xml 
+-----------------------------------------------------------------------------------
+  <!-- 
+  레코드 갯수 만큼 CategrpVO 객체를 만들어 ArrayList에 저장하여 리턴,
+  List<CategrpVO> list = new ArrayList<CategrpVO>(); 
+  -->
+ <select id="list_categrpno_asc" resultType="dev.mvc.categrp.CategrpVO">
+    SELECT  categrpno, name, seqno, visible, rdate
+    FROM categrp
+    ORDER BY categrpno ASC
+  </select>
+-----------------------------------------------------------------------------------
+
+3. DAO interface
+- list_seqno_asc 메소드 = mybatis의 xml id와 mapping
+▷ CategrpDAOInter.java 
+-----------------------------------------------------------------------------------
+  /**
+   * 출력 순서별 목록
+   * @return
+   */
+  public List<CategrpVO> list_seqno_asc();
+-----------------------------------------------------------------------------------
+ 
+4. Process interface
+▷ CategrpProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * 출력 순서별 목록
+   * @return
+   */
+  public List<CategrpVO> list_seqno_asc();
+-------------------------------------------------------------------------------------
+ 
+5. Process class
+- @Component("dev.mvc.categrp.CategrpProc"): 자동으로 객체 생성이 필요한 Class에만 선언 가능 
+▷ CategrpProc.java
+-------------------------------------------------------------------------------------
+  @Override
+  public List<CategrpVO> list_seqno_asc() {
+    List<CategrpVO> list = null;
+    list = this.categrpDAO.list_seqno_asc();
+    return list;
+  }
+------------------------------------------------------------------------------------
+ 
+6. Controller class
+▷ CategrpCont.java
+-----------------------------------------------------------------------------------
+  // http://localhost:9090/resort/categrp/list.do
+  @RequestMapping(value="/categrp/list.do", method=RequestMethod.GET )
+  public ModelAndView list() {
+    ModelAndView mav = new ModelAndView();
+    
+    List<CategrpVO> list = this.categrpProc.list_seqno_asc();
+    mav.addObject("list", list); // request.setAttribute("list", list);
+
+    mav.setViewName("/categrp/list"); // /webapp/categrp/list.jsp
+    return mav;
+  }
+-----------------------------------------------------------------------------------
+
 
 ~~~
