@@ -1511,9 +1511,13 @@ ORDER BY seqno ASC;
 CATEGRPNO NAME SEQNO VISIBLE RDATE
 
 2. MyBATIS
-- Interface는 객체를 생성할 수 없습.  
+★중요★ : 인터페이스 구현하는 방법 ★
+  Error) List<CategrpVO> list = new List<CategrpVo>(); // 객체 생성 불가능
+  Error No) List<CategrpVO> list = new ArrayList<CategrpVO>(); // 객체 생성 가능
+
+- LIST는 Interface이며 Interface는 객체를 생성할 수 없음.
   List<String> list = new List<String>();  // Cannot instantiate the type List<String>
-- id : list_categrpno_asc
+
 - 레코드 갯수 만큼 CategrpVO 객체를 만들어 ArrayList에 저장하여 리턴,
   List<CategrpVO> list = new ArrayList<CategrpVO>(); 
 ▷ /src/main/resources/categrp.xml 
@@ -1521,6 +1525,7 @@ CATEGRPNO NAME SEQNO VISIBLE RDATE
   <!-- 
   레코드 갯수 만큼 CategrpVO 객체를 만들어 ArrayList에 저장하여 리턴,
   List<CategrpVO> list = new ArrayList<CategrpVO>(); 
+  - id : list_categrpno_asc
   -->
  <select id="list_categrpno_asc" resultType="dev.mvc.categrp.CategrpVO">
     SELECT  categrpno, name, seqno, visible, rdate
