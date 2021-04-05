@@ -464,7 +464,7 @@ EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 
 1. Spring Boot 프로젝트 생성 
   * a. FILE -> NEW -> 'Spring Starter Project' 실행
   * b. 보이지 않는 경우 : Windows -> perspective -> open perspective -> other -> Spring  
-2. 프로젝트명: resort_v1sbm3a, / Package: dev.boot.resort_v1sbm3a
+2. 프로젝트명: resort_v1sbm3a, / Package: dev.mvc.resort_v1sbm3a
     * Service URL : https://start.spring.io 웹 상에서 프로젝트 기초 소스 생성  
     * Type : library 관리 툴, Gradle  
     * Packaging : 배포 형태, War  
@@ -473,7 +473,7 @@ EX) JSTL 오류 : https://mvnrepository.com/artifact/javax.servlet/jstl/1.2  -> 
     * version : source version  
     * Package : project main source package  
     - v1: version 1.0, sb: Spring Boot, m3: Mybatis 3.0
-3. 의존 library 추가 : Spring boot Version(2.3.9)  
+3. 의존 library 추가 : Spring boot Version(2.4.3)  
     * Spring Boot Version : 2.4.3
     * Spring Boot DevTools, Spring Web, MyBatis Framework, JDBC API : 4가지 의존성 추가
     * [Finish] 버튼을 클릭 
