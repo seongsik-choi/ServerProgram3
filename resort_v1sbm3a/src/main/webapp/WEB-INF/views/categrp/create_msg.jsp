@@ -33,12 +33,12 @@
   <fieldset class='fieldset_basic'>
     <UL>
       <c:choose>
-        <c:when test="${cnt == 1}">
+        <c:when test="${cnt == 1}">  <!-- if 문 -->
           <LI class='li_none'>
             <span class="span_success">새로운 카테고리 그룹 [${categrpVO.name }]을 등록했습니다.</span>
           </LI>
         </c:when>
-        <c:otherwise>
+        <c:otherwise>   <!-- else -->
           <LI class='li_none_left'>
             <span class="span_fail">새로운 카테고리 그룹 [${categrpVO.name }] 등록에 실패했습니다.</span>
           </LI>
