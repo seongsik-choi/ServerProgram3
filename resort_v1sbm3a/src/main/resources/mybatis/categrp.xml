@@ -22,5 +22,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     VALUES(categrp_seq.nextval, #{name}, #{seqno}, #{visible}, sysdate)
   </insert>
  
+ <!-- 
+  레코드 갯수 만큼 CategrpVO 객체를 만들어 ArrayList에 저장하여 리턴,
+  List<CategrpVO> list = new ArrayList<CategrpVO>(); 
+  -->
+ <select id="list_categrpno_asc" resultType="dev.mvc.categrp.CategrpVO">
+    SELECT  categrpno, name, seqno, visible, rdate
+    FROM categrp
+    ORDER BY categrpno ASC
+  </select>
    
 </mapper> 
