@@ -1487,8 +1487,12 @@ http://localhost:9091/categrp/create.do
 ---
 * **0405 : [14] JSTL(JSP Standard TAG Library)의 사용, ★ include JSP간 jstl 중복 선언시 에러 발생할수도** 
 ~~~
-0405_JSTL
-
+[01] JSTL(JSP Standard TAG Library)의 사용
+1. 변수지원 태그 
+2. if 흐름제어 태그의 사용 
+3. choose Tag 
+4. forEach 태그 
+5. enum 열거형을 이용한 코드의 처리(ArrayList<Pay>)
 ~~~
 
 ~~~
