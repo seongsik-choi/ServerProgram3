@@ -8,7 +8,9 @@
 ▷ dev.mvc.categrp.CategrpDAOInter.java 
  */
 package dev.mvc.categrp;
- 
+
+import java.util.List;
+
 // MyBATIS의 <mapper namespace="dev.mvc.categrp.CategrpDAOInter">에 선언
 // 스프링이 자동으로 구현
 public interface CategrpDAOInter {
@@ -23,5 +25,9 @@ public interface CategrpDAOInter {
   // <insert id="create" parameterType="dev.mvc.categrp.CategrpVO">
   public int create(CategrpVO categrpVO);
  
-  
+  /**
+   * 출력 순서별 목록
+   * @return
+   */
+  public List<CategrpVO> list_seqno_asc();
 }
