@@ -1495,10 +1495,12 @@ http://localhost:9091/categrp/create.do
 5. enum 열거형을 이용한 코드의 처리(ArrayList<Pay>)
 ~~~
 
-* **0405 : [16][Categrp] Categrp 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), Bootstrap 적용, 등록 기능의 결합**  
+* **0405~6 : [16][Categrp] Categrp 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), Bootstrap 적용, 등록 기능의 결합**  
 ~~~
--> create.do에서 3개의 테이블 추가(영화, 음악, 드라마)
--> 실행절차 복습
+create.do에서 3개의 테이블 추가(영화, 음악, 드라마)
+★List는 interface(객체 생성 불가) -> ArrayList로 구현★
+ ★레코드 갯수 만큼 CategrpVO 객체를 만들어 ArrayList에 저장하여 리턴★
+ ★구현된 Type(ArrayList)은 Interfac Tpye(List)으로 변경★
 ★Sping Controller GET -> Process Interface -> Process class -> DAO interface -> DAO class
 -> MyBATIS -> SQL -> DBMS★
 
@@ -1511,16 +1513,60 @@ ORDER BY seqno ASC;
 CATEGRPNO NAME SEQNO VISIBLE RDATE
 
 2. MyBATIS
-★중요★ : 인터페이스 구현하는 방법 ★
-  Error) List<CategrpVO> list = new List<CategrpVo>(); // 객체 생성 불가능
-  Error No) List<CategrpVO> list = new ArrayList<CategrpVO>(); // 객체 생성 가능
+★★중요★ : 인터페이스 구현하는 방법 ★★
+★ Interface는 객체 생성 불가, 구현하여 객체를 전단받은 경우 객체는 inferfactype이 됨 ★
+★ 구현된 Type(ArrayList)은 Interfac Tpye(List)으로 변경 ★
+★ JAVA Collection Framework 개념 ★
+- Interface를 구현하는 class는 사용방법이 동일
+    - 동일한 추상 메소드용 구현했기 때문 
+- Interface를 여러개의 클래스가 구현하는 이유?
+   - 목표로하는 기능은 같은데 데이터의 특징등이 다른경우
+ 예) ArrayList는 동시 접근에 대한 처리를 하지 않으면서 객체 저장 가능, 속도 빠름, Web에서 사용
+      Vector는 Socket을 이용한 네트워크등에서의 동시 접속시,
+      충돌을 방지하는 기능과 함께 객체 저장 가능, 속도 느림
 
-- LIST는 Interface이며 Interface는 객체를 생성할 수 없음.
-  List<String> list = new List<String>();  // Cannot instantiate the type List<String>
+★ 인터페이스 개념 연습(project와는 무관)
+▷ /src/test/java/TestCategrpDAO.java 
+-----------------------------------------------------------------------------------
+public class TestCategrpDAO {
+  public static void main(String[] args) {
+    
+    // 인터페이스 구현하는 방법
+    // List<CategrpVO> list = new List<CategrpVo>(); // 객체 생성 불가능
+    List<CategrpVO> list = new ArrayList<CategrpVO>(); // 객체 생성 가능
+    
+    // 객체 생성후 초기화까지만.
+    CategrpVO categrpvo = null;
+    
+    // 객체 생성후 List에 추가하기
+    categrpvo = new CategrpVO(1, "Spring", 1, "Y", "2021-04-06");
+    list.add(categrpvo); 
+    System.out.println(categrpvo.hashCode()); //1829164700
+    
+    // 이미 만들어진 객체에 두번째 List 추가.
+    // 메모리에 categrpvo 객체가 덮어씌어지는게 아닌, 각기 다른 메모리 영역에 list 값 할당
+    categrpvo = new CategrpVO(2, "Summer", 2, "N", "2021-04-07");
+    list.add(categrpvo); 
+    System.out.println(categrpvo.hashCode()); //2018699554
+    System.out.println(list.size()); // 2
 
-- 레코드 갯수 만큼 CategrpVO 객체를 만들어 ArrayList에 저장하여 리턴,
-  List<CategrpVO> list = new ArrayList<CategrpVO>(); 
+    // 값을 가져오기
+    // VO클래스에서 toString() 선언, 호출만으로 출력가능.
+    for(int i=0; i<list.size(); i++) {
+      categrpvo = list.get(i); 
+      System.out.println(categrpvo.toString());
+    }// for end
+
+     // 다른 유형의 for문 
+    for(CategrpVO categrpvo2: list) {
+      System.out.println(categrpvo2.toString());
+    }// for end
+  }
+}
+-----------------------------------------------------------------------------------
+
 ▷ /src/main/resources/categrp.xml 
+-> categrp_c.sql의 List, 목록 : 여러 건의 레코드를 읽는 것 부분
 -----------------------------------------------------------------------------------
   <!-- 
   레코드 갯수 만큼 CategrpVO 객체를 만들어 ArrayList에 저장하여 리턴,
@@ -1535,14 +1581,15 @@ CATEGRPNO NAME SEQNO VISIBLE RDATE
 -----------------------------------------------------------------------------------
 
 3. DAO interface
-- list_seqno_asc 메소드 = mybatis의 xml id와 mapping
+- list_categrpno_asc 메소드 = mybatis의 xml id와 mapping
+- List인 이유는 categrp.xml의 대응되는 구문이 SELECT이고, generic type은 VO class
 ▷ CategrpDAOInter.java 
 -----------------------------------------------------------------------------------
   /**
    * 출력 순서별 목록
    * @return
    */
-  public List<CategrpVO> list_seqno_asc();
+  public List<CategrpVO> list_categrpno_asc();
 -----------------------------------------------------------------------------------
  
 4. Process interface
@@ -1552,7 +1599,7 @@ CATEGRPNO NAME SEQNO VISIBLE RDATE
    * 출력 순서별 목록
    * @return
    */
-  public List<CategrpVO> list_seqno_asc();
+  public List<CategrpVO> list_categrpno_asc();
 -------------------------------------------------------------------------------------
  
 5. Process class
@@ -1560,9 +1607,9 @@ CATEGRPNO NAME SEQNO VISIBLE RDATE
 ▷ CategrpProc.java
 -------------------------------------------------------------------------------------
   @Override
-  public List<CategrpVO> list_seqno_asc() {
+  public List<CategrpVO> list_categrpno_asc() {
     List<CategrpVO> list = null;
-    list = this.categrpDAO.list_seqno_asc();
+    list = this.categrpDAO.list_categrpno_asc();
     return list;
   }
 ------------------------------------------------------------------------------------
@@ -1575,7 +1622,7 @@ CATEGRPNO NAME SEQNO VISIBLE RDATE
   public ModelAndView list() {
     ModelAndView mav = new ModelAndView();
     
-    List<CategrpVO> list = this.categrpProc.list_seqno_asc();
+    List<CategrpVO> list = this.categrpProc.list_categrpno_asc();
     mav.addObject("list", list); // request.setAttribute("list", list);
 
     mav.setViewName("/categrp/list"); // /webapp/categrp/list.jsp
@@ -1583,5 +1630,176 @@ CATEGRPNO NAME SEQNO VISIBLE RDATE
   }
 -----------------------------------------------------------------------------------
 
+7. View: JSP, 등록과 목록의 결합
+- <TABLE><TH><TD>는 Bootstrap에 기본 속성이 설정되어 있음
+▷ /webapp/categrp/list.jsp 
+★★★★★★ 홈페이지 소스에 추가 : content_body 부분
+-----------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    
+<script type="text/javascript">
+ 
+</script>
+ 
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" />
+ 
+<DIV class='title_line'>카테고리 그룹</DIV>
+
+<DIV class='content_body'>
+  <DIV id='panel_create' style='padding: 10px 0px 10px 0px; background-color: #F9F9F9; width: 100%; text-align: center;'>
+    <FORM name='frm_create' id='frm_create' method='POST' action='./create.do'>
+      <!-- <input type='hidden' name='lang' id='lang' value='en'> --> <!-- ko, en -->
+      <!-- id는 javascript에서 중요 현재는 작성만, 이 폼에서는 name이 중요. -->  
+        
+      <label>그룹 이름</label>
+      <input type='text' name='name' value='' required="required" style='width: 25%;'>
+  
+      <label>순서</label>
+      <input type='number' name='seqno' value='1' required="required" 
+                min='1' max='1000' step='1' style='width: 5%;'>
+  
+      <label>형식</label>
+      <select name='visible'>
+        <option value='Y' selected="selected">Y</option>
+        <option value='N'>N</option>
+      </select>
+       
+      <button type="submit" id='submit'>등록</button>
+      <button type="button" onclick="cancel();">취소</button>
+      </FORM>
+  </DIV>
+   
+  <TABLE class='table table-striped'>
+    <colgroup>
+    <col style='width: 10%;'/>  <!-- /는 close 태그 == body 없이 태그의 속성만 사용 -->
+    <col style='width: 40%;'/>
+    <col style='width: 20%;'/>
+    <col style='width: 10%;'/>    
+    <col style='width: 20%;'/>
+  </colgroup>
+  
+  <thead>  
+  <TR>
+    <TH class="th_bs">순서</TH>
+    <TH class="th_bs">대분류명</TH>
+    <TH class="th_bs">등록일</TH>
+    <TH class="th_bs">출력</TH>
+    <TH class="th_bs">기타</TH>
+  </TR>
+  </thead>
+  
+  <tbody>
+  <c:forEach var="categrpVO" items="${list}">
+    <c:set var="categrpno" value="${categrpVO.categrpno }" />
+    <TR>
+      <TD class="td_bs">${categrpVO.seqno }</TD>
+      <TD class="td_bs_left">${categrpVO.name }</TD>
+      <TD class="td_bs">${categrpVO.rdate.substring(0, 10) }</TD> <!-- subString으로 년, 월일만 잘라내기  -->
+      <TD class="td_bs">${categrpVO.visible}</TD>   
+      
+      <TD class="td_bs">
+        <A href="./read_update.do?categrpno=${categrpno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
+        <A href="./read_delete.do?categrpno=${categrpno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
+        <A href="./update_seqno_up.do?categrpno=${categrpno }" title="우선순위 상향"><span class="glyphicon glyphicon-arrow-up"></span></A>
+        <A href="./update_seqno_down.do?categrpno=${categrpno }" title="우선순위 하향"><span class="glyphicon glyphicon-arrow-down"></span></A>         
+      </TD>   
+    </TR>   
+  </c:forEach> 
+  </tbody>
+   
+  </TABLE>
+
+</DIV><!-- content body end -->
+
+<jsp:include page="../menu/bottom.jsp" />
+</body>
+ 
+</html>
+-----------------------------------------------------------------------------------
+
+-> top.jsp의 Content class를 수정해 main 부분 가로를 줄이기.
+-> style.css 수정.
+  .content{
+    width: 90%;
+    margin: 10px auto; /*위아래 10px 떨어지고, 센터 정렬 */
+  }
+  
+  .content_body {
+    width: 90%;
+    margin: 10px auto;
+  }
+  
+  .content_bottom {
+    width: 90%;
+    margin: 10px auto; 
+  }
+
+/* 화면 내용 하단 메뉴 우측 배치 */
+  .content_body_bottom {
+    clear: both;
+    padding-top: 20px;
+    padding-right: 20px;
+    padding-bottom: 20px;
+    text-align: right;
+    width: 100%;
+    background-color: white;
+  }
+
+-----------------------------------------------------------------------------------
+-> create.jsp 수정(content_body 추가)
+
+<DIV class='content_body'>
+  <FORM name='frm' method='POST' action='./create.do' class="form-horizontal">
+    <div class="form-group">
+       <label class="control-label col-md-4">카테고리 그룹 이름</label>
+       <div class="col-md-8">
+         <input type='text' name='name' value='' required="required" 
+                    placeholder="이름을 입력하세요." 
+                    autofocus="autofocus" class="form-control" style='width: 50%;'>
+       </div>
+    </div>
+    
+    <div class="form-group">
+       <label class="control-label col-md-4">출력 순서</label>
+       <div class="col-md-8">
+         <input type='number' name='seqno' required="required" 
+                   placeholder="출력 순서를 숫자로 입력" min="1" max="1000" step="1" 
+                   style='width: 30%;' class="form-control" >
+       </div>
+    </div>
+      
+    <div class="form-group">
+       <label class="control-label col-md-4">출력 형식</label>
+       <div class="col-md-8">
+          <select name='visible' class="form-control" style='width: 20%;'>
+            <option value='Y' selected="selected">Y</option>
+            <option value='N'>N</option>
+          </select>
+       </div>
+    </div>   
+  
+    <div class="content_body_bottom" style="padding-right: 20%;">
+      <button type="submit" class="btn">등록</button> <!--  submit은 무조건 form 안쪽에 -->
+      <button type="button" onclick="location.href='./list.do'" class="btn">목록</button>
+    </div>
+  
+  </FORM>
+</DIV><!-- content_body end -->
+-----------------------------------------------------------------------------------
 
 ~~~
