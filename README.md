@@ -1663,11 +1663,10 @@ public class TestCategrpDAO {
 <DIV class='content_body'>
   <DIV id='panel_create' style='padding: 10px 0px 10px 0px; background-color: #F9F9F9; width: 100%; text-align: center;'>
     <FORM name='frm_create' id='frm_create' method='POST' action='./create.do'>
-      <!-- <input type='hidden' name='lang' id='lang' value='en'> --> <!-- ko, en -->
-      <!-- id는 javascript에서 중요 현재는 작성만, 이 폼에서는 name이 중요. -->  
-        
+
       <label>그룹 이름</label>
-      <input type='text' name='name' value='' required="required" style='width: 25%;'>
+      <input type='text' name='name' value='' required="required" style='width: 25%;'
+                 autofocus="autofocus">
   
       <label>순서</label>
       <input type='number' name='seqno' value='1' required="required" 
