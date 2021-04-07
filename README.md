@@ -1809,6 +1809,7 @@ public class TestCategrpDAO {
 ~~~
 
 * **0407 : [17][Categrp] Categrp 조회, 수정폼 기능의 제작, JSP 수정과 목록의 결합**  
+![image](https://user-images.githubusercontent.com/76051264/113799411-fc10a980-978f-11eb-98ca-7afeb5f24907.png)  
 ~~~
 ★★★ Read, 조회 : 한 건의 레코드를 읽는 것 ★★★★★
 - READ(한건의 데이트 읽기, WHERE)의 경우 Return Type = VO
