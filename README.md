@@ -1879,7 +1879,7 @@ WHERE categrpno = 1;
   }
 -------------------------------------------------------------------------------------
    
-6. Controller class : 수정폼에 조회 기능이 추가.
+6. Controller class : 수정폼에 조회 기능이 추가. GET방식
 ▷ CategrpCont.java
 -----------------------------------------------------------------------------------
   // http://localhost:9090/categrp/read_update.do
@@ -2007,4 +2007,417 @@ WHERE categrpno = 1;
  
 </html>
 -----------------------------------------------------------------------------------
+~~~
+
+* **0407 : [18][Categrp] Categrp 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ )**
+~~~
+[01] 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ ), JSP 수정과 목록의 결합
+- Update, 수정 : PK는 update 불가능, 컬럼의 특징을 파악후 변경 여부결정
+- UPDATE 테이블명 SET에 바꿀 조건, WHERE에 PK조건을 명시.
+
+★★UDATE 수정★★
+UPDATE 테이블명 SET 컬럼값='영화에서영화2로', 컬럼값=5, 컬럼값='N'
+WHERE 컬럼값(PK)=1;
+
+1. SQL
+ ▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
+-----------------------------------------------------------------------------------
+-- 수정
+UPDATE categrp
+SET name='업무 양식', seqno = 3, visible='Y'
+WHERE categrpno = 3;
+commit;
+-----------------------------------------------------------------------------------
+  
+2. MyBATIS : - 조회 기능과 변경을 같이 제작
+▷ /src/main/resources/categrp.xml 
+-----------------------------------------------------------------------------------
+  <!-- 수정, id: update, 입력: CategrpVO, 리턴: int 
+	WHERE 조건에 PK -->
+  <update id="update" parameterType="dev.mvc.categrp.CategrpVO">
+    UPDATE categrp
+    SET name=#{name}, seqno=#{seqno}, visible=#{visible}
+    WHERE categrpno = #{categrpno}
+  </update>
+-----------------------------------------------------------------------------------
+ 
+3. DAO interface
+▷ CategrpDAOInter.java 
+-----------------------------------------------------------------------------------
+  /**
+   * 수정 처리
+   * @param categrpVO
+   * @return 처리된 레코드 갯수
+   */
+  public int update(CategrpVO categrpVO);
+-----------------------------------------------------------------------------------
+ 
+4. Process interface
+▷ CategrpProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * 수정 처리
+   * @param categrpVO
+   * @return 처리된 레코드 갯수
+   */
+  public int update(CategrpVO categrpVO);
+ -------------------------------------------------------------------------------------
+ 
+5. Process class : 구현 클래스
+▷ CategrpProc.java
+-------------------------------------------------------------------------------------
+  @Override
+  public int update(CategrpVO categrpVO) {
+    int cnt = 0;
+    cnt = this.categrpDAO.update(categrpVO);
+    return cnt;
+  }
+ -------------------------------------------------------------------------------------
+   
+6. Controller class : POST 방식
+▷ CategrpCont.java
+-----------------------------------------------------------------------------------
+  // http://localhost:9090/categrp/update.do
+  /**
+   * 수정 처리
+   * @param categrpVO
+   * @return
+   */
+  @RequestMapping(value="/categrp/update.do", method=RequestMethod.POST )
+  public ModelAndView update(CategrpVO categrpVO) {
+    // CategrpVO categrpVO <FORM> 태그의 값으로 자동 생성됨.
+    // request.setAttribute("categrpVO", categrpVO); 자동 실행
+    
+    ModelAndView mav = new ModelAndView();
+    
+    int cnt = this.categrpProc.update(categrpVO);
+    mav.addObject("cnt", cnt); // request에 저장
+    
+    mav.setViewName("/categrp/update_msg"); // update_msg.jsp
+    
+    return mav;
+  }
+-----------------------------------------------------------------------------------
+ 
+ 7. View: JSP
+- 처리 결과 출력
+ ▷ /webapp/categrp/update_msg.jsp 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+  
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+<script type="text/JavaScript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+
+<DIV class='title_line'>알림</DIV>
+
+<DIV class='message'>
+  <fieldset class='fieldset_basic'>
+    <UL>
+      <c:choose>
+        <c:when test="${cnt == 1}">
+          <LI class='li_none'>
+            <span class="span_success">카테고리 그룹을 수정했습니다.</span>
+          </LI>
+        </c:when>
+        <c:otherwise>
+          <LI class='li_none_left'>
+            <span class="span_fail">카테고리 그룹 수정에 실패했습니다.</span>
+          </LI>
+          <LI class='li_none_left'>
+            <span class="span_fail">다시 시도해주세요.</span>
+          </LI>
+        </c:otherwise>
+      </c:choose>
+      <LI class='li_none'>
+        <br>
+        <c:if test="${cnt != 1 }">
+	  <%-- History 객체.back() : JavaScript --%>
+          <button type='button' onclick="history.back()" class="btn btn-primary">다시 시도</button>
+        </c:if>
+        <button type='button' onclick="location.href='./list.do'" class="btn btn-primary">목록</button>
+      </LI>
+    </UL>
+  </fieldset>
+
+</DIV>
+
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+
+</html>
+-------------------------------------------------------------------------------------
+~~~
+
+* **[19][Categrp] Categrp 삭제 폼 기능의 제작, JSP 삭제와 목록의 결합**
+~~~
+[01] 삭제 폼 기능의 제작(UPDATE ~ SET ~ WHERE ~ )
+1. SQL
+▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
+-----------------------------------------------------------------------------------
+-- 조회 + 수정폼 + 삭제폼
+SELECT categrpno, name, seqno, visible, rdate 
+FROM categrp
+WHERE categrpno = 1;
+-----------------------------------------------------------------------------------
+ 
+2. MyBATIS
+▷ /src/main/resources/categrp.xml   = READ와 같은 조회 XML
+-----------------------------------------------------------------------------------
+  <!-- 삭제 처리, id=delete, 입력: PK, 리턴: 삭제된 갯수 int -->
+  <delete id="delete" parameterType="int">
+    DELETE FROM categrp
+    WHERE categrpno=#{categrpno}
+  </delete>
+ -----------------------------------------------------------------------------------
+
+3. DAO interface▷ CategrpDAOInter.java  = READ와 같은 조회 인터페이스
+-----------------------------------------------------------------------------------
+  /**
+   * 삭제 처리
+   * @param categrpno
+   * @return 처리된 레코드 갯수
+   */
+  public int delete(int categrpno);
+----------------------------------------------------------------------------------- 
+
+4. Process interface
+▷ CategrpProcInter.java = READ와 같은 조회 인터페이스
+-----------------------------------------------------------------------------------
+  /**
+   * 삭제 처리
+   * @param categrpno
+   * @return 처리된 레코드 갯수
+   */
+  public int delete(int categrpno);
+-----------------------------------------------------------------------------------
+
+5. Process class
+▷ CategrpProc.java = READ와 같은 구현
+-----------------------------------------------------------------------------------
+  @Override
+  public int delete(int categrpno) {
+    int cnt = 0;
+    cnt = this.categrpDAO.delete(categrpno);
+    
+    return cnt;
+  }
+-----------------------------------------------------------------------------------
+
+6. Controller class
+▷ CategrpCont.java
+-----------------------------------------------------------------------------------
+  // http://localhost:9090/categrp/read_delete.do
+  /**
+   * 조회 + 삭제폼
+   * @param categrpno 조회할 카테고리 번호
+   * @return
+   */
+  @RequestMapping(value="/categrp/read_delete.do", method=RequestMethod.GET )
+  public ModelAndView read_delete(int categrpno) {
+    ModelAndView mav = new ModelAndView();
+    
+    CategrpVO categrpVO = this.categrpProc.read(categrpno); // 삭제할 자료 읽기
+    mav.addObject("categrpVO", categrpVO);  // request 객체에 저장
+    
+    List<CategrpVO> list = this.categrpProc.list_seqno_asc();
+    mav.addObject("list", list);  // request 객체에 저장
+
+    mav.setViewName("/categrp/read_delete"); // read_delete.jsp
+    return mav;
+  }
+-----------------------------------------------------------------------------------
+ 
+7. View: JSP
+▷ read_delete.jsp 
+-----------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    
+<script type="text/javascript">
+ 
+  
+</script>
+ 
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" />
+ 
+  <DIV class='title_line'>카테고리 그룹 > ${categrpVO.name } 삭제</DIV>
+ 
+  <DIV id='panel_delete' style='padding: 10px 0px 10px 0px; background-color: #F9F9F9; width: 100%; text-align: center;'>
+    <div class="msg_warning">카테고리 그룹을 삭제하면 복구 할 수 없습니다.</div>
+    <FORM name='frm_delete' id='frm_delete' method='POST' action='./delete.do'>
+      <input type='hidden' name='categrpno' id='categrpno' value='${categrpVO.categrpno }'>
+        
+      <label>그룹 이름</label>: ${categrpVO.name }  
+      <label>순서</label>: ${categrpVO.seqno }   
+      <label>출력 형식</label>: ${categrpVO.visible }  
+       
+      <button type="submit" id='submit'>삭제</button>
+      <button type="button" onclick="location.href='./list.do'">취소</button>
+    </FORM>
+  </DIV>
+   
+<TABLE class='table table-striped'>
+  <colgroup>
+    <col style='width: 10%;'/>
+    <col style='width: 40%;'/>
+    <col style='width: 20%;'/>
+    <col style='width: 10%;'/>    
+    <col style='width: 20%;'/>
+  </colgroup>
+ 
+  <thead>  
+  <TR>
+    <TH class="th_bs">순서</TH>
+    <TH class="th_bs">대분류명</TH>
+    <TH class="th_bs">등록일</TH>
+    <TH class="th_bs">출력</TH>
+    <TH class="th_bs">기타</TH>
+  </TR>
+  </thead>
+  
+  <tbody>
+  <c:forEach var="categrpVO" items="${list}">
+    <c:set var="categrpno" value="${categrpVO.categrpno }" />
+    <TR>
+      <TD class="td_bs">${categrpVO.seqno }</TD>
+      <TD class="td_bs_left">${categrpVO.name }</TD>
+      <TD class="td_bs">${categrpVO.rdate.substring(0, 10) }</TD>
+      <TD class="td_bs">${categrpVO.visible }</TD>
+      <TD class="td_bs">
+        <A href="./read_update.do?categrpno=${categrpno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
+        <A href="./read_delete.do?categrpno=${categrpno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
+        <A href="./update_seqno_up.do?categrpno=${categrpno }" title="우선순위 상향"><span class="glyphicon glyphicon-arrow-up"></span></A>
+        <A href="./update_seqno_down.do?categrpno=${categrpno }" title="우선순위 하향"><span class="glyphicon glyphicon-arrow-down"></span></A>         
+       </TD>   
+    </TR>   
+  </c:forEach> 
+  </tbody>
+ 
+</TABLE>
+ 
+<jsp:include page="../menu/bottom.jsp" />
+</body>
+ 
+</html>
+-----------------------------------------------------------------------------------
+~~~
+
+* **[20][Categrp] Categrp 삭제 처리 기능의 제작(DELETE FROM ~ WHERE**
+~~~
+[01] 삭제 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ )
+6. Controller class
+▷ CategrpCont.java : POST 방식
+-----------------------------------------------------------------------------------
+  // http://localhost:9090/categrp/delete.do
+  /**
+   * 삭제
+   * @param categrpno 조회할 카테고리 번호
+   * @return
+   */
+  @RequestMapping(value="/categrp/delete.do", method=RequestMethod.POST )
+  public ModelAndView delete(int categrpno) {
+    ModelAndView mav = new ModelAndView();
+    
+    CategrpVO categrpVO = this.categrpProc.read(categrpno); // 삭제 정보
+    mav.addObject("categrpVO", categrpVO);  // request 객체에 저장
+    
+    int cnt = this.categrpProc.delete(categrpno); // 삭제 처리
+    mav.addObject("cnt", cnt);  // request 객체에 저장
+    
+    mav.setViewName("/categrp/delete_msg"); // delete_msg.jsp
+
+    return mav;
+  }
+-----------------------------------------------------------------------------------
+
+7. View: JSP
+- 처리 결과 출력
+- 삭제 실패 테스트: http://localhost:9090/resort/categrp/delete_msg.jsp?cnt=0
+▷ delete_msg.jsp 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+  
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+
+<DIV class='title_line'>알림</DIV>
+
+<DIV class='message'>
+  <fieldset class='fieldset_basic'>
+    <UL>
+      <c:choose>
+        <c:when test="${cnt == 1}">
+          <LI class='li_none'>
+            <span class="span_success">카테고리 그룹을 삭제했습니다.</span>
+          </LI>
+        </c:when>
+        <c:otherwise>
+          <LI class='li_none_left'>
+            <span class="span_fail">카테고리 그룹 삭제에 실패했습니다.</span>
+          </LI>
+          <LI class='li_none_left'>
+            <span class="span_fail">다시 시도해주세요.</span>
+          </LI>
+        </c:otherwise>
+      </c:choose>
+      <LI class='li_none'>
+        <br>
+        <c:if test="${cnt != 1 }">
+          <button type='button' onclick="history.back()" class="btn btn-primary">다시 시도</button>
+        </c:if>
+        <button type='button' onclick="location.href='./list.do'" class="btn btn-primary">목록</button>
+      </LI>
+    </UL>
+  </fieldset>
+
+</DIV>
+
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+
+</html>
+-------------------------------------------------------------------------------------
 ~~~
