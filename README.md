@@ -1569,11 +1569,13 @@ public class TestCategrpDAO {
 
 ▷ /src/main/resources/categrp.xml 
 -> categrp_c.sql의 List, 목록 : 여러 건의 레코드를 읽는 것 부분
+1) SELECT 사용 시 LIST(결과 레코드 여러개)인 경우 DAO와 Proc에서 ArrayList Return
+2) SELECT 사용 시 READ(결과 레코드 한개)인 경우 DAO와 Proc에서 VO가 Return
 -----------------------------------------------------------------------------------
-  <!-- 
+ <!-- 
   레코드 갯수 만큼 CategrpVO 객체를 만들어 ArrayList에 저장하여 리턴,
   List<CategrpVO> list = new ArrayList<CategrpVO>(); 
-  - id : list_categrpno_asc
+  LIST(결과 레코드가 여러개)이기 때문에 ArrayList가 return
   -->
  <select id="list_categrpno_asc" resultType="dev.mvc.categrp.CategrpVO">
     SELECT  categrpno, name, seqno, visible, rdate
@@ -1591,6 +1593,8 @@ public class TestCategrpDAO {
    * 출력 순서별 목록
    * @return
    */
+  // List(결과가 여러개)인 이유는 categrp.xml의 대응되는 구문이 SELECT이고, generic type은 VO class
+  // 1) SELECT 사용 시 LIST(결과 레코드 여러개)인 경우 ArrayList Return
   public List<CategrpVO> list_categrpno_asc();
 -----------------------------------------------------------------------------------
  
@@ -1807,6 +1811,7 @@ public class TestCategrpDAO {
 * **0407 : [17][Categrp] Categrp 조회, 수정폼 기능의 제작, JSP 수정과 목록의 결합**  
 ~~~
 ★★★ Read, 조회 : 한 건의 레코드를 읽는 것 ★★★★★
+- READ(한건의 데이트 읽기, WHERE)의 경우 Return Type = VO
 [01] 조회, 수정폼 기능의 제작(UPDATE ~ SET ~ WHERE ~ ), JSP 수정과 목록의 결합
 1. SQL
 ▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
@@ -1823,8 +1828,14 @@ WHERE categrpno = 1;
   
 2. MyBATIS
 ▷ /src/main/resources/categrp.xml 
+1) SELECT 사용 시 LIST(결과 레코드 여러개)인 경우 DAO와 Proc에서 ArrayList Return
+2) SELECT 사용 시 READ(결과 레코드 한개)인 경우 DAO와 Proc에서 VO가 Return
+★★★ CREATE(등록) -> LIST(목록) -> READ(조회) ★★★
 -----------------------------------------------------------------------------------
-  <!-- 조회, id: read, 입력: categrpno, 리턴: CategrpVO -->
+  <!-- 조회, id: read, 입력: categrpno, 리턴: CategrpVO
+    1) SELECT 사용 시 LIST(결과 레코드 여러개)인 경우 ArrayList Return
+    2) SELECT 사용 시 READ(결과 레코드 한개)인 경우 VO가 Return
+   -->
   <select id="read" resultType="dev.mvc.categrp.CategrpVO" parameterType="int">
     SELECT  categrpno, name, seqno, visible, rdate
     FROM categrp
@@ -1832,15 +1843,15 @@ WHERE categrpno = 1;
   </select>
 -----------------------------------------------------------------------------------
  
- 
 3. DAO interface
 ▷ CategrpDAOInter.java 
 -----------------------------------------------------------------------------------
-  /**
+/**
    * 조회, 수정폼
    * @param categrpno 카테고리 그룹 번호, PK
    * @return
    */
+  // 2) SELECT 사용 시 READ(결과 레코드 한개)인 경우 VO가 Return
   public CategrpVO read(int categrpno);
 -----------------------------------------------------------------------------------
  
@@ -1867,8 +1878,7 @@ WHERE categrpno = 1;
   }
 -------------------------------------------------------------------------------------
    
- 
-6. Controller class : 수정폼에 조회 기능이 가능
+6. Controller class : 수정폼에 조회 기능이 추가.
 ▷ CategrpCont.java
 -----------------------------------------------------------------------------------
   // http://localhost:9090/categrp/read_update.do
@@ -1886,7 +1896,7 @@ WHERE categrpno = 1;
     CategrpVO categrpVO = this.categrpProc.read(categrpno);
     mav.addObject("categrpVO", categrpVO);  // request 객체에 저장
     
-    List<CategrpVO> list = this.categrpProc.list_seqno_asc();
+    List<CategrpVO> list = this.categrpProc.list_categrpno_asc();	// 목록을 다시 가져옴.
     mav.addObject("list", list);  // request 객체에 저장
 
     mav.setViewName("/categrp/read_update"); // /webapp/WEB-INF/views/categrp/read_update.jsp 
@@ -1921,15 +1931,19 @@ WHERE categrpno = 1;
 <body>
 <jsp:include page="../menu/top.jsp" />
  
-  <DIV class='title_line'>카테고리 그룹 > ${categrpVO.name } 조회(수정)</DIV>
- 
+<DIV class='title_line'>카테고리 그룹 > ${categrpVO.name } 조회(수정)</DIV>
+
+<DIV class='content_body'>
   <DIV id='panel_create' style='padding: 10px 0px 10px 0px; background-color: #F9F9F9; width: 100%; text-align: center;'>
     <FORM name='frm_update' id='frm_update' method='POST' action='./update.do'>
       <input type='hidden' name='categrpno' id='categrpno' value='${categrpVO.categrpno }'>
-        
+       <!-- hidden tag : 브라우저 상 출력no, 폼에는 구성요소로 데이터 전달 -->
+       
       <label>그룹 이름</label>
-      <input type='text' name='name' value="${categrpVO.name }" required="required" style='width: 25%;'>
- 
+      <input type='text' name='name' value="${categrpVO.name }" required="required" 
+                 autofocus="autofocus" style='width: 25%;'>
+      <!-- value :  출력  및 수정 가능 --> 
+      
       <label>순서</label>
       <input type='number' name='seqno' value="${categrpVO.seqno }" required="required" 
                 min='1' max='1000' step='1' style='width: 5%;'>
@@ -1943,53 +1957,53 @@ WHERE categrpno = 1;
       <button type="submit" id='submit'>저장</button>
       <button type="button" onclick="location.href='./list.do'">취소</button>
     </FORM>
-  </DIV>
-  
-<TABLE class='table table-striped'>
-  <colgroup>
-    <col style='width: 10%;'/>
-    <col style='width: 40%;'/>
-    <col style='width: 20%;'/>
-    <col style='width: 10%;'/>    
-    <col style='width: 20%;'/>
-  </colgroup>
- 
-  <thead>  
-  <TR>
-    <TH class="th_bs">순서</TH>
-    <TH class="th_bs">대분류명</TH>
-    <TH class="th_bs">등록일</TH>
-    <TH class="th_bs">출력</TH>
-    <TH class="th_bs">기타</TH>
-  </TR>
-  </thead>
-  
-  <tbody>
-  <c:forEach var="categrpVO" items="${list}">
-    <c:set var="categrpno" value="${categrpVO.categrpno }" />
+    </DIV>
+   
+  <TABLE class='table table-striped'>
+    <colgroup>
+      <col style='width: 10%;'/>
+      <col style='width: 40%;'/>
+      <col style='width: 20%;'/>
+      <col style='width: 10%;'/>    
+      <col style='width: 20%;'/>
+    </colgroup>
+   
+    <thead>  
     <TR>
-      <TD class="td_bs">${categrpVO.seqno }</TD>
-      <TD class="td_bs_left">${categrpVO.name }</TD>
-      <TD class="td_bs">${categrpVO.rdate.substring(0, 10) }</TD>
-      <TD class="td_bs">${categrpVO.visible }</TD>
-      <TD class="td_bs">
-        <A href="./read_update.do?categrpno=${categrpno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
-        <A href="./read_delete.do?categrpno=${categrpno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
-        <A href="./update_seqno_up.do?categrpno=${categrpno }" title="우선순위 상향"><span class="glyphicon glyphicon-arrow-up"></span></A>
-        <A href="./update_seqno_down.do?categrpno=${categrpno }" title="우선순위 하향"><span class="glyphicon glyphicon-arrow-down"></span></A>         
-       </TD>   
+      <TH class="th_bs">순서</TH>
+      <TH class="th_bs">대분류명</TH>
+      <TH class="th_bs">등록일</TH>
+      <TH class="th_bs">출력</TH>
+      <TH class="th_bs">기타</TH>
+    </TR>
+    </thead>
+    
+    <tbody>
+    <c:forEach var="categrpVO" items="${list}">
+      <c:set var="categrpno" value="${categrpVO.categrpno }" />
+      <TR>
+        <TD class="td_bs">${categrpVO.seqno }</TD>
+        <TD class="td_bs_left">${categrpVO.name }</TD>
+        <TD class="td_bs">${categrpVO.rdate.substring(0, 10) }</TD>
+        <TD class="td_bs">${categrpVO.visible }</TD>
+        <TD class="td_bs">
+          <!-- read_update.do가 지정된경우 controller로 전달  -->
+          <A href="./read_update.do?categrpno=${categrpno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
+          <A href="./read_delete.do?categrpno=${categrpno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
+          <A href="./update_seqno_up.do?categrpno=${categrpno }" title="우선순위 상향"><span class="glyphicon glyphicon-arrow-up"></span></A>
+          <A href="./update_seqno_down.do?categrpno=${categrpno }" title="우선순위 하향"><span class="glyphicon glyphicon-arrow-down"></span></A>         
+         </TD>   
+  
+      </TR>   
+    </c:forEach> 
+    </tbody>
+  </TABLE>
 
-    </TR>   
-  </c:forEach> 
-  </tbody>
- 
-</TABLE>
- 
+</DIV> <!-- content_body end -->
  
 <jsp:include page="../menu/bottom.jsp" />
 </body>
  
 </html>
- 
 -----------------------------------------------------------------------------------
 ~~~
