@@ -2330,7 +2330,7 @@ WHERE categrpno = 1;
 -----------------------------------------------------------------------------------
 ~~~
 
-* **[20][Categrp] Categrp 삭제 처리 기능의 제작(DELETE FROM ~ WHERE**
+* **[20][Categrp] Categrp 삭제 처리 기능의 제작(DELETE FROM ~ WHERE)**
 ~~~
 [01] 삭제 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ )
 6. Controller class
@@ -2418,6 +2418,289 @@ WHERE categrpno = 1;
 <jsp:include page="../menu/bottom.jsp" flush='false' />
 </body>
 
+</html>
+-------------------------------------------------------------------------------------
+~~~
+
+* **[21][Categrp] Categrp 출력 순서의 변경 제작(UPDATE ~ SET ~ WHERE ~ ), 링크의 이미지 처리(Glyphicon)**
+~~~
+[01] 출력 순서의 변경 제작(UPDATE ~ SET ~ WHERE ~)
+1. SQL
+▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
+-----------------------------------------------------------------------------------
+-- 출력 순서에따른 전체 목록
+SELECT categrpno, name, seqno, visible, rdate
+FROM categrp
+ORDER BY seqno ASC;
+ 
+-- 출력 순서 올림(상향), 10 ▷ 1
+UPDATE categrp
+SET seqno = seqno - 1
+WHERE categrpno=1;
+ 
+-- 출력순서 내림(하향), 1 ▷ 10
+UPDATE categrp
+SET seqno = seqno + 1
+WHERE categrpno=1;
+commit;
+-----------------------------------------------------------------------------------
+ 
+2. MyBATIS
+- 우선 순위에따른 목록 출력
+  <select id="list_seqno_asc" resultType="CategrpVO" >
+- 우선순위 상향 up 10 ▷ 1
+  <update id="update_seqno_up" parameterType="int">
+- 우선순위 하향 down 1 ▷ 10 
+  <update id="update_seqno_down" parameterType="int">
+
+▷ categrp.xml 
+-----------------------------------------------------------------------------------
+  <!-- 우선순위 상향 up 10 ▷ 1 -->
+  <update id="update_seqno_up" parameterType="int">
+    UPDATE categrp
+    SET seqno = seqno - 1
+    WHERE categrpno=#{categrpno}
+  </update>
+
+  <!-- 우선순위 하향 down 1 ▷ 10 --> 
+  <update id="update_seqno_down" parameterType="int">
+    UPDATE categrp
+    SET seqno = seqno + 1
+    WHERE categrpno=#{categrpno}
+  </update>
+-----------------------------------------------------------------------------------
+ 
+3. DAO interface
+▷ /dev/mvc/categrp/CategrpDAOInter.java 
+-----------------------------------------------------------------------------------
+  /**
+   * 출력 순서 상향
+   * @param categrpno
+   * @return 처리된 레코드 갯수
+   */
+  public int update_seqno_up(int categrpno);
+ 
+  /**
+   * 출력 순서 하향
+   * @param categrpno
+   * @return 처리된 레코드 갯수
+   */
+  public int update_seqno_down(int categrpno); 
+-----------------------------------------------------------------------------------
+ 
+4. Process interface
+▷ /dev/mvc/categrp/CategrpProcInter.java 
+-----------------------------------------------------------------------------------
+  /**
+   * 출력 순서 상향
+   * @param categrpno
+   * @return 처리된 레코드 갯수
+   */
+  public int update_seqno_up(int categrpno);
+ 
+  /**
+   * 출력 순서 하향
+   * @param categrpno
+   * @return 처리된 레코드 갯수
+   */
+  public int update_seqno_down(int categrpno); 
+-----------------------------------------------------------------------------------
+ 
+5. Process class
+▷ CategrpProcess.java
+-----------------------------------------------------------------------------------
+  @Override
+  public int update_seqno_up(int categrpno) {
+    int cnt = 0;
+    cnt = this.categrpDAO.update_seqno_up(categrpno);
+    
+    return cnt;
+  }
+
+  @Override
+  public int update_seqno_down(int categrpno) {
+    int cnt = 0;
+    cnt = this.categrpDAO.update_seqno_down(categrpno);    
+    return cnt;
+  }
+-----------------------------------------------------------------------------------
+ 
+6. Controller class
+▷ CategrpCont.java
+-----------------------------------------------------------------------------------
+  // http://localhost:9091/categrp/update_seqno_up.do?categrpno=1
+  // http://localhost:9091/categrp/update_seqno_up.do?categrpno=1000
+  /**
+   * 우선순위 상향 up 10 ▷ 1
+   * @param categrpno 카테고리 번호
+   * @return
+   */
+  @RequestMapping(value="/categrp/update_seqno_up.do", 
+                              method=RequestMethod.GET )
+  public ModelAndView update_seqno_up(int categrpno) {
+    ModelAndView mav = new ModelAndView();
+    
+    CategrpVO categrpVO = this.categrpProc.read(categrpno); // 카테고리 그룹 정보
+    mav.addObject("categrpVO", categrpVO);  // request 객체에 저장
+    
+    int cnt = this.categrpProc.update_seqno_up(categrpno);  // 우선 순위 상향 처리
+    mav.addObject("cnt", cnt);  // request 객체에 저장
+
+    mav.setViewName("/categrp/update_seqno_up_msg"); // update_seqno_up_msg.jsp
+    return mav;
+  }  
+  
+  // http://localhost:9090/categrp/update_seqno_down.do?categrpno=1
+  // http://localhost:9090/categrp/update_seqno_down.do?categrpno=1000
+  /**
+   * 우선순위 하향 up 1 ▷ 10
+   * @param categrpno 카테고리 번호
+   * @return
+   */
+  @RequestMapping(value="/categrp/update_seqno_down.do", 
+                              method=RequestMethod.GET )
+  public ModelAndView update_seqno_down(int categrpno) {
+    ModelAndView mav = new ModelAndView();
+    
+    CategrpVO categrpVO = this.categrpProc.read(categrpno); // 카테고리 그룹 정보
+    mav.addObject("categrpVO", categrpVO);  // request 객체에 저장
+    
+    int cnt = this.categrpProc.update_seqno_down(categrpno);
+    mav.addObject("cnt", cnt);  // request 객체에 저장
+
+    mav.setViewName("/categrp/update_seqno_down_msg"); // update_seqno_down_msg.jsp
+
+    return mav;
+  }  
+-----------------------------------------------------------------------------------
+ 
+7. View: JSP, 변경과 목록의 결합
+1) 목록 출력 순서를 seqno 컬럼의 오름차순으로 정렬
+▷ /webapp/categrp/list.jsp : 기존 소스 사용
+-(등록화면 윗쪽 + 등록된 그룹목록) 
+-----------------------------------------------------------------------------------
+
+2) 처리 결과 출력
+- 삭제 실패 테스트: http://localhost:9090/resort/categrp/delete_msg.jsp?cnt=0
+▷ /webapp/categrp/update_seqno_up_msg.jsp 
+- 우선순위 상향.jsp
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+
+<DIV class='title_line'>알림</DIV>
+
+<DIV class='message'>
+  <fieldset class='fieldset_basic'>
+    <UL>
+      <c:choose>
+        <c:when test="${cnt == 1}">
+          <LI class='li_none'>
+            <span class="span_success">[${categrpVO.name }] 카테고리 그룹 우선순위 상향에 성공했습니다.</span>
+          </LI>
+        </c:when>
+        <c:otherwise>
+          <LI class='li_none_left'>
+            <span class="span_fail">
+              [${categrpVO.name }] 카테고리 그룹 우선순위 상향에 실패했습니다.
+            </span>
+          </LI>
+          <LI class='li_none_left'>
+            <span class="span_fail">다시 시도해주세요.</span>
+          </LI>
+        </c:otherwise>
+      </c:choose>
+      <LI class='li_none'>
+        <br>
+        <c:if test="${cnt != 1 }">
+          <button type='button' onclick="history.back()" class="btn btn-info">다시 시도</button>
+        </c:if>
+        <button type='button' onclick="location.href='./list.do'" class="btn btn-info">목록</button>
+      </LI>
+    </UL>
+  </fieldset>
+
+</DIV>
+
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+</html>
+-------------------------------------------------------------------------------------
+   
+- 우선순위 하향.jsp
+▷ /webapp/categrp/update_seqno_down_msg.jsp 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+
+<DIV class='title_line'>알림</DIV>
+
+<DIV class='message'>
+  <fieldset class='fieldset_basic'>
+    <UL>
+      <c:choose>
+        <c:when test="${cnt == 1}">
+          <LI class='li_none'>
+            <span class="span_success">[${categrpVO.name }] 카테고리 그룹 우선순위 하향에 성공했습니다.</span>
+          </LI>
+        </c:when>
+        <c:otherwise>
+          <LI class='li_none_left'>
+            <span class="span_fail">
+              [${categrpVO.name }] 카테고리 그룹 우선순위 하향에 실패했습니다.
+            </span>
+          </LI>
+          <LI class='li_none_left'>
+            <span class="span_fail">다시 시도해주세요.</span>
+          </LI>
+        </c:otherwise>
+      </c:choose>
+      <LI class='li_none'>
+        <br>
+        <c:if test="${cnt != 1 }">
+          <button type='button' onclick="history.back()" class="btn btn-info">다시 시도</button>
+        </c:if>
+        <button type='button' onclick="location.href='./list.do'" class="btn btn-info">목록</button>
+      </LI>
+    </UL>
+  </fieldset>
+
+</DIV>
+
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
 </html>
 -------------------------------------------------------------------------------------
 ~~~
