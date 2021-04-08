@@ -2422,18 +2422,20 @@ WHERE categrpno = 1;
 -------------------------------------------------------------------------------------
 ~~~
 
-* **[21][Categrp] Categrp 출력 순서의 변경 제작(UPDATE ~ SET ~ WHERE ~ ), 링크의 이미지 처리(Glyphicon)**
+* **0408 : [21][Categrp] Categrp 출력 순서의 변경 제작(UPDATE ~ SET ~ WHERE ~ ), 링크의 이미지 처리(Glyphicon)**
 ~~~
+-> seqno 컬럼을 이용한 순서 변경
 [01] 출력 순서의 변경 제작(UPDATE ~ SET ~ WHERE ~)
 1. SQL
 ▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
 -----------------------------------------------------------------------------------
--- 출력 순서에따른 전체 목록
+-- 출력 순서에따른 전체 목록(정렬)
 SELECT categrpno, name, seqno, visible, rdate
 FROM categrp
 ORDER BY seqno ASC;
  
 -- 출력 순서 올림(상향), 10 ▷ 1
+-- WHERE절은 PK조건
 UPDATE categrp
 SET seqno = seqno - 1
 WHERE categrpno=1;
@@ -2442,6 +2444,8 @@ WHERE categrpno=1;
 UPDATE categrp
 SET seqno = seqno + 1
 WHERE categrpno=1;
+
+-- commit으로 삭제, 업데이트 등의 작업후 DB에 적용
 commit;
 -----------------------------------------------------------------------------------
  
@@ -2477,6 +2481,7 @@ commit;
    * 출력 순서 상향
    * @param categrpno
    * @return 처리된 레코드 갯수
+   * UPDATE 패턴과 동일
    */
   public int update_seqno_up(int categrpno);
  
@@ -2525,7 +2530,7 @@ commit;
   }
 -----------------------------------------------------------------------------------
  
-6. Controller class
+6. Controller class : UPDATE Controller와 동일, but GET 방식(처리 페이지가 필요 no)
 ▷ CategrpCont.java
 -----------------------------------------------------------------------------------
   // http://localhost:9091/categrp/update_seqno_up.do?categrpno=1
