@@ -3049,9 +3049,8 @@ PK         |
    - erd 파일간 diagram copy: Ctrl + 테이블 선택 -> 마우스 우클릭 -> Copy -> 파일 이동 -> Paste
      (Ctrl + C 작동 안함)
    - 테이블명 지정
-   - 등록된 컬럼 목록
-      - 테이블간 FK  설정, 논리적 모델링
-      - 테이블간 FK  설정, 물리적 모델링
+   - 등록된 컬럼 목록 : 테이블간 FK  설정, 논리적 모델링 / 테이블간 FK  설정, 물리적 모델링
+
 2. cate SQL( 카테고리)
 1) 테이블 생성: 부모 -> 자식
   ① FK cate 생성시 에러 발생: ORA-00942: table or view does not exist
@@ -3073,6 +3072,66 @@ PK         |
   ① 자식 테이블 레코드 먼저 삭제: cate
   ② 부모 테이블 레코드 삭제: categrp  
 
+▷ /WEB-INF/doc/dbms/cate_c.sql
+-------------------------------------------------------------------------------------
+EX) categrp_c.sql에서 categrp 테이블 삭제시?
+A) FK로 categrpno를 참조하고 있기에 부모테이블(categrp)는 DROP할수 없음.
+A) 자식 테이블(cate)는 DROP 가능.
+-- 0408
+-- 오류 보고 - ORA-02449: 외래 키에 의해 참조되는 고유/기본 키가 테이블에 있습니다.
+DROP TABLE categrp;
+
+EX) 그래도 부모테이블 삭제를 원하면
+-- CASCADE option을 이용한 자식 테이블을 무시한 테이블 삭제, 관련된 제약조건이 삭제됨.
+DROP TABLE cate CASCADE CONSTRAINTS;
+
+/**********************************/
+/* Table Name: 카테고리 */
+/**********************************/
+CREATE TABLE cate(
+		cateno                        		NUMBER(10)		 NOT NULL		 PRIMARY KEY,
+		categrpno                     		NUMBER(10)		 NULL ,
+		name                          		VARCHAR2(100)		 NOT NULL,
+		rdate                         		DATE		 NOT NULL,
+		cnt                           		NUMBER(10)		 DEFAULT 0		 NOT NULL,
+  FOREIGN KEY (categrpno) REFERENCES categrp (categrpno)
+);
+
+COMMENT ON TABLE cate is '카테고리';
+COMMENT ON COLUMN cate.cateno is '카테고리 번호';
+COMMENT ON COLUMN cate.categrpno is '카테고리 그룹 번호';
+COMMENT ON COLUMN cate.name is '카테고리 이름';
+COMMENT ON COLUMN cate.rdate is '등록일';
+COMMENT ON COLUMN cate.cnt is '관련 자료 수';
+
+
+
+DROP SEQUENCE cate_seq;
+CREATE SEQUENCE cate_seq
+  START WITH 1              -- 시작 번호
+  INCREMENT BY 1          -- 증가값
+  MAXVALUE 9999999999 -- 최대값: 9999999 --> NUMBER(7) 대응
+  CACHE 2                       -- 2번은 메모리에서만 계산
+  NOCYCLE;                     -- 다시 1부터 생성되는 것을 방지
+  
+-- 등록
+INSERT INTO cate(cateno, categrpno, name, rdate, cnt)
+VALUES(cate_seq.nextval, 1000, '가을', sysdate, 0);
+오류 보고 -
+ORA-02291: integrity constraint (AI7.SYS_C008048) violated - parent key not found
+-- FK 컬럼의 값 1000은 categrp 테이블에 없어서 에러 발생함.
+
+-- 부모 테이블에 먼저 추가
+INSERT INTO categrp(categrpno, name, rdate)
+VALUES(categrp_seq.nextval, '국내 여행', sysdate);
+
+INSERT INTO categrp(categrpno, name, rdate)
+VALUES(categrp_seq.nextval, '해외 여행', sysdate);
+
+INSERT INTO categrp(categrpno, name, rdate)
+VALUES(categrp_seq.nextval, '쇼핑', sysdate);
+
+COMMIT;
 
 
 ~~~
