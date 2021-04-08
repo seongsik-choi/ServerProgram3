@@ -3075,7 +3075,11 @@ PK         |
 5) 레코드 삭제
   ① 자식 테이블 레코드 먼저 삭제: cate
   ② 부모 테이블 레코드 삭제: categrp  
-
+~~~
+---
+![image](https://user-images.githubusercontent.com/76051264/113974160-6bfa5f00-9878-11eb-8929-d27fb7b1fa3c.png)  
+---
+~~~
 ▷ /WEB-INF/doc/dbms/cate_c.sql
 -------------------------------------------------------------------------------------
 EX) categrp_c.sql에서 categrp 테이블 삭제시?
