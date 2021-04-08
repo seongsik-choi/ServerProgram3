@@ -3022,3 +3022,57 @@ commit;
         </TD>   
 -----------------------------------------------------------------------------------
 ~~~
+
+* **0408 : [24][Cate] Cate 카테고리 DBMS 설계, 논리적 모델링, 물리적 모델링, SQL 제작(cate_c.sql)**
+~~~
+[01] Cate 카테고리 DBMS 설계, 논리적 모델링, 물리적 모델링, SQL 제작(cate_c.sql)
+- Oracle 설정(Database URI): jdbc:oracle:thin:@localhost:1521:XE
+- 그룹과 구성 요소의 관계
+테이블 1      
+                  FK 테이블 2
+태양계 --+-- 태양계 - 수성
+PK         |  
+            +-- 태양계 - 금성
+             |                              FK 테이블 3
+            +-- 태양계 - 지구 --+-- 지구 - 미국
+                              PK     |
+                                      +-- 지구 - 네덜란드
+                                      |                            FK 테이블 4
+                                      +-- 지구 - 한국 --+-- 한국 - 동해
+                                                     PK      |
+                                                              +-- 한국 - 수원
+                                                              |
+                                                              +-- 한국 - 서울
+1. 카테고리 테이블 모델링
+   - JDBC Driver: oracle.jdbc.driver.OracleDriver
+   - Oracle 설정: jdbc:oracle:thin:@localhost:1521:XE
+   - erd 파일간 diagram copy: Ctrl + 테이블 선택 -> 마우스 우클릭 -> Copy -> 파일 이동 -> Paste
+     (Ctrl + C 작동 안함)
+   - 테이블명 지정
+   - 등록된 컬럼 목록
+      - 테이블간 FK  설정, 논리적 모델링
+      - 테이블간 FK  설정, 물리적 모델링
+2. cate SQL( 카테고리)
+1) 테이블 생성: 부모 -> 자식
+  ① FK cate 생성시 에러 발생: ORA-00942: table or view does not exist
+  ② 부모 테이블 먼저 생성: categrp
+  ③ 자식 테이블 생성: cate
+2) 테이블 삭제: 자식 -> 부모
+  ① DROP TABLE categrp; : ORA-02449: unique/primary keys in table referenced by foreign keys
+  ② 자식 테이블 삭제: DROP TABLE cate;
+  ③ 부모 테이블 삭제: DROP TABLE categrp;
+ 
+3) CASCADE option을 이용한 자식 테이블을 무시한 테이블 삭제
+  DROP TABLE categrp CASCADE CONSTRAINTS;
+
+4) 레코드 추가
+  ① 부모 테이블 레코드 먼저 추가: categrp
+  ② 자식 테이블 레코드 추가: cate
+
+5) 레코드 삭제
+  ① 자식 테이블 레코드 먼저 삭제: cate
+  ② 부모 테이블 레코드 삭제: categrp  
+
+
+
+~~~
