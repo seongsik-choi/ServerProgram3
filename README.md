@@ -2711,6 +2711,7 @@ commit;
 ~~~
 
 * **0408 : [22][Categrp] 출력 순서별 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~)**
+ + Redirect의 구현
 ~~~
 [01] 출력 순서별 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~)
 1. SQL
@@ -2806,6 +2807,67 @@ ORDER BY seqno ASC;
 ▷ /webapp/categrp/list.jsp 
 -----------------------------------------------------------------------------------
 Reuse of existing code.
+-----------------------------------------------------------------------------------
+
+[02] redirect의 적용
+- Controller 상에서 다른 Spring 주소로 자동이동
+
+-> JSP로 이동하지않고(주석처리)
+// mav.setViewName("/categrp/update_seqno_up_msg"); // update_seqno_up_msg.jsp
+-> redirect를 사용해 Spring 주소로 자동이동
+mav.setViewName("redirect:/categrp/list.do");
+
+ex) update_seqno_up_msg.jsp로 가야하지만 -> 페이지 새로고침으로 -> list.do
+
+1. Controller class
+▷ CategrpCont.java
+-----------------------------------------------------------------------------------
+// http://localhost:9091/categrp/update_seqno_up.do?categrpno=1
+  // http://localhost:9091/categrp/update_seqno_up.do?categrpno=1000
+  /**
+   * 우선순위 상향 up 10 ▷ 1
+   * @param categrpno 카테고리 번호
+   * @return
+   */
+  @RequestMapping(value="/categrp/update_seqno_up.do", 
+                              method=RequestMethod.GET )
+  public ModelAndView update_seqno_up(int categrpno) {
+    ModelAndView mav = new ModelAndView();
+    
+    CategrpVO categrpVO = this.categrpProc.read(categrpno); // 카테고리 그룹 정보
+    mav.addObject("categrpVO", categrpVO);  // request 객체에 저장
+    
+    int cnt = this.categrpProc.update_seqno_up(categrpno);  // 우선 순위 상향 처리
+    mav.addObject("cnt", cnt);  // request 객체에 저장
+
+    // mav.setViewName("/categrp/update_seqno_up_msg"); // update_seqno_up_msg.jsp
+    mav.setViewName("redirect:/categrp/list.do");
+    return mav;
+  }  
+-----------------------------------------------------------------------------------  
+  // http://localhost:9091/categrp/update_seqno_down.do?categrpno=1
+  // http://localhost:9091/categrp/update_seqno_down.do?categrpno=1000
+  /**
+   * 우선순위 하향 up 1 ▷ 10
+   * @param categrpno 카테고리 번호
+   * @return
+   */
+  @RequestMapping(value="/categrp/update_seqno_down.do", 
+                              method=RequestMethod.GET )
+  public ModelAndView update_seqno_down(int categrpno) {
+    ModelAndView mav = new ModelAndView();
+    
+    CategrpVO categrpVO = this.categrpProc.read(categrpno); // 카테고리 그룹 정보
+    mav.addObject("categrpVO", categrpVO);  // request 객체에 저장
+    
+    int cnt = this.categrpProc.update_seqno_down(categrpno);
+    mav.addObject("cnt", cnt);  // request 객체에 저장
+
+    // mav.setViewName("/categrp/update_seqno_down_msg"); // update_seqno_down_msg.jsp
+    mav.setViewName("redirect:/categrp/list.do");
+
+    return mav;
+  }  
 -----------------------------------------------------------------------------------
 ~~~
 
