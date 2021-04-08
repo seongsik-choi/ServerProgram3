@@ -2732,6 +2732,7 @@ ORDER BY seqno ASC;
 - 레코드 갯수 만큼 CategrpVO 객체를 만들어 ArrayList에 저장하여 리턴,
 -> categrpno SELECT와 유사 but ORDERBY가 sqeno
   List<CategrpVO> list = new ArrayList<CategrpVO>(); 
+★★★★list_categrpno_asc 밑에다 작성해주기(동일한 작업은 모으기)★★★
 ▷ /src/main/resources/categrp.xml 
 -----------------------------------------------------------------------------------
   <!-- 
@@ -2746,6 +2747,7 @@ ORDER BY seqno ASC;
 -----------------------------------------------------------------------------------
 
 3. DAO interface : list_categrpno_asc 위에 작성(유사한 함수끼리 묶음)
+★★★★list_categrpno_asc 밑에다 작성해주기(동일한 작업은 모으기)★★★
 ▷ CategrpDAOInter.java 
 -----------------------------------------------------------------------------------
   /**
@@ -2756,6 +2758,7 @@ ORDER BY seqno ASC;
 -----------------------------------------------------------------------------------
 
 4. Process interface :  list_categrpno_asc 위에 작성(유사한 함수끼리 묶음)
+★★★★list_categrpno_asc 밑에다 작성해주기(동일한 작업은 모으기)★★★
 ▷ CategrpProcInter.java
 -------------------------------------------------------------------------------------
   /**
@@ -2767,6 +2770,7 @@ ORDER BY seqno ASC;
  
 5. Process class
 - @Component("dev.mvc.categrp.CategrpProc"): 자동으로 객체 생성이 필요한 Class에만 선언 가능 
+★★★★list_categrpno_asc 밑에다 작성해주기(동일한 작업은 모으기)★★★
 ▷ CategrpProc.java
 -------------------------------------------------------------------------------------
   @Override
