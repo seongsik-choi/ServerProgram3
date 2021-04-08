@@ -3083,7 +3083,7 @@ DROP TABLE categrp;
 
 EX) 그래도 부모테이블 삭제를 원하면
 -- CASCADE option을 이용한 자식 테이블을 무시한 테이블 삭제, 관련된 제약조건이 삭제됨.
-DROP TABLE cate CASCADE CONSTRAINTS;
+DROP TABLE categrp CASCADE CONSTRAINTS;
 
 /**********************************/
 /* Table Name: 카테고리 */
