@@ -2709,3 +2709,103 @@ commit;
 </html>
 -------------------------------------------------------------------------------------
 ~~~
+
+* **0408 : [22][Categrp] 출력 순서별 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~)**
+~~~
+[01] 출력 순서별 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~)
+1. SQL
+▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
+-- seqno 정렬
+SELECT categrpno, name, seqno, visible, rdate
+FROM categrp
+ORDER BY seqno ASC;
+
+ CATEGRPNO NAME SEQNO VISIBLE RDATE
+ --------- ---- ----- ------- ---------------------
+         1 영화       1 Y       2017-04-14 10:43:18.0
+         2 여행       2 Y       2017-04-14 10:43:19.0
+         3 캠핑       3 Y       2017-04-14 10:43:20.0
+-----------------------------------------------------------------------------------
+
+2. MyBATIS
+- 레코드 갯수 만큼 CategrpVO 객체를 만들어 ArrayList에 저장하여 리턴,
+-> categrpno SELECT와 유사 but ORDERBY가 sqeno
+  List<CategrpVO> list = new ArrayList<CategrpVO>(); 
+▷ /src/main/resources/categrp.xml 
+-----------------------------------------------------------------------------------
+  <!-- 
+  레코드 갯수 만큼 CategrpVO 객체를 만들어 ArrayList에 저장하여 리턴,
+  List<CategrpVO> list = new ArrayList<CategrpVO>(); 
+  -->
+ <select id="list_seqno_asc" resultType="dev.mvc.categrp.CategrpVO">
+    SELECT  categrpno, name, seqno, visible, rdate
+    FROM categrp
+    ORDER BY seqno ASC
+  </select>
+-----------------------------------------------------------------------------------
+
+3. DAO interface : list_categrpno_asc 위에 작성(유사한 함수끼리 묶음)
+▷ CategrpDAOInter.java 
+-----------------------------------------------------------------------------------
+  /**
+   * 등록 순서별 목록
+   * @return
+   */
+  public List<CategrpVO> list_seqno_asc();
+-----------------------------------------------------------------------------------
+
+4. Process interface :  list_categrpno_asc 위에 작성(유사한 함수끼리 묶음)
+▷ CategrpProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * 등록 순서별 목록
+   * @return
+   */
+  public List<CategrpVO> list_seqno_asc();
+-------------------------------------------------------------------------------------
+ 
+5. Process class
+- @Component("dev.mvc.categrp.CategrpProc"): 자동으로 객체 생성이 필요한 Class에만 선언 가능 
+▷ CategrpProc.java
+-------------------------------------------------------------------------------------
+  @Override
+  public List<CategrpVO> list_categrpno_asc() {
+    List<CategrpVO> list = null;
+    list = this.categrpDAO.list_seqno_asc();
+    return list;
+  }
+-------------------------------------------------------------------------------------
+ 
+6. Controller class : list() update로 구현
+- 출력 순서별 목록 + 등록 순서별 목록([22])
+▷ CategrpCont.java
+-----------------------------------------------------------------------------------
+// http://localhost:9091/categrp/list.do
+  /**
+   * 출력 순서별 목록 + 등록 순서별 목록([22])
+   * @return
+   */
+  @RequestMapping(value="/categrp/list.do", method=RequestMethod.GET )
+  public ModelAndView list() {
+    ModelAndView mav = new ModelAndView();
+
+    // 등록 순서별 출력    
+    // List<CategrpVO> list = this.categrpProc.list_categrpno_asc();
+    // 출력 순서별 출력
+    List<CategrpVO> list = this.categrpProc.list_seqno_asc();
+
+    mav.addObject("list", list); // request.setAttribute("list", list);
+
+    mav.setViewName("/categrp/list"); // /webapp/WEB-INF/views/categrp/list.jsp
+    return mav;
+  }
+-----------------------------------------------------------------------------------
+
+7. View: JSP, 등록과 목록의 결합
+- <TABLE><TH><TD>는 Bootstrap에 기본 속성이 설정되어 있음
+▷ /webapp/categrp/list.jsp 
+-----------------------------------------------------------------------------------
+Reuse of existing code.
+-----------------------------------------------------------------------------------
+~~~
+
