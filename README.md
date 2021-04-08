@@ -2871,3 +2871,154 @@ ex) update_seqno_up_msg.jsp로 가야하지만 -> 페이지 새로고침으로 -
 -----------------------------------------------------------------------------------
 ~~~
 
+* **0408 : [23][Categrp] Categrp 출력 모드의 변경(UPDATE ~ SET ~ WHERE ~ )**
+~~~
+[01] 출력 모드의 변경(UPDATE ~ SET ~ WHERE ~ ) 
+Y-> N : N->Y 출력 모드의 변경
+-> 특정 column의 값을 UPDATE
+1. SQL
+▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
+-----------------------------------------------------------------------------------
+-- 출력 모드의 변경
+UPDATE categrp
+SET visible='Y'
+WHERE categrpno=1;
+
+UPDATE categrp
+SET visible='N'
+WHERE categrpno=1;
+
+commit;
+-----------------------------------------------------------------------------------
+ 
+2. MyBATIS
+<!-- 수정, id: update_visible, 입력: CategrpVO, 리턴: int -->
+▷ /src/main/resources/categrp.xml 
+-----------------------------------------------------------------------------------
+  <!-- Visible 수정, id: update_visible, 입력: CategrpVO, 리턴: int -->
+  <update id="update_visible" parameterType="dev.mvc.categrp.CategrpVO">
+    UPDATE categrp
+    SET visible=#{visible}
+    WHERE categrpno = #{categrpno}
+  </update>
+-----------------------------------------------------------------------------------
+  
+3. DAO interface
+▷ /dev/mvc/categrp/CategrpDAOInter.java 
+-----------------------------------------------------------------------------------
+  /**
+   * visible 수정
+   * @param categrpVO
+   * @return
+   */
+  public int update_visible(CategrpVO categrpVO);
+-----------------------------------------------------------------------------------
+ 
+4. Process interface
+▷ /dev/mvc/categrp/CategrpProcInter.java 
+-----------------------------------------------------------------------------------
+  /**
+   * visible 수정
+   * @param categrpVO
+   * @return
+   */
+  public int update_visible(CategrpVO categrpVO);
+-----------------------------------------------------------------------------------
+ 
+5. Process class : Switching algorism
+▷ CategrpProcess.java
+-----------------------------------------------------------------------------------
+  @Override
+  public int update_visible(CategrpVO categrpVO) {
+    int cnt = 0;
+    if (categrpVO.getVisible().toUpperCase().equals("Y")) {
+      categrpVO.setVisible("N");
+    } else {
+      categrpVO.setVisible("Y");
+    }
+    cnt = this.categrpDAO.update_visible(categrpVO);
+    return cnt;
+  }
+-----------------------------------------------------------------------------------
+ 
+6. Controller class
+- mav.setViewName("redirect:/categrp/list.jsp"); // request 객체 전달 안됨
+- mav.setViewName("redirect:/categrp/list.do"); // request 객체 전달 안됨. 
+▷ CategrpCont.java
+-----------------------------------------------------------------------------------
+  /**
+   * 출력 모드의 변경
+   * @param categrpVO
+   * @return
+   */
+  @RequestMapping(value="/categrp/update_visible.do", 
+      method=RequestMethod.GET )
+  public ModelAndView update_visible(CategrpVO categrpVO) {
+    ModelAndView mav = new ModelAndView();
+    
+    int cnt = this.categrpProc.update_visible(categrpVO);
+    
+    mav.setViewName("redirect:/categrp/list.do"); // request 객체 전달 안됨. 
+    
+    return mav;
+  }  
+-----------------------------------------------------------------------------------
+
+7. View: JSP, 등록과 목록의 결합
+1) Text link 
+▷ /webapp/categrp/list.jsp : 수정필요
+-----------------------------------------------------------------------------------
+      <TD class="td_bs">${categrpVO.rdate.substring(0, 10) }</TD> <!-- subString으로 년, 월일만 잘라내기  -->
+       
+       <!-- 이부분 부터 수정 --!>
+       <TD class="td_bs">
+        <c:choose>
+          <c:when test="${categrpVO.visible == 'Y'}">
+            <A href="./update_visible.do?categrpno=${categrpno }&visible=${categrpVO.visible }">Y</A>
+          </c:when>
+          <c:otherwise>
+            <A href="./update_visible.do?categrpno=${categrpno }&visible=${categrpVO.visible }">N</A>
+          </c:otherwise>
+        </c:choose>
+       </TD>   
+      
+      <TD class="td_bs">
+        <A href="./read_update.do?categrpno=${categrpno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
+        <A href="./read_delete.do?categrpno=${categrpno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
+        <A href="./update_seqno_up.do?categrpno=${categrpno }" title="우선순위 상향"><span class="glyphicon glyphicon-arrow-up"></span></A>
+        <A href="./update_seqno_down.do?categrpno=${categrpno }" title="우선순위 하향"><span class="glyphicon glyphicon-arrow-down"></span></A>         
+      </TD>   
+    </TR>   
+  </c:forEach> 
+  </tbody>
+   
+  </TABLE>
+
+</DIV><!-- content body end -->
+
+<jsp:include page="../menu/bottom.jsp" />
+</body>
+ 
+</html>
+-----------------------------------------------------------------------------------
+
+2) Image link 
+-> Static에 /categrp/images 디렉토리 생성 -> png 넣어주기
+- IMG 경로 /categrp/images/open.png
+▷ /webapp/categrp/list.jsp 
+-----------------------------------------------------------------------------------
+      <TD class="td_bs">${categrpVO.rdate.substring(0, 10) }</TD> <!-- subString으로 년, 월일만 잘라내기  -->
+      <!-- 아래부터 변경 --!>
+
+        <TD class="td_bs">
+          <c:choose>
+            <c:when test="${categrpVO.visible == 'Y'}">
+              <A href="./update_visible.do?categrpno=${categrpno }&visible=${categrpVO.visible }"><IMG src="/categrp/images/open.png" style='width: 18px;'></A>
+            </c:when>
+            <c:otherwise>
+              <A href="./update_visible.do?categrpno=${categrpno }&visible=${categrpVO.visible }"><IMG src="/categrp/images/close.png" style='width: 18px;'></A>
+            </c:otherwise>
+          </c:choose>
+        </TD>   
+-----------------------------------------------------------------------------------
+~~~
