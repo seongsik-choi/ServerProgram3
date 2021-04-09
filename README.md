@@ -3027,7 +3027,7 @@ commit;
 -----------------------------------------------------------------------------------
 ~~~
 
-* **0408 : [24][Cate] Cate 카테고리 DBMS 설계, 논리적 모델링, 물리적 모델링, SQL 제작(cate_c.sql)**
+* **0408~9 : [24][Cate] Cate 카테고리 DBMS 설계, 논리적 모델링, 물리적 모델링, SQL 제작(cate_c.sql)**
 ~~~
 [01] Cate 카테고리 DBMS 설계, 논리적 모델링, 물리적 모델링, SQL 제작(cate_c.sql)
 - Oracle 설정(Database URI): jdbc:oracle:thin:@localhost:1521:XE
@@ -3082,24 +3082,39 @@ PK         |
 ~~~
 ▷ /WEB-INF/doc/dbms/cate_c.sql
 -------------------------------------------------------------------------------------
-EX) categrp_c.sql에서 categrp 테이블 삭제시?
-A) FK로 categrpno를 참조하고 있기에 부모테이블(categrp)는 DROP할수 없음.
-A) 자식 테이블(cate)는 DROP 가능.
--- 0408
--- 오류 보고 - ORA-02449: 외래 키에 의해 참조되는 고유/기본 키가 테이블에 있습니다.
-DROP TABLE categrp;
+1) 테이블 생성: 부모 -> 자식
+① FK cate 생성시 에러 발생: ORA-00942: table or view does not exist
+② 부모 테이블 먼저 생성: categrp
+③ 자식 테이블 생성: cate
 
-EX) 그래도 부모테이블 삭제를 원하면
--- CASCADE option을 이용한 자식 테이블을 무시한 테이블 삭제, 관련된 제약조건이 삭제됨.
+2) 테이블 삭제: 자식 -> 부모
+① DROP TABLE categrp; : ORA-02449: unique/primary keys in table referenced by foreign keys
+② 자식 테이블 삭제: DROP TABLE cate;
+③ 부모 테이블 삭제: DROP TABLE categrp;
+  
+3) CASCADE option을 이용한 자식 테이블을 무시한 테이블 삭제, 제약 조건 삭제
 DROP TABLE categrp CASCADE CONSTRAINTS;
+
+4)★ PK는 Sequence, AUTO_INCREMENT, NL(MAX()) 등으로 자동 생성!!!
+  ★  FK는 다른 테이블의 PK나 UNIQUE 속성이 적용된 컬럼에 연결하여 등록된 값만 사용 할 수 있음.
+
+5) 레코드 추가 : 부모 -> 자식
+① 부모 테이블 레코드 먼저 추가: categrp
+② 자식 테이블 레코드 추가: cate
+
+6) 레코드 삭제 : 자식 -> 부모
+① 자식 테이블 레코드 먼저 삭제: cate
+② 부모 테이블 레코드 삭제: categrp
 
 /**********************************/
 /* Table Name: 카테고리 */
 /**********************************/
+DROP TABLE cate;
+
 CREATE TABLE cate(
 		cateno                        		NUMBER(10)		 NOT NULL		 PRIMARY KEY,
 		categrpno                     		NUMBER(10)		 NULL ,
-		name                          		VARCHAR2(100)		 NOT NULL,
+		name                          		VARCHAR2(50)		 NOT NULL,
 		rdate                         		DATE		 NOT NULL,
 		cnt                           		NUMBER(10)		 DEFAULT 0		 NOT NULL,
   FOREIGN KEY (categrpno) REFERENCES categrp (categrpno)
@@ -3112,34 +3127,828 @@ COMMENT ON COLUMN cate.name is '카테고리 이름';
 COMMENT ON COLUMN cate.rdate is '등록일';
 COMMENT ON COLUMN cate.cnt is '관련 자료 수';
 
-
-
+-- cate(자식 Table)도 SEQUENCE Table 필요(ORACLE 기준)
 DROP SEQUENCE cate_seq;
 CREATE SEQUENCE cate_seq
   START WITH 1              -- 시작 번호
   INCREMENT BY 1          -- 증가값
-  MAXVALUE 9999999999 -- 최대값: 9999999 --> NUMBER(7) 대응
+  MAXVALUE 9999999999 -- 최대값: 9999999999 --> NUMBER(10) 대응
   CACHE 2                       -- 2번은 메모리에서만 계산
   NOCYCLE;                     -- 다시 1부터 생성되는 것을 방지
   
 -- 등록
 INSERT INTO cate(cateno, categrpno, name, rdate, cnt)
 VALUES(cate_seq.nextval, 1000, '가을', sysdate, 0);
-오류 보고 -
-ORA-02291: integrity constraint (AI7.SYS_C008048) violated - parent key not found
--- FK 컬럼의 값 1000은 categrp 테이블에 없어서 에러 발생함.
+-- 오류 보고 : ORA-02291: integrity constraint (AI7.SYS_C008048) violated - parent key not found
+-- FK 컬럼의 값 1000은 categrp 테이블에 없어서 에러 발생
+-- FK는 다른 테이블의 PK나 UNIQUE 속성이 적용된 컬럼에 연결하여 등록된 값만 사용 할 수 있음
 
--- 부모 테이블에 먼저 추가
-INSERT INTO categrp(categrpno, name, rdate)
-VALUES(categrp_seq.nextval, '국내 여행', sysdate);
+-- 부모 테이블 체크(categrpno= 1000인 값이 없기에 cate 테이블에서는 사용 no)
+SELECT * FROM categrp ORDER BY categrpno ASC;
+CATEGRPNO NAME                                 SEQNO V    RDATE              
+---------- --------------------------------------- ---------- - -------------------
+         1 영화22                                            1 Y 2021-04-02 03:37:44
+         2 음악                                               4 Y 2021-04-02 03:39:05
+         3 드라마                                            2 N 2021-04-02 03:39:20
 
-INSERT INTO categrp(categrpno, name, rdate)
-VALUES(categrp_seq.nextval, '해외 여행', sysdate);
+-- 등록(CREATE, INSERT) : categrpno가 부모테이블에 있는 레코드로만
+INSERT INTO cate(cateno, categrpno, name, rdate, cnt)
+VALUES(cate_seq.nextval, 1, 'SF', sysdate, 0);
 
-INSERT INTO categrp(categrpno, name, rdate)
-VALUES(categrp_seq.nextval, '쇼핑', sysdate);
+INSERT INTO cate(cateno, categrpno, name, rdate, cnt)
+VALUES(cate_seq.nextval, 1, '드라마', sysdate, 0);
+
+INSERT INTO cate(cateno, categrpno, name, rdate, cnt)
+VALUES(cate_seq.nextval, 1, '로코', sysdate, 0);
 
 COMMIT;
 
+-- 목록(LIST)
+SELECT cateno, categrpno, name, rdate, cnt
+FROM cate ORDER BY cateno ASC;
 
+-- 목록(LIST) 출력. -> but categrp 테이블의 1번 레코드는 변하지 않음.
+     PK           FK 
+   CATENO  CATEGRPNO NAME                                               RDATE                      CNT
+---------- ---------- -------------------------------------------------- ------------------- ----------
+         1          1         SF                                                 2021-04-09 10:47:14          0
+         2          1        드라마                                             2021-04-09 10:47:14          0
+         3          1        로코                                                2021-04-09 10:47:14          0
+         
+-- 조회(READ)
+SELECT cateno, categrpno, name, rdate, cnt
+FROM cate WHERE cateno=3;
+
+-- 수정(UPDATE)
+UPDATE cate SET categrpno=1, name='식당', cnt=0
+WHERE cateno = 3;
+
+COMMIT;
+
+-- 삭제(DELETE)
+DELETE cate
+WHERE cateno = 3;
+
+COMMIT;
+SELECT * FROM cate;       
+
+-- 갯수(Count) 가져오기.
+SELECT COUNT(*) AS cnt
+FROM cate;
+
+-- cnt 컬럼(글 수 증가 or 감소 : cnt = cnt +1 or -1)
+UPDATE cate SET cnt = cnt + 1 WHERE cateno=1;
+COMMIT;
+
+-- cnt 컬럼 2. 글수 초기화 : cnt = 0
+UPDATE cate SET cnt = 0;
+COMMIT;
+
+2. MyBATIS DAO package 폴더 등록
+-------------------------------------------------------------------------------------
+- > DatabaseConfiguration 설정
+@MapperScan(basePackages= {"dev.mvc.resort_v1sbm3a", "dev.mvc.categrp",
+                                          "dev.mvc.cate"})  <-- "dev.mvc.cate" 추가
+-------------------------------------------------------------------------------------
+~~~
+
+
+* **0409 : [25][Cate] Cate VO(DTO), categrp and cate Join에 사용할 VO**
+~~~
+[01] Spring4 + MyBATIS 3.4.1의 연동
+
+- 세부 작업 절차
+    ① /WEB-INF/doc/dbms/cate.sql
+    ② dev.mvc.cate.CateVO.java
+    ③ /src/main/resources/mybatis/cate.xml  ◁─+
+    ④ dev.mvc.cate.CateDAOInter.java ─────┘◁─+
+    ⑤ DAO class Spring (자동 구현됨)                        │
+    ⑥ dev.mvc.cate.CateProcInter.java ────────┘◁─+
+    ⑦ dev.mvc.cate.CateProc.java                                      │
+    ⑧ dev.mvc.cate.CateCont.java   ────────────┘
+    ⑨ JSP View
+  
+1. dev.mvc.cate.CateVO.java
+-------------------------------------------------------------------------------------
+package dev.mvc.cate;
+
+/*
+CREATE TABLE cate(
+    cateno                            NUMBER(10)     NOT NULL    PRIMARY KEY,
+    categrpno                       NUMBER(10)     NOT NULL,
+    name                              VARCHAR2(100)    NOT NULL,
+    rdate                              DATE     NOT NULL,
+    cnt                                 NUMBER(10)     DEFAULT 0     NOT NULL,
+  FOREIGN KEY (categrpno) REFERENCES categrp (categrpno)
+); 
+ */
+public class CateVO {
+  /** 카테고리 번호 */
+  private int cateno;  
+  /** 카테고리 그룹 번호 */
+  private int categrpno;
+  /** 카테고리 이름 */
+  private String name;
+  /** 등록일 */
+  private String rdate;
+  /** 등록된 글 수 */
+  private int cnt;
+  
+  public int getCateno() {
+    return cateno;
+  }
+  public void setCateno(int cateno) {
+    this.cateno = cateno;
+  }
+  public int getCategrpno() {
+    return categrpno;
+  }
+  public void setCategrpno(int categrpno) {
+    this.categrpno = categrpno;
+  }
+  public String getName() {
+    return name;
+  }
+  public void setName(String name) {
+    this.name = name;
+  }
+  public String getRdate() {
+    return rdate;
+  }
+  public void setRdate(String rdate) {
+    this.rdate = rdate;
+  }
+  public int getCnt() {
+    return cnt;
+  }
+  public void setCnt(int cnt) {
+    this.cnt = cnt;
+  }
+  
+  
+}
+-------------------------------------------------------------------------------------
+ 
+-> VO의 일종인 join
+2. dev.mvc.cate.Categrp_Cate_join.java
+-------------------------------------------------------------------------------------
+package dev.mvc.cate;
+
+/*
+    SELECT r.categrpno as r_categrpno, r.name as r_name,
+               c.cateno, c.categrpno, c.name, c.rdate, c.cnt    FROM categrp r, cate c
+    WHERE r.categrpno = c.categrpno
+    ORDER BY r.categrpno ASC, c.seqno ASC
+ */
+public class Categrp_Cate_join {
+  // -------------------------------------------------------------------
+  // Categrp table
+  // -------------------------------------------------------------------
+  /** 부모 테이블 카테고리 그룹 번호 */
+  private int r_categrpno;
+  /** 부모 테이블 카테고리 그룹 이름 */
+  private String r_name;
+  // -------------------------------------------------------------------
+  // Cate table
+  // -------------------------------------------------------------------  
+  /** 카테고리 번호 */
+  private int cateno;  
+  /** 카테고리 그룹 번호 */
+  private int categrpno;
+  /**  카테고리 이름 */
+  private String name;
+  /** 등록일 */
+  private String rdate;
+  /** 등록된 글 수 */
+  private int cnt;
+  
+  public int getR_categrpno() {
+    return r_categrpno;
+  }
+  public void setR_categrpno(int r_categrpno) {
+    this.r_categrpno = r_categrpno;
+  }
+  public String getR_name() {
+    return r_name;
+  }
+  public void setR_name(String r_name) {
+    this.r_name = r_name;
+  }
+  public int getCateno() {
+    return cateno;
+  }
+  public void setCateno(int cateno) {
+    this.cateno = cateno;
+  }
+  public int getCategrpno() {
+    return categrpno;
+  }
+  public void setCategrpno(int categrpno) {
+    this.categrpno = categrpno;
+  }
+  public String getName() {
+    return name;
+  }
+  public void setName(String name) {
+    this.name = name;
+  }
+  public String getRdate() {
+    return rdate;
+  }
+  public void setRdate(String rdate) {
+    this.rdate = rdate;
+  }
+  public int getCnt() {
+    return cnt;
+  }
+  public void setCnt(int cnt) {
+    this.cnt = cnt;
+  }
+  
+}
+-------------------------------------------------------------------------------------
+~~~
+
+* **0409 : [26][Cate] Cate 등록 기능 제작(INSERT ~ INTO ~ VALUES ~)**
+~~~
+- 카테고리 등록 화면: http://localhost:9090/cate/create.do?categrpno=4  
+<- 기존에 등록된 categrpno 번호 사용할 것. ★★★★★
+1) DI(Depency Injection): 의존 주입, 필요한 클래스를 Spring Container가 자동으로 생성하여 할당함.
+
+1. SQL:  /webapp/WEB-INF/doc/dbms/cagte_c.sql
+-------------------------------------------------------------------------------------
+-- ERROR가 발생하는 등록
+INSERT INTO cate(cateno, categrpno, name, seqno, cnt)
+VALUES(cate_seq.nextval, 1000, 'SF', sysdate, 0);
+
+-- 정상적인 등록
+INSERT INTO cate(cateno, categrpno, name, rdate, cnt)
+VALUES(cate_seq.nextval, 1, 'SF', sysdate, 0);
+
+commit;
+-------------------------------------------------------------------------------------
+ 
+2. cate.xml 작성
+   - SQL 마지막 부분에 ';'이 있으면 안됨.
+▷ /src/main/resources/mybatis/cate.xml
+-------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<!-- dev.mvc.cate.CateDAOInter 패키지에 등록된 interface 명시,
+      패키지명과 인터페이스명은 실제로 존재해야함,
+      Spring이 내부적으로 자동으로 interface를 구현해줌. -->
+<mapper namespace="dev.mvc.cate.CateDAOInter">
+  <!-- 
+  insert: INSERT SQL 실행
+  id: Spring에서 호출시 사용
+  parameterType: 전달받는 데이터 객체의 타입
+  return: 등록한 레코드 갯수 리턴
+  SQL선언시 ';'은 삭제
+  #{}: ? 동일
+  #{name}: public String getName() 자동 호출
+   --> 
+  <insert id="create" parameterType="dev.mvc.cate.CateVO">
+    INSERT INTO cate(cateno, categrpno, name, rdate, cnt)
+    VALUES(cate_seq.nextval, #{categrpno}, #{name}, sysdate, 0)
+  </insert> 
+  
+</mapper>
+-------------------------------------------------------------------------------------
+ 
+3. DAO interface
+▷ dev.mvc.cate.CateDAOInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * 등록
+   * @param cateVO
+   * @return 등록된 갯수
+   */
+  public int create(CateVO cateVO);
+-------------------------------------------------------------------------------------
+ 
+4. Process interface
+▷ dev.mvc.cate.CateProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * 등록
+   * @param cateVO
+   * @return 등록된 갯수
+   */
+  public int create(CateVO cateVO);
+-------------------------------------------------------------------------------------
+  
+5. Process class
+▷ dev.mvc.cate.CateProc.java
+-------------------------------------------------------------------------------------
+package dev.mvc.cate;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+
+@Component("dev.mvc.cate.CateProc")
+public class CateProc implements CateProcInter {
+
+  @Autowired
+  private CateDAOInter cateDAO; // 인터페이스를 자동 구현 -> Mybatis로 호출
+ 
+  public CateProc() {
+    System.out.println("--> CateProc created");
+  }
+  
+  @Override
+  public int create(CateVO cateVO) {
+    int cnt = this.cateDAO.create(cateVO);
+    return cnt;
+  }
+}
+------------------------------------------------------------------------------------
+  
+6. Controller
+    - @Autowired: 자동으로 구현빈을 연결
+    - @Qualifier("dev.mvc.cagtegory.CagteProc"): 같은 이름의 클래스가 존재하면
+      생성되는 클래스에 이름을 부여하고 구분해서 객체를 할당받음.
++ 새로고침을 방지 추가
+▷ dev.mvc.cate.CateCont.java 
+-------------------------------------------------------------------------------------
+package dev.mvc.cate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
+
+import dev.mvc.categrp.CategrpProcInter;
+import dev.mvc.categrp.CategrpVO;
+//import dev.mvc.contents.ContentsProcInter;
+
+@Controller
+public class CateCont {
+  @Autowired
+  @Qualifier("dev.mvc.cate.CateProc")
+  private CateProcInter cateProc;
+  
+//  @Autowired
+//  @Qualifier("dev.mvc.contents.ContentsProc")
+//  private ContentsProcInter contentsProc;
+
+  public CateCont() {
+    System.out.println("--> CateCont created.");
+  }
+
+ /**
+   * [26][Cate] Cate 등록 기능 제작(INSERT ~ INTO ~ VALUES ~)
+   * 새로고침을 방지
+   * @return
+   */
+  @RequestMapping(value="/cate/msg.do", method=RequestMethod.GET)
+  public ModelAndView msg(String url){
+    ModelAndView mav = new ModelAndView();
+    mav.setViewName(url); // url을 받아서 url로 forward
+    return mav; // forward
+  }
+
+  /**
+   * 등록폼 http://localhost:9091/cate/create.do?categrpno=4
+   * 
+   * @return
+   */
+  @RequestMapping(value = "/cate/create.do", method = RequestMethod.GET)
+  public ModelAndView create() {
+    ModelAndView mav = new ModelAndView();
+    mav.setViewName("/cate/create"); // /webapp/WEB-INF/views/cate/create.jsp
+
+    return mav;
+  }
+
+  /**
+   * 등록처리
+   * http://localhost:9091/cate/create.do?categrpno=4
+   * 
+   * @return
+   */
+  @RequestMapping(value = "/cate/create.do", method = RequestMethod.POST)
+  public ModelAndView create(CateVO cateVO) {
+    ModelAndView mav = new ModelAndView();
+
+    // System.out.println("--> categrpno: " + cateVO.getCategrpno());
+    
+    int cnt = this.cateProc.create(cateVO);
+    mav.addObject("cnt", cnt);
+    mav.addObject("categrpno", cateVO.getCategrpno());
+    mav.addObject("name", cateVO.getName());  // 2) redirert 해도 name 객체를 출력하기 위한 방법, 추가해주기
+    
+    mav.addObject("url", "/cate/create_msg");  // /cate/create_msg -> /cate/create_msg.jsp
+    
+    mav.setViewName("redirect:/cate/msg.do"); // 1) redirect시 객체 사라짐, msg에서 param.name은 전달 못받음
+    // response.sendRedirect("/cate/msg.do");
+    
+    return mav;
+  }
+}
+-------------------------------------------------------------------------------------
+ 
+7. View: JSP
+- 등록폼에서 FK 컬럼인 categrpno 컬럼의 값을 <input type='hidden' ...> 태그로 전달해야함
+  예) <FORM name='frm' method='POST' action='./create.do' class="form-horizontal">
+      <!-- categrp 테이블로부터 값을 전달받지 못한 경우는 값을 직접 지정하여 개발 -->
+      <input type="hidden" name="categrpno" value="1">
+
+1) 입력 화면
+- http://localhost:9091/cate/create.do?categrpno=4
+▷ /webapp/WEB-INF/views/cate/create.jsp 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+ 
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<!-- Bootstrap -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    
+<script type="text/javascript">
+  $(function(){
+ 
+  });
+</script>
+ 
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+<DIV class='title_line'>카테고리 등록</DIV>
+ 
+<DIV class='content_body'>
+  <FORM name='frm' method='POST' action='./create.do' class="form-horizontal">
+    <!-- 
+    부모테이블 categrpno PK 컬럼 값 이용, hidden으로 FK 선언
+    http://localhost:9090/cate/create.do?categrpno=1
+     -->
+    <input type="hidden" name="categrpno" value="${param.categrpno }"> 
+    
+    <div class="form-group">
+       <label class="control-label col-md-3">카테고리 이름</label>
+       <div class="col-md-9">
+         <input type='text' name='name' value='' required="required" 
+                   autofocus="autofocus" class="form-control" style='width: 50%;'>
+          (부모 카테고리 번호(categrpno): ${param.categrpno })    <BR>   
+	  (부모 카테고리 번호(categrpno) 2에 해당하는 레코드 등록 시 : GET /url..?categrpno=2)  
+       </div>
+    </div>
+    <div class="content_body_bottom" style="padding-right: 20%;">
+      <button type="submit" class="btn btn-primary">등록</button>
+      <button type="button" onclick="location.href='./list.do'" class="btn btn-primary">목록</button>
+    </div>
+  
+  </FORM>
+</DIV>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+ 
+</html>
+-------------------------------------------------------------------------------------
+ 
+2. 메시지 출력
+▷ /webapp/views/cate/create_msg.jsp 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+  
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+
+<DIV class='title_line'>알림</DIV>
+
+<DIV class='message'>
+  <fieldset class='fieldset_basic'>
+    <UL>
+      <c:choose>
+        <c:when test="${param.cnt == 1}">
+          <LI class='li_none'>
+            <span class="span_success">새로운 카테고리『${param.name }』를 등록했습니다.</span>
+          </LI>
+        </c:when>
+        <c:otherwise>
+          <LI class='li_none_left'>
+            <span class="span_fail">새로운 카테고리『${param.name }』등록에 실패했습니다.</span>
+          </LI>
+          <LI class='li_none_left'>
+            <span class="span_fail">다시 시도해주세요.</span>
+          </LI>
+        </c:otherwise>
+      </c:choose>
+      <LI class='li_none'>
+        <br>
+        <button type='button' onclick="location.href='./list.do?categrpno=${param.categrpno}'" class="btn btn-primary">새로운 카테고리 등록</button>
+        <button type='button' onclick="location.href='./list.do?categrpno=${param.categrpno}'" class="btn btn-primary">목록</button>
+      </LI>
+    </UL>
+  </fieldset>
+
+</DIV>
+
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+
+</html>
+~~~
+---
+
+----
+* join 절차(27,28,29)
+* **0409: [27][Cate] Categrp 전체목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작**
+* ★★★★join 사용하지않는 경우★★★★
+* join은 최소 2개 이상 결합
+~~~
+▷ /src/main/resources/mybatis/cate.xml
+-------------------------------------------------------------------------------------
+  <select id="list_cateno_asc" resultType="dev.mvc.cate.CateVO">
+    SELECT cateno, categrpno, name, rdate, cnt
+    FROM cate 
+    ORDER BY cateno ASC
+  </select>
+-------------------------------------------------------------------------------------
+
+3. DAO interface	4. Process interface
+▷ dev.mvc.cate.CateDAOInter.java	▷ dev.mvc.cate.CateProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * 전체목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~)
+   *  목록
+   * @return
+   */
+  public List<CateVO> list_all();  
+  
+-------------------------------------------------------------------------------------
+  
+5. Process class
+▷ dev.mvc.cate.CateProc.java
+-------------------------------------------------------------------------------------
+  @Override
+  public List<CateVO> list_all() {
+   List<CateVO> list = this.cateDAO.list_all();
+   return null;
+  }
+-------------------------------------------------------------------------------------
+  
+6. Controller
+▷ dev.mvc.cate.CateCont.java 
+-------------------------------------------------------------------------------------
+  // http://localhost:9091/cate/list.do?categrpno=1 기존의 url 사용
+  /**
+   * [27][Cate] Categrp 전체목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~)
+   * categrp + cate join 전체 목록
+   * @return
+   */
+  @RequestMapping(value="/cate/list.do", method=RequestMethod.GET )
+  public ModelAndView list_all() {
+    ModelAndView mav = new ModelAndView();
+    
+    List<CateVO> list = this.cateProc.list_all();
+    mav.addObject("list", list); // request.setAttribute("list", list);
+
+    mav.setViewName("/cate/list_all"); // /cate/list_all.jsp
+    return mav;
+  }
+-------------------------------------------------------------------------------------
+
+7. View: JSP
+1)목록 화면 ▷ /webapp/WEB-INF/views/cate/list_all.jsp 
+-------------------------------------------------------------------------------------
+- 추가필요
+-------------------------------------------------------------------------------------
+~~~
+
+
+* **0412: [28][Cate] Categrp + Cate join 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작**
+~~~
+[01] Categrp + Cate join 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작
+1. SQL:  /webapp/WEB-INF/doc/dbms/cate_c.sql
+-------------------------------------------------------------------------------------
+SELECT cateno, categrpno, name, rdate, cnt
+FROM cate
+ORDER BY cateno ASC;
+ 
+  SELECT r.categrpno as r_categrpno, r.name as r_name,
+               c.cateno, c.categrpno, c.name, c.rdate, c.cnt
+    FROM categrp r, cate c
+    WHERE (r.categrpno = c.categrpno) AND r.categrpno=1
+    ORDER BY r.categrpno ASC, c.seqno ASC
+-------------------------------------------------------------------------------------
+                      
+2. cate.xml 작성
+   - SQL 마지막 부분에 ';'이 있으면 안됨.
+   - 기초 코드
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+▷ /src/main/resources/mybatis/cate.xml
+-------------------------------------------------------------------------------------
+  <!-- categrpno 별 cate 목록: categrp + cate inner join,  1 : 다, 통합 VO -->
+  <select id="list_join_by_categrpno" resultType="dev.mvc.cate.Categrp_Cate_joinVO" parameterType="int">
+    SELECT r.categrpno as r_categrpno, r.name as r_name,
+               c.cateno, c.categrpno, c.name, c.rdate, c.cnt
+    FROM categrp r, cate c
+    WHERE (r.categrpno = c.categrpno) AND r.categrpno=#{categrpno}
+    ORDER BY r.categrpno ASC, c.seqno ASC
+  </select>
+  -------------------------------------------------------------------------------------
+ 
+ 3. DAO interface
+ ▷ dev.mvc.cate.CateDAOInter.java
+-------------------------------------------------------------------------------------
+  /**
+   *  통합 VO 기반 join
+   * @return
+   */
+  public List<Categrp_Cate_join> list_join_by_categrpno(int categrpno);  
+  ------------------------------------------------------------------------------------
+ 
+ 4. Process interface
+ ▷ dev.mvc.cate.CateProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   *  통합 VO 기반 join
+   * @return
+   */
+  public List<Categrp_Cate_join> list_join_by_categrpno(int categrpno);  
+-------------------------------------------------------------------------------------
+  
+5. Process class
+▷ dev.mvc.cate.CateProc.java
+-------------------------------------------------------------------------------------
+  @Override
+  public List<Categrp_Cate_join> list_join_by_categrpno(int categrpno) {
+    List<Categrp_Cate_join> list = this.cateDAO.list_join_by_categrpno(categrpno);
+    return list;
+  }
+-------------------------------------------------------------------------------------
+  
+6. Controller
+    - @Autowired: 자동으로 구현빈을 연결
+    - @Qualifier("dev.mvc.cate.CateProc"): 같은 이름의 클래스가 존재하면
+      생성되는 클래스에 이름을 부여하고 구분해서 객체를 할당받음.
+▷ dev.mvc.cate.CateCont.java 
+-------------------------------------------------------------------------------------
+  // http://localhost:9091/cate/list.do?categrpno=1 기존의 url 사용
+  /**
+   * categrp + cate join 전체 목록
+   * @return
+   */
+  @RequestMapping(value="/cate/list.do", method=RequestMethod.GET )
+  public ModelAndView list_join_by_categrpno(int categrpno) {
+    ModelAndView mav = new ModelAndView();
+    
+    CategrpVO categrpVO = this.categrpProc.read(categrpno);
+    mav.addObject("categrpVO", categrpVO);
+    
+    List<Categrp_Cate_join> list = this.cateProc.list_join_by_categrpno(categrpno);
+    mav.addObject("list", list); // request.setAttribute("list", list);
+
+    mav.setViewName("/cate/list_join_by_categrpno"); // /cate/list_join_by_categrpno.jsp
+    return mav;
+  }
+ -------------------------------------------------------------------------------------
+ 
+ 7. View: JSP
+ 1)목록 화면
+▷ /webapp/WEB-INF/views/cate/list_join_by_categrpno.jsp 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+<script type="text/javascript">
+ 
+  
+</script>
+ 
+</head> 
+ 
+<body>
+<jsp:include page="../menu/top.jsp" />
+ 
+  <DIV class='title_line'>
+    <A href="../categrp/list.do">카테고리 그룹</A> > 
+    <A href="../cate/list_join_by_categrpno.do">${categrpVO.name } (${categrpVO.rdate.substring(0, 10) })</A>
+  </DIV>
+ 
+  <DIV id='panel_create' style='padding: 10px 0px 10px 0px; background-color: #F9F9F9; width: 100%; text-align: center;'>
+    <FORM name='frm_create' id='frm_create' method='POST' 
+                action='./create.do'>
+      <!-- <input type='hidden' name='lang' id='lang' value='en'> --> <!-- ko, en -->
+
+      <label>그룹 번호</label>
+      <input type='number' name='categrpno' value='${param.categrpno }' required="required" 
+                min="1" max="99999" step="1" style='width: 5%;'>
+         
+      <label>카테고리</label>
+      <input type='text' name='name' value='' required="required" style='width: 25%;'>
+  
+      <button type="submit" id='submit'>등록</button>
+      <button type="button" onclick="cancel();">취소</button>
+    </FORM>
+  </DIV>
+ 
+  
+<TABLE class='table table-striped'>
+  <colgroup>
+    <col style='width: 15%;'/>
+    <col style='width: 40%;'/>
+    <col style='width: 20%;'/>
+    <col style='width: 5%;'/>        
+    <col style='width: 20%;'/>
+  </colgroup>
+ 
+  <thead>  
+  <TR>
+    <TH class="th_bs">그룹</TH>
+    <TH class="th_bs">카테고리</TH>
+    <TH class="th_bs">등록일</TH>
+    <TH class="th_bs">글수</TH>
+    <TH class="th_bs">기타</TH>
+  </TR>
+  </thead>
+  
+  <tbody>
+  <c:forEach var="categrp_Cate_join" items="${list }">  <!-- request 객체에 접근 -->
+    <c:set var="categrp_name" value="${categrp_Cate_join.r_name}" />
+    <c:set var="categrpno" value="${categrp_Cate_join.categrpno}" />
+    <c:set var="cateno" value="${categrp_Cate_join.cateno}" />
+    <c:set var="name" value="${categrp_Cate_join.name}" />
+    <c:set var="rdate" value="${categrp_Cate_join.rdate}" />
+    <c:set var="cnt" value="${categrp_Cate_join.cnt}" />
+    
+    <TR>
+      <TD class="td_bs">${categrp_name }</TD>
+      <TD class="td_bs_left">${name }</TD>
+      <TD class="td_bs">${rdate.substring(0, 10) }</TD>
+      <TD class="td_bs">${cnt }</TD>
+      <TD class="td_bs">
+        <A href="./read_update.do?cateno=${cateno }&categrpno=${categrpno}"><span class="glyphicon glyphicon-pencil"></span></A>
+        <A href="./read_delete.do?cateno=${cateno }&categrpno=${categrpno}"><span class="glyphicon glyphicon-trash"></span></A>
+      </TD>             
+    </TR>
+  </c:forEach>
+  </tbody>
+ 
+</TABLE>
+ 
+<jsp:include page="../menu/bottom.jsp" />
+</body>
+ 
+</html>
+ -------------------------------------------------------------------------------------
+ 
 ~~~
