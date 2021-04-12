@@ -3725,7 +3725,7 @@ public class CateCont {
   @Override
   public List<CateVO> list_all() {
    List<CateVO> list = this.cateDAO.list_all();
-   return null;
+   return list;
   }
 -------------------------------------------------------------------------------------
   
@@ -3752,110 +3752,10 @@ public class CateCont {
 
 7. View: JSP
 1)목록 화면 ▷ /webapp/WEB-INF/views/cate/list_all.jsp 
--------------------------------------------------------------------------------------
-- 추가필요
--------------------------------------------------------------------------------------
-~~~
-
-
-* **0412: [28][Cate] Categrp + Cate join 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작**
-~~~
-[01] Categrp + Cate join 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작
-1. SQL:  /webapp/WEB-INF/doc/dbms/cate_c.sql
--------------------------------------------------------------------------------------
-SELECT cateno, categrpno, name, rdate, cnt
-FROM cate
-ORDER BY cateno ASC;
- 
-  SELECT r.categrpno as r_categrpno, r.name as r_name,
-               c.cateno, c.categrpno, c.name, c.rdate, c.cnt
-    FROM categrp r, cate c
-    WHERE (r.categrpno = c.categrpno) AND r.categrpno=1
-    ORDER BY r.categrpno ASC, c.seqno ASC
--------------------------------------------------------------------------------------
-                      
-2. cate.xml 작성
-   - SQL 마지막 부분에 ';'이 있으면 안됨.
-   - 기초 코드
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-▷ /src/main/resources/mybatis/cate.xml
--------------------------------------------------------------------------------------
-  <!-- categrpno 별 cate 목록: categrp + cate inner join,  1 : 다, 통합 VO -->
-  <select id="list_join_by_categrpno" resultType="dev.mvc.cate.Categrp_Cate_joinVO" parameterType="int">
-    SELECT r.categrpno as r_categrpno, r.name as r_name,
-               c.cateno, c.categrpno, c.name, c.rdate, c.cnt
-    FROM categrp r, cate c
-    WHERE (r.categrpno = c.categrpno) AND r.categrpno=#{categrpno}
-    ORDER BY r.categrpno ASC, c.seqno ASC
-  </select>
-  -------------------------------------------------------------------------------------
- 
- 3. DAO interface
- ▷ dev.mvc.cate.CateDAOInter.java
--------------------------------------------------------------------------------------
-  /**
-   *  통합 VO 기반 join
-   * @return
-   */
-  public List<Categrp_Cate_join> list_join_by_categrpno(int categrpno);  
-  ------------------------------------------------------------------------------------
- 
- 4. Process interface
- ▷ dev.mvc.cate.CateProcInter.java
--------------------------------------------------------------------------------------
-  /**
-   *  통합 VO 기반 join
-   * @return
-   */
-  public List<Categrp_Cate_join> list_join_by_categrpno(int categrpno);  
--------------------------------------------------------------------------------------
-  
-5. Process class
-▷ dev.mvc.cate.CateProc.java
--------------------------------------------------------------------------------------
-  @Override
-  public List<Categrp_Cate_join> list_join_by_categrpno(int categrpno) {
-    List<Categrp_Cate_join> list = this.cateDAO.list_join_by_categrpno(categrpno);
-    return list;
-  }
--------------------------------------------------------------------------------------
-  
-6. Controller
-    - @Autowired: 자동으로 구현빈을 연결
-    - @Qualifier("dev.mvc.cate.CateProc"): 같은 이름의 클래스가 존재하면
-      생성되는 클래스에 이름을 부여하고 구분해서 객체를 할당받음.
-▷ dev.mvc.cate.CateCont.java 
--------------------------------------------------------------------------------------
-  // http://localhost:9091/cate/list.do?categrpno=1 기존의 url 사용
-  /**
-   * categrp + cate join 전체 목록
-   * @return
-   */
-  @RequestMapping(value="/cate/list.do", method=RequestMethod.GET )
-  public ModelAndView list_join_by_categrpno(int categrpno) {
-    ModelAndView mav = new ModelAndView();
-    
-    CategrpVO categrpVO = this.categrpProc.read(categrpno);
-    mav.addObject("categrpVO", categrpVO);
-    
-    List<Categrp_Cate_join> list = this.cateProc.list_join_by_categrpno(categrpno);
-    mav.addObject("list", list); // request.setAttribute("list", list);
-
-    mav.setViewName("/cate/list_join_by_categrpno"); // /cate/list_join_by_categrpno.jsp
-    return mav;
-  }
- -------------------------------------------------------------------------------------
- 
- 7. View: JSP
- 1)목록 화면
-▷ /webapp/WEB-INF/views/cate/list_join_by_categrpno.jsp 
+-> /categrp/list.jsp 기반 수정
 -------------------------------------------------------------------------------------
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
 <!DOCTYPE html> 
 <html lang="ko"> 
 <head> 
@@ -3863,92 +3763,234 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 <meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
 <title>Resort world</title>
  
-<link href="/css/style.css" rel="Stylesheet" type="text/css">
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
  
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
  
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-
+    
 <script type="text/javascript">
  
-  
 </script>
  
 </head> 
- 
 <body>
 <jsp:include page="../menu/top.jsp" />
  
-  <DIV class='title_line'>
-    <A href="../categrp/list.do">카테고리 그룹</A> > 
-    <A href="../cate/list_join_by_categrpno.do">${categrpVO.name } (${categrpVO.rdate.substring(0, 10) })</A>
-  </DIV>
- 
-  <DIV id='panel_create' style='padding: 10px 0px 10px 0px; background-color: #F9F9F9; width: 100%; text-align: center;'>
-    <FORM name='frm_create' id='frm_create' method='POST' 
-                action='./create.do'>
-      <!-- <input type='hidden' name='lang' id='lang' value='en'> --> <!-- ko, en -->
+<DIV class='title_line'>카테고리 그룹 > 전체 카테고리 </DIV>
 
-      <label>그룹 번호</label>
-      <input type='number' name='categrpno' value='${param.categrpno }' required="required" 
-                min="1" max="99999" step="1" style='width: 5%;'>
-         
-      <label>카테고리</label>
-      <input type='text' name='name' value='' required="required" style='width: 25%;'>
-  
-      <button type="submit" id='submit'>등록</button>
-      <button type="button" onclick="cancel();">취소</button>
-    </FORM>
-  </DIV>
- 
-  
-<TABLE class='table table-striped'>
-  <colgroup>
-    <col style='width: 15%;'/>
+<DIV class='content_body'>
+  <TABLE class='table table-striped'>
+    <colgroup>
+    <col style='width: 10%;'/>  <!-- /는 close 태그 == body 없이 태그의 속성만 사용 -->
+    <col style='width: 10%;'/>
     <col style='width: 40%;'/>
     <col style='width: 20%;'/>
-    <col style='width: 5%;'/>        
-    <col style='width: 20%;'/>
+    <col style='width: 10%;'/>    
+    <col style='width: 10%;'/>
   </colgroup>
- 
+  
   <thead>  
   <TR>
-    <TH class="th_bs">그룹</TH>
-    <TH class="th_bs">카테고리</TH>
+    <!-- erd 보고 값 지정 -->
+    <TH class="th_bs">카테고리 번호</TH>
+    <TH class="th_bs">카테고리 그룹 번호</TH>
+    <TH class="th_bs">카테고리 이름</TH>
     <TH class="th_bs">등록일</TH>
-    <TH class="th_bs">글수</TH>
+    <TH class="th_bs">관련 자료수</TH>
     <TH class="th_bs">기타</TH>
   </TR>
   </thead>
   
   <tbody>
-  <c:forEach var="categrp_Cate_join" items="${list }">  <!-- request 객체에 접근 -->
-    <c:set var="categrp_name" value="${categrp_Cate_join.r_name}" />
-    <c:set var="categrpno" value="${categrp_Cate_join.categrpno}" />
-    <c:set var="cateno" value="${categrp_Cate_join.cateno}" />
-    <c:set var="name" value="${categrp_Cate_join.name}" />
-    <c:set var="rdate" value="${categrp_Cate_join.rdate}" />
-    <c:set var="cnt" value="${categrp_Cate_join.cnt}" />
-    
+  <c:forEach var="cateVO" items="${list}">
+    <c:set var="cateno" value="${cateVO.cateno }" />
     <TR>
-      <TD class="td_bs">${categrp_name }</TD>
-      <TD class="td_bs_left">${name }</TD>
-      <TD class="td_bs">${rdate.substring(0, 10) }</TD>
-      <TD class="td_bs">${cnt }</TD>
-      <TD class="td_bs">
-        <A href="./read_update.do?cateno=${cateno }&categrpno=${categrpno}"><span class="glyphicon glyphicon-pencil"></span></A>
-        <A href="./read_delete.do?cateno=${cateno }&categrpno=${categrpno}"><span class="glyphicon glyphicon-trash"></span></A>
-      </TD>             
-    </TR>
-  </c:forEach>
+      <TD class="td_bs">${cateVO.cateno }</TD>
+      <TD class="td_bs">${cateVO.categrpno }</TD>   <%-- FK 설정 --%>
+      <TD class="td_bs_left">${categrpVO.name }</TD>
+      <TD class="td_bs">${cateVO.rdate.substring(0, 10) }</TD>
+      <TD class="td_bs">${cateVO.cnt }</TD>
+        
+      <TD class="td_bs"> <!-- 기타  글리피콘-->
+        <A href="./read_update.do?cateno=${categrpno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
+        <A href="./read_delete.do?cateno=${categrpno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>     
+      </TD>   
+    </TR> <!-- 행 종료 -->  
+  </c:forEach> 
   </tbody>
- 
-</TABLE>
- 
+   
+  </TABLE><!-- table end -->
+
+</DIV><!-- content body end -->
+
 <jsp:include page="../menu/bottom.jsp" />
 </body>
  
 </html>
+-------------------------------------------------------------------------------------
+~~~
+
+* **0412: [28][Cate] Categrp + Cate join 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작**
+* 정리
+* Field error in object 'cateVO' on field 'categrpno': 
+* Categrpno(FK)는 RDB 설계로 인한 연결이 필요
+* FK는 분류를 위해서 사용.
+~~~
+[01] Categrp + Cate join 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작
+list_all.do에 list.do 처럼 목록추가 + 등록된 목록
+1. SQL:  /webapp/WEB-INF/doc/dbms/cate_c.sql
+
+-- categrpno 별 목록(WHER로 caregrpno = 1(여행) 인 레코드만 출력.
+SELECT cateno, categrpno, name, rdate, cnt
+FROM cate
+WHERE categrpno = 1
+ORDER BY cateno ASC;
+------------------------------------------------------------------------------------
+                      
+2. cate.xml 작성 : ▷ /src/main/resources/mybatis/cate.xml
+-------------------------------------------------------------------------------------
+  <!--  카테고리 그룹별 목록
+  정수를 전달받기에 result = int -> but VO를 return하기에 parameter 타입을 int로 설정
+  categrpno는 입력받기에 #{값} -->
+  <select id="list_by_categrpno" resultType="dev.mvc.cate.CateVO" parameterType="int">
+    SELECT cateno, categrpno, name, rdate, cnt
+    FROM cate
+    WHERE categrpno = #{categrpno}
+    ORDER BY cateno ASC
+  </select>
+  -------------------------------------------------------------------------------------
+ 
+ 3. DAO interface ▷ dev.mvc.cate.CateDAOInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * [28][Cate] categrpno별 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작 
+   *  categrpno 별 목록
+   * @return
+   */
+  public List<CateVO> list_by_categrpno(int categrpno);  
+  ------------------------------------------------------------------------------------
+ 
+ 4. Process interface ▷ dev.mvc.cate.CateProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * [28][Cate] categrpno별 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작 
+   *  categrpno 별 목록
+   * @return
+   */
+  public List<CateVO> list_by_categrpno(int categrpno);  
+-------------------------------------------------------------------------------------
+  
+5. Process class ▷ dev.mvc.cate.CateProc.java
+-------------------------------------------------------------------------------------
+  @Override
+  public List<CateVO> list_by_categrpno(int categrpno) {
+    List<CateVO> list = this.cateDAO.list_by_categrpno(categrpno);
+    return list;
+  }
+-------------------------------------------------------------------------------------
+  
+6. Controller ▷ dev.mvc.cate.CateCont.java 
+-------------------------------------------------------------------------------------
+  // http://localhost:9091/cate/list_by_categrpno.do?categrpno=1
+  /**
+   * 카테고리 그룹별 전체 목록
+   * @return
+   */
+  @RequestMapping(value="/cate/list_by_categrpno.do", method=RequestMethod.GET )
+  public ModelAndView list_by_categrpno(int categrpno) { // 파라미터 값 전달
+    ModelAndView mav = new ModelAndView();
+    
+    List<CateVO> list = this.cateProc.list_by_categrpno(categrpno); // 객체 사용.
+    mav.addObject("list", list); // request.setAttribute("list", list);
+
+    mav.setViewName("/cate/list_by_categrpno"); // /cate/list_by_categrpno.jsp
+    return mav;
+  }
+ -------------------------------------------------------------------------------------
+ 
+6.1
+1) CateCont에 CategrpCont의 @Autowired 부분 3줄 붙여주기
+-> CateCont에서 테이블 2개 접근 가능
+
+2) list_by_categrpno method에 추가해주기 : 카테고리그룹 정보 출력(jsp에서 categrp Name을 출력하기 위함)
+-------------------------------------------------------------------------------------
+  @Autowired // CategrpProcInter 인터페이스를 구현한 CategrpProc.java가 할당
+  @Qualifier("dev.mvc.categrp.CategrpProc") // proc에게 전송
+  private CategrpProcInter categrpProc; 
+  
+  @Autowired
+  @Qualifier("dev.mvc.cate.CateProc")
+  private CateProcInter cateProc;
+
+....
+    // import + autowired하여 categrp proc 객체 사용.
+    CategrpVO categrpVO = categrpProc.read(categrpno); // 카테고리 그룹 정보
+    mav.addObject("categrpVO", categrpVO);
+-------------------------------------------------------------------------------------
+
+
+ 7. View: JSP
+1) ★★★★★ categrp/list.jsp 수정
+-> 목록에 link 걸어주기.
+-> 다른 테이블로 넘어갈때닌 PK -> FK로 연결
+ -------------------------------------------------------------------------------------
+ <TD class="td_bs_left">
+      <A href="../cate/list_by_categrpno.do?categrpno=${categrpno }">${categrpVO.name }</A></TD>
+ -------------------------------------------------------------------------------------
+
+2) 목록 화면
+▷ /webapp/WEB-INF/views/cate/list_by_categrpno.jsp 
+-------------------------------------------------------------------------------------
+<body>
+<jsp:include page="../menu/top.jsp" />
+ 
+<DIV class='title_line'>카테고리 그룹 > ${categrpVO.name } </DIV>
+
+<DIV class='content_body'>
+  <TABLE class='table table-striped'>
+    <colgroup>
+      <col style='width: 10%;'/>
+      <col style='width: 10%;'/>
+      <col style='width: 40%;'/>
+      <col style='width: 10%;'/>    
+      <col style='width: 10%;'/>
+      <col style='width: 20%;'/>
+    </colgroup>
+   
+    <thead>  
+    <TR>
+      <TH class="th_bs">카테고리 번호<BR></TH>
+      <TH class="th_bs">카테고리 그룹 번호<BR></TH>
+      <TH class="th_bs">카테고리 이름</TH>
+      <TH class="th_bs">등록일</TH>
+      <TH class="th_bs">관련 자료수</TH>
+      <TH class="th_bs">기타</TH>
+    </TR>
+    </thead>
+    
+    <tbody>
+    <c:forEach var="cateVO" items="${list}">
+      <c:set var="cateno" value="${cateVO.cateno }" />
+      <TR>
+        <TD class="td_bs">${cateVO.cateno }</TD>
+        <TD class="td_bs">${cateVO.categrpno }</TD>
+        <TD class="td_bs_left">${cateVO.name }</TD>
+        <TD class="td_bs">${cateVO.rdate.substring(0, 10) }</TD>
+        <TD class="td_bs">${cateVO.cnt }</TD>
+        <TD class="td_bs">
+          <A href="./read_update.do?cateno=${categrpno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
+          <A href="./read_delete.do?cateno=${categrpno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
+        </TD>   
+      </TR>   
+    </c:forEach> 
+    </tbody>
+   
+  </TABLE>
+</DIV>
+ 
+<jsp:include page="../menu/bottom.jsp" />
+</body>
  -------------------------------------------------------------------------------------
  
 ~~~
