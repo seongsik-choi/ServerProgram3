@@ -3287,86 +3287,6 @@ public class CateVO {
   
   
 }
--------------------------------------------------------------------------------------
- 
--> VO의 일종인 join
-2. dev.mvc.cate.Categrp_Cate_join.java
--------------------------------------------------------------------------------------
-package dev.mvc.cate;
-
-/*
-    SELECT r.categrpno as r_categrpno, r.name as r_name,
-               c.cateno, c.categrpno, c.name, c.rdate, c.cnt    FROM categrp r, cate c
-    WHERE r.categrpno = c.categrpno
-    ORDER BY r.categrpno ASC, c.seqno ASC
- */
-public class Categrp_Cate_join {
-  // -------------------------------------------------------------------
-  // Categrp table
-  // -------------------------------------------------------------------
-  /** 부모 테이블 카테고리 그룹 번호 */
-  private int r_categrpno;
-  /** 부모 테이블 카테고리 그룹 이름 */
-  private String r_name;
-  // -------------------------------------------------------------------
-  // Cate table
-  // -------------------------------------------------------------------  
-  /** 카테고리 번호 */
-  private int cateno;  
-  /** 카테고리 그룹 번호 */
-  private int categrpno;
-  /**  카테고리 이름 */
-  private String name;
-  /** 등록일 */
-  private String rdate;
-  /** 등록된 글 수 */
-  private int cnt;
-  
-  public int getR_categrpno() {
-    return r_categrpno;
-  }
-  public void setR_categrpno(int r_categrpno) {
-    this.r_categrpno = r_categrpno;
-  }
-  public String getR_name() {
-    return r_name;
-  }
-  public void setR_name(String r_name) {
-    this.r_name = r_name;
-  }
-  public int getCateno() {
-    return cateno;
-  }
-  public void setCateno(int cateno) {
-    this.cateno = cateno;
-  }
-  public int getCategrpno() {
-    return categrpno;
-  }
-  public void setCategrpno(int categrpno) {
-    this.categrpno = categrpno;
-  }
-  public String getName() {
-    return name;
-  }
-  public void setName(String name) {
-    this.name = name;
-  }
-  public String getRdate() {
-    return rdate;
-  }
-  public void setRdate(String rdate) {
-    this.rdate = rdate;
-  }
-  public int getCnt() {
-    return cnt;
-  }
-  public void setCnt(int cnt) {
-    this.cnt = cnt;
-  }
-  
-}
--------------------------------------------------------------------------------------
 ~~~
 
 * **0409 : [26][Cate] Cate 등록 기능 제작(INSERT ~ INTO ~ VALUES ~)**
@@ -4048,5 +3968,239 @@ ORDER BY cateno ASC;
  
 </html>
  -------------------------------------------------------------------------------------
+~~~
+
+* **0412 : [29][Cate] Categrp + Cate join 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작**  
+~~~
+★★★★/cate/create_msg 수정 :         
+<button type='button' onclick="location.href='./create.do?categrpno=${param.categrpno}'" class="btn btn-primary">새로운 카테고리 등록</button>
+ <button type='button' onclick="location.href='./list_by_categrpno.do?categrpno=${param.categrpno}'" class="btn btn-primary">목록</button>
+~~~
+
+~~~
+-- [29] Categrp + Cate join, 연결 목록 : name 컬럼 이름이 겹침 이를 join
+-- 1) FROM절의 r과 c는 TABLE에 대한 별명
+-- 2) SLEECT 절에 컬럼은 별명.컬럼명 / 겹치는 컬럼명 반드시 명시 + 별명 선언(AS)
+-- 3) AS로 컬럼명 선언시 실제 컬럼명은 사용 NO.
+-- 4) 부모쪽에 AS로 별병 선언 시, 자식은 별명 선언 필요 NO.
+-- 5) WHERE 조건에 부모 PK(Categrpno)와 자식 FK(categrpno) 비교해 같으면 Join하여 출력
+-- 6) 결합시 자식 테이블의 레코드 갯수만큼 결합(Join)이 발생
+SELECT r.categrpno AS r_categrpno, r.name AS r_name,
+          c.cateno, c.categrpno, c.name, c.rdate, c.cnt
+FROM categrp r, cate c
+WHERE r.categrpno = c.categrpno
+ORDER BY cateno ASC;
+
+(부_PK)                         (자_PK)     (자_FK)
+R_CATEGRPNO R_NAME    CATENO  CATEGRPNO NAME             RDATE                      CNT
+---------------- ----------------------- ---------- ---------------------------------------- ------------------
+         1      영화                1           1                 SF             2021-04-12 11:28:14          0
+         1      영화                 2          1             드라마            2021-04-12 11:28:14          0
+         1      영화                 3          1                 로코           2021-04-12 11:28:14          0
+         1      영화                 14         1             스릴러           2021-04-12 01:13:45          0
+         2      여행                  15        2              경기도           2021-04-12 01:16:23          0
+         3      음악                  17        3              pop              2021-04-12 02:44:00          0
+         3      음악                   18       3             발라드            2021-04-12 02:48:08          0
+         3      음악                   19       3             클래식            2021-04-12 02:50:52          0
+
+▷ /src/main/resources/mybatis/cate.xml
+-------------------------------------------------------------------------------------
+  <select id="list_all_join" resultType="dev.mvc.cate.Categrp_CateVO">
+    SELECT r.categrpno AS r_categrpno, r.name AS r_name,
+                c.cateno, c.categrpno, c.name, c.rdate, c.cnt
+    FROM categrp r, cate c
+    WHERE r.categrpno = c.categrpno
+    ORDER BY categrpno ASC, cateno ASC;
+  </select>
+-------------------------------------------------------------------------------------
+
+- joinVO 선언 필요
+dev.mvc.cate.Categrp_CateVO.java
+-------------------------------------------------------------------------------------
+public class Categrp_CateVO {
+  
+  // -------------------------------------------------------------------
+  // Categrp table
+  // -------------------------------------------------------------------
+  /** 부모 테이블 카테고리 그룹 번호 */
+  private int r_categrpno;
+  /** 부모 테이블 카테고리 그룹 이름 */
+  private String r_name;
+  
+  // -------------------------------------------------------------------
+  // Cate table
+  // -------------------------------------------------------------------  
+  /** 카테고리 번호 */
+  private int cateno;  
+  /** 카테고리 그룹 번호 */
+  private int categrpno;
+  /**  카테고리 이름 */
+  private String name;
+  /** 등록일 */
+  private String rdate;
+  /** 등록된 글 수 */
+  private int cnt;
+  
+  // getter setter
+  public int getR_categrpno() {
+    return r_categrpno;
+  }
+  public void setR_categrpno(int r_categrpno) {
+    this.r_categrpno = r_categrpno;
+  }
+  public String getR_name() {
+    return r_name;
+  }
+  public void setR_name(String r_name) {
+    this.r_name = r_name;
+  }
+  public int getCateno() {
+    return cateno;
+  }
+  public void setCateno(int cateno) {
+    this.cateno = cateno;
+  }
+  public int getCategrpno() {
+    return categrpno;
+  }
+  public void setCategrpno(int categrpno) {
+    this.categrpno = categrpno;
+  }
+  public String getName() {
+    return name;
+  }
+  public void setName(String name) {
+    this.name = name;
+  }
+  public String getRdate() {
+    return rdate;
+  }
+  public void setRdate(String rdate) {
+    this.rdate = rdate;
+  }
+  public int getCnt() {
+    return cnt;
+  }
+  public void setCnt(int cnt) {
+    this.cnt = cnt;
+  }
+  
+  // toString()
+  @Override
+  public String toString() {
+    return "[r_categrpno=" + r_categrpno + ", r_name=" + r_name + ", cateno=" + cateno + ", categrpno="
+        + categrpno + ", name=" + name + ", rdate=" + rdate + ", cnt=" + cnt + "]";
+  }
+-------------------------------------------------------------------------------------
+
+▷ dev.mvc.cate.CateDAOInter.java ▷ dev.mvc.cate.CateProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * [29][Cate] Categrp + Cate join 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작
+   * JOIN 목록
+   * @return
+   */
+  public List<Categrp_CateVO> list_all_join();  
+-------------------------------------------------------------------------------------
+
+▷ dev.mvc.cate.CateProc.java
+-------------------------------------------------------------------------------------
+  @Override
+  public List<Categrp_CateVO> list_all_join() {
+    List<Categrp_CateVO> list = this.cateDAO.list_all_join();
+    return list;
+  }
+-------------------------------------------------------------------------------------
+
+▷ dev.mvc.cate.CateCont.java 
+-------------------------------------------------------------------------------------
+  // http://localhost:9091/cate/list_all_join.do
+  /**
+   * list.all 기반 수정
+   * [29][Cate] Categrp + Cate join 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작
+   * categrp + cate join JOIN 목록
+   * @return
+   */
+  @RequestMapping(value="/cate/list_all_join.do", method=RequestMethod.GET )
+  public ModelAndView list_all_join() {
+    ModelAndView mav = new ModelAndView();
+    
+    List<Categrp_CateVO> list = this.cateProc.list_all_join();
+    mav.addObject("list", list); // request.setAttribute("list", list);
+
+    mav.setViewName("/cate/list_all_join"); // /cate/list_all_join.jsp
+    return mav;
+  } 
+-------------------------------------------------------------------------------------
+
+▷ /webapp/WEB-INF/views/cate/list_all_join.jsp 
+-> list_all.jsp 기반 작업
+-------------------------------------------------------------------------------------
+<body>
+<jsp:include page="../menu/top.jsp" />
+ 
+<DIV class='title_line'><A href="../categrp/list.do" class='title_link'>카테고리 그룹</A> > 전체 카테고리</DIV>
+
+<DIV class='content_body'>
+  <TABLE class='table table-striped'>
+    <colgroup>
+      <col style='width: 10%;'/>
+      <col style='width: 20%;'/>
+      <col style='width: 10%;'/>
+      <col style='width: 20%;'/>
+      <col style='width: 15%;'/>    
+      <col style='width: 10%;'/>
+      <col style='width: 15%;'/>
+    </colgroup>
+   
+    <thead>  
+    <TR>
+      <TH class="th_bs">카테고리 <BR>그룹 번호</TH>    
+      <TH class="th_bs">카테고리 <BR>그룹 이름</TH>
+      <TH class="th_bs">카테고리 <BR>번호</TH> 
+      <TH class="th_bs">카테고리 이름</TH>
+      <TH class="th_bs">등록일</TH>
+      <TH class="th_bs">관련 자료수</TH>
+      <TH class="th_bs">기타</TH>
+    </TR>
+    </thead>
+    
+    <tbody>
+      <c:forEach var="categrp_CateVO" items="${list}">
+        <c:set var="r_categrpno" value="${categrp_CateVO.r_categrpno }" />
+        <c:set var="r_name" value="${categrp_CateVO.r_name }" />
+        <c:set var="cateno" value="${categrp_CateVO.cateno }" />
+        <c:set var="name" value="${categrp_CateVO.name }" />
+        <c:set var="rdate" value="${categrp_CateVO.rdate.substring(0, 10) }" />
+        <c:set var="cnt" value="${categrp_CateVO.cnt }" />
+      
+      <TR>
+        <TD class="td_bs">${r_categrpno }</TD>
+        <TD class="td_bs">${r_name }</TD>
+        <TD class="td_bs">${cateno }</TD>
+        <TD class="td_bs_left">${name }</TD>
+        <TD class="td_bs">${rdate }</TD>
+        <TD class="td_bs">${cnt }</TD>
+        <TD class="td_bs">
+          <A href="./read_update.do?cateno=${cateno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
+          <A href="./read_delete.do?cateno=${cateno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
+        </TD>   
+      </TR>   
+    </c:forEach> 
+    </tbody>
+   
+  </TABLE>
+</DIV>
+
+ 
+<jsp:include page="../menu/bottom.jsp" />
+</body>
+-------------------------------------------------------------------------------------
+
+-> list_all.jsp 수정
+-------------------------------------------------------------------------------------
+<A href="./read_update.do?cateno=${cateno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
+<A href="./read_delete.do?cateno=${cateno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
+-------------------------------------------------------------------------------------
 
 ~~~
