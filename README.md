@@ -3777,7 +3777,7 @@ public class CateCont {
 <body>
 <jsp:include page="../menu/top.jsp" />
  
-<DIV class='title_line'>카테고리 그룹 > 전체 카테고리 </DIV>
+<DIV class='title_line'><A href="../categrp/list.do" class='title_link'>카테고리 그룹</A> > 전체 카테고리</DIV>
 
 <DIV class='content_body'>
   <TABLE class='table table-striped'>
@@ -3831,11 +3831,17 @@ public class CateCont {
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0412: [28][Cate] Categrp + Cate join 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작**
-* 정리
-* Field error in object 'cateVO' on field 'categrpno': 
-* Categrpno(FK)는 RDB 설계로 인한 연결이 필요
-* FK는 분류를 위해서 사용.
+* **0412: [28][Cate] Categrp + Cate join 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작**  
+* Field error in object 'cateVO' on field 'categrpno':   
+* Categrpno(FK)는 RDB 설계로 인한 연결이 필요  
+* FK는 분류를 위해서 사용.  
+* cate Table에서 부모 테이블인 Categrp Table의 컬럼 사용하는 방법
+~~~
+  @Autowired // CategrpProcInter 인터페이스를 구현한 CategrpProc.java가 할당
+  @Qualifier("dev.mvc.categrp.CategrpProc") // proc에게 전송
+  private CategrpProcInter categrpProc; 
+~~~
+
 ~~~
 [01] Categrp + Cate join 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작
 list_all.do에 list.do 처럼 목록추가 + 등록된 목록
@@ -3909,7 +3915,7 @@ ORDER BY cateno ASC;
   }
  -------------------------------------------------------------------------------------
  
-6.1
+★★★★★6.1
 1) CateCont에 CategrpCont의 @Autowired 부분 3줄 붙여주기
 -> CateCont에서 테이블 2개 접근 가능
 
@@ -3930,7 +3936,7 @@ ORDER BY cateno ASC;
 -------------------------------------------------------------------------------------
 
 
- 7. View: JSP
+★★★★★ 7. View: JSP
 1) ★★★★★ categrp/list.jsp 수정
 -> 목록에 link 걸어주기.
 -> 다른 테이블로 넘어갈때닌 PK -> FK로 연결
@@ -3940,14 +3946,61 @@ ORDER BY cateno ASC;
  -------------------------------------------------------------------------------------
 
 2) 목록 화면
+-> <A> 태그로 앵커시 글씨 크기가 작아지는 문제
+-> css 확인 : title_line 밑에 추가해주기
+-------------------------------------------------------------------------------------
+  /* 4월 12일 추가 앵커 태그 변경 tile_line의 link 태그 수정 */
+    .title_link:link{  /* 방문전 상태 */
+    font-size: 20px;   
+    text-decoration: none; /* 밑줄 삭제 */
+  }
+
+  .title_link:visited{  /* 방문후 상태 */
+    font-size: 20px;   
+    text-decoration: none; /* 밑줄 삭제 */
+  }
+
+  .title_link:hover{  /* A 태그에 마우스가 올라간 상태 */
+    font-size: 20px;   
+    text-decoration: none; /* 밑줄 출력 */
+  }
+
+  .title_link:active{  /* A 태그를 클릭한 상태 */
+    font-size: 20px;   
+    text-decoration: none; /* 밑줄 출력 */
+  }
+-------------------------------------------------------------------------------------
+
 ▷ /webapp/WEB-INF/views/cate/list_by_categrpno.jsp 
 -------------------------------------------------------------------------------------
 <body>
 <jsp:include page="../menu/top.jsp" />
  
-<DIV class='title_line'>카테고리 그룹 > ${categrpVO.name } </DIV>
+<DIV class='title_line'><A href="../categrp/list.do" class='title_link'>
+          카테고리 그룹</A> > ${categrpVO.name }(${categrpVO.categrpno }) </DIV>
 
 <DIV class='content_body'>
+   <DIV id='panel_create' style='padding: 10px 0px 10px 0px; background-color: #F9F9F9; width: 100%; text-align: center;'>
+    <FORM name='frm_create' id='frm_create' method='POST' action='./create.do'>
+      
+      <!-- value에 param(GET으로 전달받은 값을 기본 값으로 사용. ex) 여행-> 1 자동 입력 -->
+      <!-- disable를 설정하여 값 설정 변경을 못하게 설정이 가능하나
+       가장 큰 문제 ) 값 전달을 못함 : 무결성 제약 조건 위배
+       해결) hidden type을 사용해 사용자에게 보이지않게 설정 + 실제 값 보여주기만 -> 
+      -->
+      <label>카테고리 그룹 번호 : </label>
+       <input type='hidden' name='categrpno' value='${param.categrpno }'> <!-- 출력 용도 -->
+       ${param.categrpno }&nbsp; <!--  공백한칸  -->
+        
+      <label>카테고리 이름</label>
+      <input type='text' name='name' value='' required="required" style='width: 25%;' autofocus="autofocus">
+  
+      <button type="submit" id='submit'>등록</button>
+      <button type="button" onclick="cancel();">취소</button>
+      </FORM>
+  </DIV>
+  
+
   <TABLE class='table table-striped'>
     <colgroup>
       <col style='width: 10%;'/>
@@ -3960,8 +4013,8 @@ ORDER BY cateno ASC;
    
     <thead>  
     <TR>
-      <TH class="th_bs">카테고리 번호<BR></TH>
-      <TH class="th_bs">카테고리 그룹 번호<BR></TH>
+      <TH class="th_bs">카테고리 번호</TH>
+      <TH class="th_bs">카테고리 그룹 번호</TH>
       <TH class="th_bs">카테고리 이름</TH>
       <TH class="th_bs">등록일</TH>
       <TH class="th_bs">관련 자료수</TH>
@@ -3988,9 +4041,12 @@ ORDER BY cateno ASC;
    
   </TABLE>
 </DIV>
+
  
 <jsp:include page="../menu/bottom.jsp" />
 </body>
- -------------------------------------------------------------------------------------
  
+</html>
+ -------------------------------------------------------------------------------------
+
 ~~~
