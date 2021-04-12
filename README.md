@@ -3658,7 +3658,7 @@ public class CateCont {
    * categrp + cate join 전체 목록
    * @return
    */
-  @RequestMapping(value="/cate/list.do", method=RequestMethod.GET )
+  @RequestMapping(value="/cate/list_all.do", method=RequestMethod.GET )
   public ModelAndView list_all() {
     ModelAndView mav = new ModelAndView();
     
