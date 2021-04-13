@@ -4202,5 +4202,115 @@ public class Categrp_CateVO {
 <A href="./read_update.do?cateno=${cateno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
 <A href="./read_delete.do?cateno=${cateno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
 -------------------------------------------------------------------------------------
+~~~
 
+* **0413 : [30][Cate] Cate 조회 + 수정폼, 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ )**
+~~~
+▷ /src/main/resources/mybatis/cate.xml
+-------------------------------------------------------------------------------------
+  <!-- [30][Cate] Cate 조회 + 수정폼, 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ )
+  조회, id: read, 입력: cateno, 리턴: CateVO -->
+  <select id="read" resultType="dev.mvc.cate.CateVO" parameterType="int">
+    SELECT cateno, categrpno, name, rdate, cnt
+    FROM cate
+    WHERE cateno=#{cateno}
+  </select>  
+  
+  <!-- [30][Cate] Cate 조회 + 수정폼, 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ )
+  조회, id: read, 입력: cateno, 리턴: CateVO -->
+  <update id="update" parameterType="dev.mvc.cate.CateVO">
+    UPDATE cate
+    SET categrpno=#{categrpno}, name=#{name}, cnt=#{cnt}
+    WHERE cateno = #{cateno}
+  </update>  
+
+3. DAO interface 4. Process interface
+▷ dev.mvc.cate.CateDAOInter.java ▷ dev.mvc.cate.CateProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   *  [30][Cate] Cate 조회 + 수정폼, 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ )
+   * 조회, 수정폼
+   * @param cateno 카테고리 번호, PK
+   * @return
+   */
+  public CateVO read(int cateno);
+  
+  /**
+   *  [30][Cate] Cate 조회 + 수정폼, 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ )
+   * 수정 처리
+   * @param cateVO
+   * @return
+   */
+  public int update(CateVO cateVO);  
+-------------------------------------------------------------------------------------
+
+5. Process class ▷ dev.mvc.cate.CateProc.java
+-------------------------------------------------------------------------------------
+  // [30][Cate] Cate 조회 + 수정폼, 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ )
+  @Override
+  public CateVO read(int cateno) {
+    CateVO cateVO = this.cateDAO.read(cateno);
+    return cateVO;
+  }
+
+  // [30][Cate] Cate 조회 + 수정폼, 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ )
+  @Override
+  public int update(CateVO cateVO) {
+    int cnt = this.cateDAO.update(cateVO);
+    return cnt;
+  }
+-------------------------------------------------------------------------------------
+
+▷ dev.mvc.cate.CateCont.java 
+-------------------------------------------------------------------------------------
+  /**
+   * [30][Cate] Cate 조회 + 수정폼, 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ ) 
+   * 조회 + 수정폼 http://localhost:9091/cate/read_update.do
+   * @return
+   */
+  @RequestMapping(value = "/cate/read_update.do", method = RequestMethod.GET)
+  public ModelAndView read_update(int cateno, int categrpno) { // 변수 2개 전달 -> 자동으로 requestgetParameter
+    // int cateno = Integer.parseInt(request.getParameter("cateno")); //  자동으로 수행
+    ModelAndView mav = new ModelAndView();
+    mav.setViewName("/cate/read_update"); // read_update.jsp
+
+    CateVO cateVO = this.cateProc.read(cateno);
+    mav.addObject("cateVO", cateVO);  // request.setAttritube("cateVO", cateVO);
+
+    List<CateVO> list = this.cateProc.list_by_categrpno(categrpno); // FK(categrpno)를 가지고 CateProc에서 목록가져오기
+    mav.addObject("list", list);
+
+    return mav; // forward
+  }
+  
+  /**
+   * 수정 처리
+   * [30][Cate] Cate 조회 + 수정폼, 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ ) 
+   * @param cateVO
+   * @return
+   */
+  @RequestMapping(value = "/cate/update.do", method = RequestMethod.POST)
+  public ModelAndView update(CateVO cateVO) {
+    ModelAndView mav = new ModelAndView();
+
+    int cnt = this.cateProc.update(cateVO);
+    mav.addObject("cnt", cnt); // request에 저장
+    mav.addObject("categrpno", cateVO.getCategrpno());
+    mav.addObject("url", "/cate/update_msg");  // /cate/create_msg -> /cate/update_msg.jsp로 최종 실행됨.
+    
+    mav.setViewName("redirect:/cate/msg.do");
+    
+    return mav;
+  }  
+-------------------------------------------------------------------------------------
+
+▷ /webapp/cate/read_update.jsp 
+등록폼에서 FK 컬럼인 categrpno 컬럼의 값을 <input type='hidden' ...> 태그로 전달
+-------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------
+
+2. 메시지 출력 ▷ /webapp/cate/update_msg.jsp 
+-------------------------------------------------------------------------------------
 ~~~
