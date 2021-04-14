@@ -4556,5 +4556,268 @@ mav.addObject("categrpVO", categrpVO);  // request.setAttritube("categrpVO", cat
 
 ~~~
 
-* **0414 : [31][Cate] Cate 삭제 기능의 제작(DELETE ~ WHERE ~ **
+* **0414 : [31][Cate] Cate 삭제 기능의 제작(DELETE ~ WHERE)~**
+~~~
+1. SQL:  /webapp/WEB-INF/doc/dbms/cate_c.sql
+-------------------------------------------------------------------------------------
+1) 하나의 레코드 삭제
+DELETE FROM cate 
+WHERE cateno = 1;
+-----------------------------------------------------------------------------------
+ 
+ 2. cate.xml 작성 ▷ /src/main/resources/mybatis/cate.xml
+-------------------------------------------------------------------------------------
+  <!-- 삭제, return: int -->
+  <delete id="delete" parameterType="int">
+    DELETE FROM cate
+    WHERE cateno=#{cateno}
+  </delete>  
+-------------------------------------------------------------------------------------
+ 
+3. DAO interface	4. Process interface
+▷ dev.mvc.cate.CateProcInter.java▷ dev.mvc.cate.CateDAOInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * 삭제 처리 
+   * @param cateno
+   * @return
+   */
+  public int delete(int cateno);
+-------------------------------------------------------------------------------------
+  
+5. Process class
+▷ dev.mvc.cate.CateProc.java
+-------------------------------------------------------------------------------------
+  @Override
+  public int delete(int cateno) {
+    int cnt = this.cateDAO.delete(cateno);
+    return cnt;
+  }
+-------------------------------------------------------------------------------------
+6. Controller
+    - @Autowired: 자동으로 구현빈을 연결
+    - @Qualifier("dev.mvc.cagtegory.CagteProc"): 같은 이름의 클래스가 존재하면
+      생성되는 클래스에 이름을 부여하고 구분해서 객체를 할당받음.
+▷ dev.mvc.cate.CateCont.java 
+-------------------------------------------------------------------------------------
+  /**
+   * [31][Cate] Cate 삭제 기능의 제작(DELETE ~ WHERE)~
+   * 조회 + 삭제폼 http://localhost:9091/cate/read_delete.do
+   * @return
+   */
+  @RequestMapping(value = "/cate/read_delete.do", method = RequestMethod.GET)
+  public ModelAndView read_delete(int cateno, int categrpno) { // 변수 2개 전달 -> 자동으로 requestgetParameter
+    // int cateno = Integer.parseInt(request.getParameter("cateno")); //  자동으로 수행
+    // int categrpno = Integer.parseInt(request.getParameter("categrpno")); //  자동으로 수행
+    ModelAndView mav = new ModelAndView();
+    mav.setViewName("/cate/read_delete"); // read_delete.jsp
+
+    CategrpVO categrpVO =  this.categrpProc.read(categrpno);
+    mav.addObject("categrpVO", categrpVO);  // request.setAttritube("categrpVO", categrpVO);
+    
+    CateVO cateVO = this.cateProc.read(cateno);
+    mav.addObject("cateVO", cateVO);  // request.setAttritube("cateVO", cateVO);
+
+    List<CateVO> list = this.cateProc.list_by_categrpno(categrpno); // FK(categrpno)를 가지고 CateProc에서 목록가져오기
+    mav.addObject("list", list);
+
+    return mav; // forward
+  }  
+
+    /**
+   * 삭제처리(수정처리 기반)
+   * [31][Cate] Cate 삭제 기능의 제작(DELETE ~ WHERE)~
+   * @param cateVO
+   * @return
+   */
+  @RequestMapping(value = "/cate/delete.do", method = RequestMethod.POST)
+  public ModelAndView delete(int cateno, int categrpno) {
+    ModelAndView mav = new ModelAndView();
+    
+ // 삭제될 레코드 정보를 삭제하기전에 읽음.
+    CateVO cateVO = this.cateProc.read(cateno); 
+    
+    int cnt = this.cateProc.delete(cateno);
+    
+    mav.addObject("cnt", cnt); // request에 저장
+    mav.addObject("cateno", cateVO.getCateno()); // 0414 추가
+    mav.addObject("categrpno", cateVO.getCategrpno());
+    mav.addObject("name", cateVO.getName()); // 0414 추가
+    mav.addObject("url", "/cate/delete_msg");  // /cate/delete_msg.jsp로 최종 실행됨.
+    
+    mav.setViewName("redirect:/cate/msg.do"); // 새로고침 문제해결, request 초기화
+    
+    return mav;
+  }    
+  
+-------------------------------------------------------------------------------------
+
+1) 입력 화면
+▷ /webapp/cate/read_delete.jsp  : read_update.jsp 기반
++ 홈페이지 코드 DIV panle 부분만 지우고 복붙 + 링크 수정(list_by_categrpno.do)
+-------------------------------------------------------------------------------------
+<%-- 
+0414
+7. View: JSP
+- 등록폼에서 FK 컬럼인 categrpno 컬럼의 값을 <input type='hidden' ...> 태그로
+  전달해야합니다.
+1) 입력 화면
+▷ /webapp/cate/read_update.jsp 
+ ★★★★★list_by_categrpno를 복사★★★★★
+--%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    
+<script type="text/javascript">
+ 
+  
+</script>
+ 
+</head> 
+ 
+<body>
+<jsp:include page="../menu/top.jsp" />
+ 
+<DIV class='title_line'>
+  <A href="../categrp/list.do" class='title_link'> 카테고리 그룹</A> >
+   <A href="./list_by_categrpno.do?categrpno=${param.categrpno }" class='title_link'>${categrpVO.name }</A> >
+    (${cateVO.name }) 수정</DIV>
+
+<DIV class='content_body'>
+  <DIV id='panel_delete' style='padding: 10px 0px 10px 0px; background-color: #F9F9F9; width: 100%; text-align: center;'>
+    <div class="msg_warning">카테고리를 삭제하면 복구 할 수 없습니다.</div>
+    
+    <FORM name='frm_delete' id='frm_delete' method='POST' action='./delete.do'>
+      <input type='hidden' name='cateno' id='cateno' value="${cateVO.cateno }">
+      <input type='hidden' name='categrpno' id='categrpno' value="${param.categrpno }">
+      
+      <label>그룹 번호</label>: ${cateVO.categrpno }  
+      <label>카테고리</label>: ${cateVO.name}  
+       
+      <button type="submit" id='submit'>삭제</button>
+      <button type="button" onclick="location.href='./list_by_categrpno.do?categrpno=${param.categrpno}'">취소</button>
+    </FORM>
+  </DIV>
+  
+  <TABLE class='table table-striped'>
+    <colgroup>
+      <col style='width: 10%;'/>
+      <col style='width: 10%;'/>
+      <col style='width: 40%;'/>
+      <col style='width: 10%;'/>    
+      <col style='width: 10%;'/>
+      <col style='width: 20%;'/>
+    </colgroup>
+   
+    <thead>  
+    <TR>
+      <TH class="th_bs">카테고리 번호</TH>
+      <TH class="th_bs">카테고리 그룹 번호</TH>
+      <TH class="th_bs">카테고리 이름</TH>
+      <TH class="th_bs">등록일</TH>
+      <TH class="th_bs">관련 자료수</TH>
+      <TH class="th_bs">기타</TH>
+    </TR>
+    </thead>
+    
+    <tbody>
+    <c:forEach var="cateVO" items="${list}">
+      <c:set var="cateno" value="${cateVO.cateno }" />
+      <TR>
+        <TD class="td_bs">${cateVO.cateno }</TD>
+        <TD class="td_bs">${cateVO.categrpno }</TD>
+        <TD class="td_bs_left">${cateVO.name }</TD>
+        <TD class="td_bs">${cateVO.rdate.substring(0, 10) }</TD>
+        <TD class="td_bs">${cateVO.cnt }</TD>
+        <TD class="td_bs">
+          <A href="./read_update.do?cateno=${cateno }&categrpno=${cateVO.categrpno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
+          <A href="./read_delete.do?cateno=${cateno }&categrpno=${cateVO.categrpno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
+        </TD>   
+      </TR>   
+    </c:forEach> 
+    </tbody>
+   
+  </TABLE>
+</DIV>
+
+<jsp:include page="../menu/bottom.jsp" />
+</body>
+ 
+</html>
+-------------------------------------------------------------------------------------
+
+2. 메시지 출력
+ -> update_msg 기반 수정
+▷ /webapp/cate/delete_msg.jsp 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+  
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+
+<DIV class='title_line'>알림</DIV>
+
+<DIV class='message'>
+  <fieldset class='fieldset_basic'>
+    <UL>
+      <c:choose>
+        <c:when test="${param.cnt == 1}">
+          <LI class='li_none'>
+            <span class="span_success">카테고리『${param.name }』를 삭제했습니다.</span>
+          </LI>
+        </c:when>
+        <c:otherwise>
+          <LI class='li_none_left'>
+            <span class="span_fail">카테고리『${param.name }』삭제에 실패했습니다.</span>
+          </LI>
+          <LI class='li_none_left'>
+            <span class="span_fail">다시 시도해주세요.</span>
+          </LI>
+        </c:otherwise>
+      </c:choose>
+      <LI class='li_none'>
+        <br>
+        <c:if test="${cnt != 1 }">
+       <button type='button' onclick="location.href='./read_delete.do?cateno=${param.cateno}&categrpno=${param.categrpno}'" class="btn btn-primary"> 카테고리 삭제 재시도</button>
+        </c:if>
+        <button type='button' onclick="location.href='./list_by_categrpno.do?categrpno=${param.categrpno}'" class="btn btn-primary">목록</button>
+      </LI>
+    </UL>
+  </fieldset>
+
+</DIV>
+
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+
+</html>
+-------------------------------------------------------------------------------------
 ~~~
