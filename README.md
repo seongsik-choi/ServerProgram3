@@ -4402,12 +4402,10 @@ mav.addObject("categrpVO", categrpVO);  // request.setAttritube("categrpVO", cat
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     
 <script type="text/javascript">
- 
-  
+
 </script>
  
 </head> 
- 
 <body>
 <jsp:include page="../menu/top.jsp" />
  
@@ -4441,7 +4439,7 @@ mav.addObject("categrpVO", categrpVO);  // request.setAttritube("categrpVO", cat
                   min="0" max="10000000" step="1"><BR> 
   
       <button type="submit" id='submit'>수정</button>
-      <button type="button" onclick="history.back();">취소</button> <!-- JAVAScript로 이전페이지로 -->
+      <button type="button" onclick="location.href='./list_by_categrpno.do?categrpno=${cateVO.categrpno} '">취소</button> <!-- JAVAScript로 이전페이지로 -->
       </FORM>
   </DIV>
   
@@ -4477,8 +4475,8 @@ mav.addObject("categrpVO", categrpVO);  // request.setAttritube("categrpVO", cat
         <TD class="td_bs">${cateVO.rdate.substring(0, 10) }</TD>
         <TD class="td_bs">${cateVO.cnt }</TD>
         <TD class="td_bs">
-          <A href="./read_update.do?cateno=${categrpno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
-          <A href="./read_delete.do?cateno=${categrpno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
+          <A href="./read_update.do?cateno=${cateno }&categrpno=${cateVO.categrpno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
+          <A href="./read_delete.do?cateno=${cateno }&categrpno=${cateVO.categrpno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
         </TD>   
       </TR>   
     </c:forEach> 
@@ -4487,10 +4485,9 @@ mav.addObject("categrpVO", categrpVO);  // request.setAttritube("categrpVO", cat
   </TABLE>
 </DIV>
 
- 
 <jsp:include page="../menu/bottom.jsp" />
 </body>
-
+ 
 </html>
 -------------------------------------------------------------------------------------
 
@@ -4557,4 +4554,7 @@ mav.addObject("categrpVO", categrpVO);  // request.setAttritube("categrpVO", cat
 
 </html>
 
+~~~
+
+* **0414 : [31][Cate] Cate 삭제 기능의 제작(DELETE ~ WHERE ~ **
 ~~~
