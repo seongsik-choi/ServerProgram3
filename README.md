@@ -4805,7 +4805,7 @@ WHERE cateno = 1;
       </c:choose>
       <LI class='li_none'>
         <br>
-        <c:if test="${cnt != 1 }">
+        <c:if test="${param.cnt != 1 }">
        <button type='button' onclick="location.href='./read_delete.do?cateno=${param.cateno}&categrpno=${param.categrpno}'" class="btn btn-primary"> 카테고리 삭제 재시도</button>
         </c:if>
         <button type='button' onclick="location.href='./list_by_categrpno.do?categrpno=${param.categrpno}'" class="btn btn-primary">목록</button>
