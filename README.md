@@ -4204,7 +4204,7 @@ public class Categrp_CateVO {
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0413 : [30][Cate] Cate 조회 + 수정폼, 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ )**
+* **0413~14 : [30][Cate] Cate 조회 + 수정폼, 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ )**
 ~~~
 ▷ /src/main/resources/mybatis/cate.xml
 -------------------------------------------------------------------------------------
@@ -4304,13 +4304,57 @@ public class Categrp_CateVO {
   }  
 -------------------------------------------------------------------------------------
 
-▷ /webapp/cate/read_update.jsp 
+ 1) ★★★list_by_categrpno와 list_all와 수정★★★
+-------------------------------------------------------------------------------------
+<c:set var="categrpno" value="${cateVO.categrpno }" /> // 추가
+    <A href="./read_update.do?cateno=${cateno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
+     <A href="./read_delete.do?cateno=${cateno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
+-------------------------------------------------------------------------------------
+
+2) ★★★list_all_join 수정★★★
+-------------------------------------------------------------------------------------
+ <tbody>
+      <c:forEach var="categrp_CateVO" items="${list}">
+        <%-- <c:set var="r_categrpno" value="${categrp_CateVO.r_categrpno }" /> --%>
+        <c:set var="r_name" value="${categrp_CateVO.r_name }" />
+        <c:set var="cateno" value="${categrp_CateVO.cateno }" />
+        <c:set var="name" value="${categrp_CateVO.name }" />
+        <c:set var="rdate" value="${categrp_CateVO.rdate.substring(0, 10) }" />
+        <c:set var="cnt" value="${categrp_CateVO.cnt }" />
+        <c:set var="categrpno" value="${categrp_CateVO.categrpno }" />  // 추가해주기
+      
+      <TR>
+        <TD class="td_bs">${categrpno }</TD> // 수정
+        <TD class="td_bs">${r_name }</TD>
+        <TD class="td_bs">${cateno }</TD>
+        <TD class="td_bs_left">${name }</TD>
+        <TD class="td_bs">${rdate }</TD>
+        <TD class="td_bs">${cnt }</TD>
+        <TD class="td_bs">
+          <A href="./read_update.do?cateno=${cateno }&categrpno=${categrpno} " title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
+          <A href="./read_delete.do?cateno=${cateno }&categrpno=${categrpno} " title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
+        </TD>   
+      </TR>   
+    </c:forEach> 
+    </tbody>
+-------------------------------------------------------------------------------------
+
+CateCont.java에 추가
+-> categrpVO 객체 추가해주기
+-------------------------------------------------------------------------------------
+CategrpVO categrpVO =  this.categrpProc.read(categrpno);
+mav.addObject("categrpVO", categrpVO);  // request.setAttritube("categrpVO", categrpVO);
+-------------------------------------------------------------------------------------
+
+▷ /webapp/cate/read_update.jsp   
 등록폼에서 FK 컬럼인 categrpno 컬럼의 값을 <input type='hidden' ...> 태그로 전달
+ ★★★★★list_by_categrpno를 복사하여 변경★★★★★
 -------------------------------------------------------------------------------------
 
 
 -------------------------------------------------------------------------------------
 
 2. 메시지 출력 ▷ /webapp/cate/update_msg.jsp 
+ ★★★★★create_msg.jsp를 복사★★★★★
 -------------------------------------------------------------------------------------
 ~~~
