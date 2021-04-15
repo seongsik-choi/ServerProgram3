@@ -4832,9 +4832,9 @@ WHERE cateno = 1;
    3) 관련 기술: Javascript, Ajax, JSON, Restful 방식의 Spring Controller method 필요
 ~~~
 
-* ** 0414 : [33][Contents] 컨텐츠 DBMS 설계, 논리적 모델링, 물리적 모델링, SQL 제작, contents_c.sql(부모), member.sql(자식) 제작**
+* ** 0414 : [33][Contents] DBMS 논리적 모델링, 물리적 모델링, SQL 제작, 컨텐츠 영화 상품(contents_c.sql), 관리자(admin_c.sql) 제작**
 ~~~
-[01] 컨텐츠 DBMS 설계, 논리적 모델링, 물리적 모델링, SQL 제작, 컨텐츠 영화 상품(contents.sql), 관리자(admin.sql) 제작
+[01] DBMS 논리적 모델링, 물리적 모델링, SQL 제작, 컨텐츠 영화 상품(contents_c.sql), 관리자(admin_c.sql) 제작
    - JDBC Driver: oracle.jdbc.driver.OracleDriver
    - Oracle 설정: jdbc:oracle:thin:@localhost:1521:XE
 
@@ -4844,11 +4844,13 @@ WHERE cateno = 1;
    - 테이블간 FK  설정, 물리적 모델링
    - 전체 컬럼 목록
 
-2. 관련 부모테이블 먼저 작업하여 생성
-▷ /webapp/WEB-INF/doc/관리자/admin_c.sql
+2. 관련 부모테이블 먼저 작업하여 생성 ▷ /webapp/WEB-INF/doc/관리자/admin_c.sql
+---------------------------------------------------------------------------------------------------
 /**********************************/
 /* Table Name: 관리자 */
 /**********************************/
+DROP TABLE admin;
+
 CREATE TABLE admin(
     adminno                           NUMBER(10)     NOT NULL    PRIMARY KEY,
     id                                VARCHAR2(20)     NOT NULL
@@ -4857,11 +4859,36 @@ COMMENT ON TABLE admin is '관리자';
 COMMENT ON COLUMN admin.adminno is '관리자 번호';
 COMMENT ON COLUMN admin.id is '아이디';
 
+-- admin의 SEQUENCE Table(ORACLE 기준)
+DROP SEQUENCE admin_seq;
 
-3. 자식 테이블
-▷ /webapp/WEB-INF/doc/컨텐츠/contents_c.sql
+CREATE SEQUENCE admin_seq
+  START WITH 1              -- 시작 번호
+  INCREMENT BY 1          -- 증가값
+  MAXVALUE 9999999999 -- 최대값: 9999999999 --> NUMBER(10) 대응
+  CACHE 2                       -- 2번은 메모리에서만 계산
+  NOCYCLE;                     -- 다시 1부터 생성되는 것을 방지
+
+-- (부모)admin 레코드 삽입후 (자식)contents 레코드 생성 가능  
+INSERT INTO admin(adminno, id)
+VALUES(admin_seq.nextval, 'admin');
+
+INSERT INTO admin(adminno, id)
+VALUES(admin_seq.nextval, 'admin2');
+
+INSERT INTO admin(adminno, id)
+VALUES(admin_seq.nextval, 'admin3');
+
+commit;
+
+SELECT adminno, id FROM admin ORDER BY adminno ASC;  
+---------------------------------------------------------------------------------------------------
+
+3. 자식 테이블 ▷ /webapp/WEB-INF/doc/컨텐츠/contents_c.sql
+---------------------------------------------------------------------------------------------------
 DROP TABLE attachfile;
 DROP TABLE contents CASCADE CONSTRAINTS;
+
 CREATE TABLE contents(
         contentsno                            NUMBER(10)         NOT NULL         PRIMARY KEY,
         adminno                              NUMBER(10)     NOT NULL ,
@@ -4902,12 +4929,62 @@ COMMENT ON COLUMN contents.rdate is '등록일';
 COMMENT ON COLUMN contents.file1 is '메인 이미지';
 COMMENT ON COLUMN contents.file1saved is '실제 저장된 메인 이미지';
 COMMENT ON COLUMN contents.thumb1 is '메인 이미지 Preview';
-COMMENT ON COLUMN contents.size1 is ' 메인 이미지 크기';
+COMMENT ON COLUMN contents.size1 is '메인 이미지 크기';
 COMMENT ON COLUMN contents.price is '정가';
 COMMENT ON COLUMN contents.saleprice is '판매가';
 COMMENT ON COLUMN contents.dc is '할인률';
 COMMENT ON COLUMN contents.point is '포인트';
 COMMENT ON COLUMN contents.salecnt is '수량';
+
+
+-- contents의 SEQUENCE Table(ORACLE 기준)
+DROP SEQUENCE contents_seq;
+
+CREATE SEQUENCE contents_seq
+  START WITH 1              -- 시작 번호
+  INCREMENT BY 1          -- 증가값
+  MAXVALUE 9999999999 -- 최대값: 9999999999 --> NUMBER(10) 대응
+  CACHE 2                       -- 2번은 메모리에서만 계산
+  NOCYCLE;                     -- 다시 1부터 생성되는 것을 방지
+
+-- 오류 보고 - ORA-02291: integrity constraint (AI8.SYS_C007026) violated - parent key not found
+-- (부모)admin 레코드 삽입후 (자식)contents 레코드 생성 가능  
+-- 등록(CREATE + INSERT)
+
+-- 컨텐츠번호(PK), 관리자번호(FK), 카테고리번호(FK), 제목,   내용,  추천수, 조회수, 댓글수  
+-- 패스워드, 검색어, 등록일, 메인이미지, 실제 저장된 메인 이미지, 메인 이미지 preview, 메인이미지 크기
+-- 정가, 판매가, 할인률, 포인트, 수량
+INSERT INTO contents(contentsno, adminno, cateno, title, content, recom, cnt, replycnt, 
+                              passwd, word, rdate, file1, file1saved, thumb1, size1, 
+                              price, saleprice, dc, point, salecnt)
+VALUES(contents_seq.nextval, 1, 1, '인터스텔라', '앤헤서웨이 주연', 0, 0, 0,
+           '123', '우주', sysdate, 'space.jpg', 'space_1.jpg', 'space_t.jpg', 1000, 
+           2000, 1800, 10, 100, 500);
+   
+INSERT INTO contents(contentsno, adminno, cateno, title, content, recom, cnt, replycnt, 
+                              passwd, word, rdate, file1, file1saved, thumb1, size1, 
+                              price, saleprice, dc, point, salecnt)
+VALUES(contents_seq.nextval, 1, 1, '러브 액츄얼리', '앤헤서웨이 주연', 0, 0, 0,
+           '123', '우주', sysdate, 'space.jpg', 'space_1.jpg', 'space_t.jpg', 1000, 
+           2000, 1800, 10, 100, 500);
+           
+INSERT INTO contents(contentsno, adminno, cateno, title, content, recom, cnt, replycnt, 
+                              passwd, word, rdate, file1, file1saved, thumb1, size1, 
+                              price, saleprice, dc, point, salecnt)
+VALUES(contents_seq.nextval, 1, 1, '마션', '멧데이먼 주연 화성 탈출', 0, 0, 0,
+           '123', '우주', sysdate, 'space.jpg', 'space_1.jpg', 'space_t.jpg', 1000, 
+           2000, 1800, 10, 100, 500);
+           
+commit;          
+
+-- List, 목록 : 여러 건의 레코드를 읽는 것
+SELECT * FROM contents
+ORDER BY contentsno ASC;        
+
+-- Read, 조회 : 한 건의 레코드를 읽는 것
+
+-- Update, 수정 : PK는 update 불가능, 컬럼의 특징을 파악후 변경 여부결정
+
 ---------------------------------------------------------------------------------------------------
 
 - doc->'컨텐츠 영화 상품' 파일 추가 ->contents.sql 파일 생성
@@ -4921,4 +4998,172 @@ admin(부모 테이블)->contents(자식 테이블)
 jdbc:oracle:thin:@localhost:1521:XE 이것이 모두 동일
 이래도 안되면 Oracle18 버전 삭제하고 Oravle11을 다운받
 -> Oracle을 지우고 11만 다운후 계정만 생성
+~~~
+
+* ** 0415 : [34][Contents] VO(DTO), package 설정**
+~~~
+★★ JAVA에서는 null과 공백의 차이가 있지만, ORACLE의 경우 동일하게 취급함.★★
+String spring = null;
+String summer = "";
+
+[01] VO(DTO)
+- 개발 절차
+    ① /WEB-INF/doc/dbms/contents.sql
+    ② dev.mvc.contents.ContentsVO.java
+    ③ /src/main/resources/mybatis/contents.xml   ◁─+
+    ④ dev.mvc.contents.ContentsDAOInter.java ────┘◁─+
+    ⑤ DAO class Spring 자동 구현 처리                              │
+    ⑥ dev.mvc.contents.ContentsProcInter.java ───────┘◁─+
+    ⑦ dev.mvc.contents.ContentsProc.java                                   │
+    ⑧ dev.mvc.contents.ContentsCont.java   ───────────┘
+    ⑨ JSP View
+
+1. dev.mvc.contents.ContentsVO.java
+1) INSERT시 Oracle 컬럼이 null 허용일경우 VO 클래스의 필드(변수)가 null 이면
+  일반적으로 form에서 데이터를 입력하지 않은경우 MyBATIS에서 insert 태그를 실행하면 Oracle에 'null'이 등록됨
+  <insert id="create" parameterType="ContentsVO">
+    INSERT INTO contents(contentsno, memberno, cateno, title, content, web)
+    VALUES(contents_seq.nextval, #{memberno}, #{cateno}, #{title}, #{content}, #{web})
+  </insert>
+
+2) INSERT시 Oracle 컬럼이 null 허용일경우 VO 클래스의 필드(변수)가 "" 이면
+  일반적으로 private String web="" 라고 선언된 경우 MyBATIS에서 insert 태그를 실행하면
+  Oracle에 null이 등록됨
+  <insert id="create" parameterType="ContentsVO">
+    INSERT INTO contents(contentsno, memberno, cateno, title, content, web)
+    VALUES(contents_seq.nextval, #{memberno}, #{cateno}, #{title}, #{content}, #{web})
+  </insert>
+
+3) SELECT시 Oracle 컬럼이 null 값이면 VO 객체의 변수도 null 값을 갖음.
+  System.out.println(contentsVO.toString());
+  if (contentsVO.getWeb() == null) {
+    System.out.println("web 주소는 null 입니다.");
+  }
+
+ContentsVO 작업
+-----------------------------------------------------------------------------------
+package dev.mvc.contents;
+
+import org.springframework.web.multipart.MultipartFile;
+/*
+CREATE TABLE contents(
+        contentsno                            NUMBER(10)         NOT NULL         PRIMARY KEY,
+        adminno                              NUMBER(10)     NOT NULL ,
+        cateno                                NUMBER(10)         NOT NULL ,
+        title                                 VARCHAR2(300)         NOT NULL,
+        content                               CLOB                  NOT NULL,
+        recom                                 NUMBER(7)         DEFAULT 0         NOT NULL,
+        cnt                                   NUMBER(7)         DEFAULT 0         NOT NULL,
+        replycnt                              NUMBER(7)         DEFAULT 0         NOT NULL,
+        passwd                                VARCHAR2(15)         NOT NULL,
+        word                                  VARCHAR2(300)         NULL ,
+        rdate                                 DATE               NOT NULL,
+        file1                                   VARCHAR(100)          NULL,
+        file1saved                            VARCHAR(100)          NULL,
+        thumb1                              VARCHAR(100)          NULL,
+        size1                                 NUMBER(10)      DEFAULT 0 NULL,  
+        price                                 NUMBER(10)      DEFAULT 0 NULL,  
+        saleprice                            NUMBER(10)      DEFAULT 0 NULL,  
+        dc                                    NUMBER(10)      DEFAULT 0 NULL,  
+        point                                 NUMBER(10)      DEFAULT 0 NULL,  
+        salecnt                               NUMBER(10)      DEFAULT 0 NULL,  
+  FOREIGN KEY (adminno) REFERENCES admin (adminno),
+  FOREIGN KEY (cateno) REFERENCES cate (cateno)
+);
+ */
+public class ContentsVO {
+  /** 컨텐츠 번호 */
+  private int contentsno;
+  /** 관리자 번호 */
+  private int adminno;
+  /** 카테고리 번호*/
+  private int cateno;
+  /** 제목 */
+  private String title = "";
+  /** 내용 */
+  private String content = "";
+  /** 추천수 */
+  private int recom;
+  /** 조회수 */
+  private int cnt = 0;
+  /** 댓글수 */
+  private int replycnt = 0;
+  /** 패스워드 */
+  private String passwd = "";
+  /** 검색어 */
+  private String word = "";
+  /** 등록 날짜 */
+  private String rdate = "";
+  
+  /** 메인 이미지 */
+  private String file1 = "";
+  /** 실제 저장된 메인 이미지 */
+  private String file1saved = "";  
+  /** 메인 이미지 preview */
+  private String thumb1 = "";
+  /** 메인 이미지 크기 */
+
+  private long size1;
+  /** 정가 */
+  private int price;
+  /** 판매가 */
+  private int saleprice;
+  /** 할인률 */
+  private int dc;
+  /** 포인트 */
+  private int point;
+  /** 재고 수량 */
+  private int salecnt;
+}
+-----------------------------------------------------------------------------------
+
+1. Component Scan 폴더 등록 : project명Application.java - @ComponentScan
+2. MyBATIS DAO package 폴더 등록 : DatabaseConfiguration.java  - @MapperScan
+   @MapperScan(basePackages= {"dev.mvc.resort_v1sbm3a", "dev.mvc.categrp",
+                                           "dev.mvc.cate", "dev.mvc.contents"})  
+~~~
+
+* ** 0415 : [35][Contents] 파일 업로드 설정, JSON 설정, Upload.java, Download.java, Tool(Tool.java)**
+~~~
+[01] 파일 업로드 설정, JSON 설정
+[01] 파일 업로드 설정
+1) Maven 접속하여 Gradle script 복사 사용
+    https://mvnrepository.com 접속
+
+2) 파일 업로드 관련 설정
+    - commons-io 검색
+      // https://mvnrepository.com/artifact/commons-io/commons-io
+      implementation group: 'commons-io', name: 'commons-io', version: '2.6'
+
+    - commons-fileupload 검색
+      // https://mvnrepository.com/artifact/commons-fileupload/commons-fileupload
+      implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.3.3'
+
+1. build.gradle
+▷ build.gradle 편집 -> Gradle -> Refresh Gradle Project
+-----------------------------------------------------------------------------------
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.1.4'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    
+    implementation 'javax.servlet:jstl'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
+  implementation 'org.springframework.boot:spring-boot-starter-validation'
+  // https://mvnrepository.com/artifact/commons-io/commons-io       <- 추가 부분
+  implementation group: 'commons-io', name: 'commons-io', version: '2.6'
+  // https://mvnrepository.com/artifact/commons-fileupload/commons-fileupload
+  implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.3.3'
+
+}
+----------------------------------------------------------------------------------
+dev.mvc.tool 패키지 생성 : 
+-> 파일 입출력(업로드, 다운로드, 툴)에 대한 프로젝트 공통의 컴포넌트 
+ : 자체적 컴파일, 다른 시스템과 결합, 특정 기능 수행
+2. 업로드 콤포넌트 ▷ dev.mvc.tool.Upload.java  첨부 파일 참고
+3. 다운로드 ▷ dev.mvc.tool.Download.java  첨부 파일 참고
+4. Tool class - 특수 문자등 다양한 변환 기능 제공 ▷ dev.mvc.tool.Tool.java  첨부 파일 참고
 ~~~
