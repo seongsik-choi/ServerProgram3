@@ -4906,8 +4906,8 @@ CREATE TABLE contents(
         thumb1                              VARCHAR(100)          NULL,
         size1                                 NUMBER(10)      DEFAULT 0 NULL,  
         price                                 NUMBER(10)      DEFAULT 0 NULL,  
+        dc                                    NUMBER(10)      DEFAULT 0 NULL,          
         saleprice                            NUMBER(10)      DEFAULT 0 NULL,  
-        dc                                    NUMBER(10)      DEFAULT 0 NULL,  
         point                                 NUMBER(10)      DEFAULT 0 NULL,  
         salecnt                               NUMBER(10)      DEFAULT 0 NULL,  
   FOREIGN KEY (adminno) REFERENCES admin (adminno),
@@ -4931,8 +4931,8 @@ COMMENT ON COLUMN contents.file1saved is '실제 저장된 메인 이미지';
 COMMENT ON COLUMN contents.thumb1 is '메인 이미지 Preview';
 COMMENT ON COLUMN contents.size1 is '메인 이미지 크기';
 COMMENT ON COLUMN contents.price is '정가';
-COMMENT ON COLUMN contents.saleprice is '판매가';
 COMMENT ON COLUMN contents.dc is '할인률';
+COMMENT ON COLUMN contents.saleprice is '판매가';
 COMMENT ON COLUMN contents.point is '포인트';
 COMMENT ON COLUMN contents.salecnt is '수량';
 
@@ -4953,27 +4953,27 @@ CREATE SEQUENCE contents_seq
 
 -- 컨텐츠번호(PK), 관리자번호(FK), 카테고리번호(FK), 제목,   내용,  추천수, 조회수, 댓글수  
 -- 패스워드, 검색어, 등록일, 메인이미지, 실제 저장된 메인 이미지, 메인 이미지 preview, 메인이미지 크기
--- 정가, 판매가, 할인률, 포인트, 수량
+-- 정가, 할인률, 판매가, 포인트, 수량
 INSERT INTO contents(contentsno, adminno, cateno, title, content, recom, cnt, replycnt, 
                               passwd, word, rdate, file1, file1saved, thumb1, size1, 
-                              price, saleprice, dc, point, salecnt)
+                              price, dc, saleprice,  point, salecnt)
 VALUES(contents_seq.nextval, 1, 1, '인터스텔라', '앤헤서웨이 주연', 0, 0, 0,
            '123', '우주', sysdate, 'space.jpg', 'space_1.jpg', 'space_t.jpg', 1000, 
-           2000, 1800, 10, 100, 500);
+           2000, 10, 1800, 100, 500);
    
 INSERT INTO contents(contentsno, adminno, cateno, title, content, recom, cnt, replycnt, 
                               passwd, word, rdate, file1, file1saved, thumb1, size1, 
-                              price, saleprice, dc, point, salecnt)
+                              price, dc, saleprice,  point, salecnt)
 VALUES(contents_seq.nextval, 1, 1, '러브 액츄얼리', '앤헤서웨이 주연', 0, 0, 0,
            '123', '우주', sysdate, 'space.jpg', 'space_1.jpg', 'space_t.jpg', 1000, 
-           2000, 1800, 10, 100, 500);
+           2000, 10, 1800, 100, 500);
            
 INSERT INTO contents(contentsno, adminno, cateno, title, content, recom, cnt, replycnt, 
                               passwd, word, rdate, file1, file1saved, thumb1, size1, 
-                              price, saleprice, dc, point, salecnt)
+                              price, dc, saleprice,  point, salecnt)
 VALUES(contents_seq.nextval, 1, 1, '마션', '멧데이먼 주연 화성 탈출', 0, 0, 0,
            '123', '우주', sysdate, 'space.jpg', 'space_1.jpg', 'space_t.jpg', 1000, 
-           2000, 1800, 10, 100, 500);
+           2000, 10, 1800, 100, 500);
            
 commit;          
 
@@ -4984,6 +4984,7 @@ ORDER BY contentsno ASC;
 -- Read, 조회 : 한 건의 레코드를 읽는 것
 
 -- Update, 수정 : PK는 update 불가능, 컬럼의 특징을 파악후 변경 여부결정
+
 
 ---------------------------------------------------------------------------------------------------
 
@@ -5166,4 +5167,59 @@ dev.mvc.tool 패키지 생성 :
 2. 업로드 콤포넌트 ▷ dev.mvc.tool.Upload.java  첨부 파일 참고
 3. 다운로드 ▷ dev.mvc.tool.Download.java  첨부 파일 참고
 4. Tool class - 특수 문자등 다양한 변환 기능 제공 ▷ dev.mvc.tool.Tool.java  첨부 파일 참고
+~~~
+
+* ** 0415 :[36][Contents] 등록 기능 제작(INSERT ~ INTO ~ VALUES ~)**
+~~~
+★★★ERD 구조 바꿔주기 : 정가, 할인율, 판매가★★
+[01] 데이터 등록 기능 제작(INSERT ~ INTO ~ VALUES ~), IP 추출
+- 개발 절차
+    ① /WEB-INF/doc/dbms/contents.sql
+    ② dev.mvc.contents.ContentsVO.java
+    ③ /src/main/resources/mybatis/contents.xml   ◁─+
+    ④ dev.mvc.contents.ContentsDAOInter.java ────┘◁─+
+    ⑤ DAO class Spring 자동 구현 처리                              │
+    ⑥ dev.mvc.contents.ContentsProcInter.java ───────┘◁─+
+    ⑦ dev.mvc.contents.ContentsProc.java                                   │
+    ⑧ dev.mvc.contents.ContentsCont.java   ───────────┘
+    ⑨ JSP View
+  
+1. SQL
+- Oracle은 NULL 허용 컬럼이면 자바에서 "" 값을 전달해도 NULL이 들어감. ★
+ 그럴경우 VO(DTO) class에서 3항 연산자로 null값을 간단히 체크하여 공백으로 리턴할 수 있음.
+  public String getFile1() {
+    return (file1 != null)?file1:"";
+  }
+
+▷ /webapp/WEB-INF/doc/dbms/contents_c.sql
+-> 글등록을 위한 컬럼의 수가 너무 많음.
+-> INSERT로 필요한 레코드들 먼저 선언 + 추가적인 레코드는 UPDATE로 추가
+----------------------------------------------------------------------------------
+-- 등록화면1 관련
+-- 사용자로부터 입력받는 레코드(10가지) -> 컬럼의 수가 상당히 많음
+-- 입력컬럼 : 제목, 내용, 패스워드, 검색어, 메인 이미지, 정가, 할인율, 판매가, 포인트, 재고수량
+
+-- 컬럼 분할 <-> 개인프로젝트는 분할없이도 가능.
+-- 1) Community 글 등록화면 1 : 제목, 내용, 패스워드, 검색어, 메인 이미지관련파일들, 등록일
+-- 2) 쇼핑몰의 상품 정보 등록화면 2 : 정가, 할인율, 판매가, 포인트, 재고수량
+-- INSERT로 필요한 레코드들 먼저 선언 + 추가적인 레코드는 UPDATE로 추가
+INSERT INTO contents(contentsno, adminno, cateno, title, content, passwd, word, 
+                             file1, file1saved, thumb1, size1, rdate)
+VALUES(contents_seq.nextval, 1, 1, '미션파서블', '톰크루즈', '123', 'SF', 
+            'space.jpg', 'space_1.jpg', 'space_t.jpg', 1000, sysdate);
+commit;
+
+UPDATE contents 
+SET price = 3000, dc=10, saleprice=3700, point=300, salecnt=200
+WHERE contentsno = 5;
+commit;
+----------------------------------------------------------------------------------
+
+2. MyBATIS - java.sql.SQLException: 부적합한 열 유형: 1111: 컬럼의 값이 null 전달됨.
+▷ /src/main/resources/contents.xml 
+----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------
+
+
 ~~~
