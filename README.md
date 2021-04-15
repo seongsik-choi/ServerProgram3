@@ -4832,7 +4832,7 @@ WHERE cateno = 1;
    3) 관련 기술: Javascript, Ajax, JSON, Restful 방식의 Spring Controller method 필요
 ~~~
 
-* ** 0414 : [33][Contents] DBMS 논리적 모델링, 물리적 모델링, SQL 제작, 컨텐츠 영화 상품(contents_c.sql), 관리자(admin_c.sql) 제작**
+* **0414 : [33][Contents] DBMS 논리적 모델링, 물리적 모델링, SQL 제작, 컨텐츠 영화 상품(contents_c.sql), 관리자(admin_c.sql) 제작**
 ~~~
 [01] DBMS 논리적 모델링, 물리적 모델링, SQL 제작, 컨텐츠 영화 상품(contents_c.sql), 관리자(admin_c.sql) 제작
    - JDBC Driver: oracle.jdbc.driver.OracleDriver
@@ -5001,7 +5001,7 @@ jdbc:oracle:thin:@localhost:1521:XE 이것이 모두 동일
 -> Oracle을 지우고 11만 다운후 계정만 생성
 ~~~
 
-* ** 0415 : [34][Contents] VO(DTO), package 설정**
+* **0415 : [34][Contents] VO(DTO), package 설정**
 ~~~
 ★★ JAVA에서는 null과 공백의 차이가 있지만, ORACLE의 경우 동일하게 취급함.★★
 String spring = null;
@@ -5124,7 +5124,7 @@ public class ContentsVO {
                                            "dev.mvc.cate", "dev.mvc.contents"})  
 ~~~
 
-* ** 0415 : [35][Contents] 파일 업로드 설정, JSON 설정, Upload.java, Download.java, Tool(Tool.java)**
+* **0415 : [35][Contents] 파일 업로드 설정, JSON 설정, Upload.java, Download.java, Tool(Tool.java)**
 ~~~
 [01] 파일 업로드 설정, JSON 설정
 [01] 파일 업로드 설정
@@ -5169,7 +5169,7 @@ dev.mvc.tool 패키지 생성 :
 4. Tool class - 특수 문자등 다양한 변환 기능 제공 ▷ dev.mvc.tool.Tool.java  첨부 파일 참고
 ~~~
 
-* ** 0415 :[36][Contents] 등록 기능 제작(INSERT ~ INTO ~ VALUES ~)**
+* **0415 :[36][Contents] 등록 기능 제작(INSERT ~ INTO ~ VALUES ~)**
 ~~~
 ★★★ERD 구조 바꿔주기 : 정가, 할인율, 판매가★★
 [01] 데이터 등록 기능 제작(INSERT ~ INTO ~ VALUES ~), IP 추출
@@ -5201,7 +5201,6 @@ dev.mvc.tool 패키지 생성 :
 
 -- 컬럼 분할 <-> 개인프로젝트는 분할없이도 가능.
 -- 1) Community 글 등록화면 1 : 제목, 내용, 패스워드, 검색어, 메인 이미지관련파일들, 등록일
--- 2) 쇼핑몰의 상품 정보 등록화면 2 : 정가, 할인율, 판매가, 포인트, 재고수량
 -- INSERT로 필요한 레코드들 먼저 선언 + 추가적인 레코드는 UPDATE로 추가
 INSERT INTO contents(contentsno, adminno, cateno, title, content, passwd, word, 
                              file1, file1saved, thumb1, size1, rdate)
@@ -5209,6 +5208,7 @@ VALUES(contents_seq.nextval, 1, 1, '미션파서블', '톰크루즈', '123', 'SF
             'space.jpg', 'space_1.jpg', 'space_t.jpg', 1000, sysdate);
 commit;
 
+-- 2) 쇼핑몰의 상품 정보 등록화면 2 : 정가, 할인율, 판매가, 포인트, 재고수량
 UPDATE contents 
 SET price = 3000, dc=10, saleprice=3700, point=300, salecnt=200
 WHERE contentsno = 5;
