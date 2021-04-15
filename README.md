@@ -4831,3 +4831,94 @@ WHERE cateno = 1;
    2) Ajax를 이용하면 페이지 이동을 하지 않으면서 관련 레코드의 삭제가 가능함.
    3) 관련 기술: Javascript, Ajax, JSON, Restful 방식의 Spring Controller method 필요
 ~~~
+
+* ** 0414 : [33][Contents] 컨텐츠 DBMS 설계, 논리적 모델링, 물리적 모델링, SQL 제작, contents_c.sql(부모), member.sql(자식) 제작**
+~~~
+[01] 컨텐츠 DBMS 설계, 논리적 모델링, 물리적 모델링, SQL 제작, 컨텐츠 영화 상품(contents.sql), 관리자(admin.sql) 제작
+   - JDBC Driver: oracle.jdbc.driver.OracleDriver
+   - Oracle 설정: jdbc:oracle:thin:@localhost:1521:XE
+
+1. ERD
+   - 테이블간 FK  설정, 논리적 모델링
+   - Contents 테이블 개발 제외 컬럼(추후 Upgrade 권장): recom, map, mp3, mp4, youtube, 인터넷 주소
+   - 테이블간 FK  설정, 물리적 모델링
+   - 전체 컬럼 목록
+
+2. 관련 부모테이블 먼저 작업하여 생성
+▷ /webapp/WEB-INF/doc/관리자/admin_c.sql
+/**********************************/
+/* Table Name: 관리자 */
+/**********************************/
+CREATE TABLE admin(
+    adminno                           NUMBER(10)     NOT NULL    PRIMARY KEY,
+    id                                VARCHAR2(20)     NOT NULL
+);
+COMMENT ON TABLE admin is '관리자';
+COMMENT ON COLUMN admin.adminno is '관리자 번호';
+COMMENT ON COLUMN admin.id is '아이디';
+
+
+3. 자식 테이블
+▷ /webapp/WEB-INF/doc/컨텐츠/contents_c.sql
+DROP TABLE attachfile;
+DROP TABLE contents CASCADE CONSTRAINTS;
+CREATE TABLE contents(
+        contentsno                            NUMBER(10)         NOT NULL         PRIMARY KEY,
+        adminno                              NUMBER(10)     NOT NULL ,
+        cateno                                NUMBER(10)         NOT NULL ,
+        title                                 VARCHAR2(300)         NOT NULL,
+        content                               CLOB                  NOT NULL,
+        recom                                 NUMBER(7)         DEFAULT 0         NOT NULL,
+        cnt                                   NUMBER(7)         DEFAULT 0         NOT NULL,
+        replycnt                              NUMBER(7)         DEFAULT 0         NOT NULL,
+        passwd                                VARCHAR2(15)         NOT NULL,
+        word                                  VARCHAR2(300)         NULL ,
+        rdate                                 DATE               NOT NULL,
+        file1                                   VARCHAR(100)          NULL,
+        file1saved                            VARCHAR(100)          NULL,
+        thumb1                              VARCHAR(100)          NULL,
+        size1                                 NUMBER(10)      DEFAULT 0 NULL,  
+        price                                 NUMBER(10)      DEFAULT 0 NULL,  
+        saleprice                            NUMBER(10)      DEFAULT 0 NULL,  
+        dc                                    NUMBER(10)      DEFAULT 0 NULL,  
+        point                                 NUMBER(10)      DEFAULT 0 NULL,  
+        salecnt                               NUMBER(10)      DEFAULT 0 NULL,  
+  FOREIGN KEY (adminno) REFERENCES admin (adminno),
+  FOREIGN KEY (cateno) REFERENCES cate (cateno)
+);
+
+COMMENT ON TABLE contents is '컨텐츠 - 영화 상품';
+COMMENT ON COLUMN contents.contentsno is '컨텐츠 번호';
+COMMENT ON COLUMN contents.adminno is '관리자 번호';
+COMMENT ON COLUMN contents.cateno is '카테고리 번호';
+COMMENT ON COLUMN contents.title is '제목';
+COMMENT ON COLUMN contents.content is '내용';
+COMMENT ON COLUMN contents.recom is '추천수';
+COMMENT ON COLUMN contents.cnt is '조회수';
+COMMENT ON COLUMN contents.replycnt is '댓글수';
+COMMENT ON COLUMN contents.passwd is '패스워드';
+COMMENT ON COLUMN contents.word is '검색어';
+COMMENT ON COLUMN contents.rdate is '등록일';
+COMMENT ON COLUMN contents.file1 is '메인 이미지';
+COMMENT ON COLUMN contents.file1saved is '실제 저장된 메인 이미지';
+COMMENT ON COLUMN contents.thumb1 is '메인 이미지 Preview';
+COMMENT ON COLUMN contents.size1 is ' 메인 이미지 크기';
+COMMENT ON COLUMN contents.price is '정가';
+COMMENT ON COLUMN contents.saleprice is '판매가';
+COMMENT ON COLUMN contents.dc is '할인률';
+COMMENT ON COLUMN contents.point is '포인트';
+COMMENT ON COLUMN contents.salecnt is '수량';
+---------------------------------------------------------------------------------------------------
+
+- doc->'컨텐츠 영화 상품' 파일 추가 ->contents.sql 파일 생성
+- doc->'관리자' 파일 추가->admin.sql 생성
+- erd를 다 추가하지 못하였으나,그에 대한 sql파일이 존재하는 경우, 그 sql파일을 sqldeveloper에서 테이블을 생성한 것을 
+import 과정을 거치면 erd가 자동으로 생성
+
+- erd작업창->마우스 오른쪽->import->import from databases->Load TABLES-> 대문자로 admin,contents 검색 후 선택후 finish
+admin(부모 테이블)->contents(자식 테이블)
+근데, Load TABLES 클릭 시 응답 없음 상태에 빠지는 경우가 있는데 이는,sqldeveloper나,application.properties에서  
+jdbc:oracle:thin:@localhost:1521:XE 이것이 모두 동일
+이래도 안되면 Oracle18 버전 삭제하고 Oravle11을 다운받
+-> Oracle을 지우고 11만 다운후 계정만 생성
+~~~
