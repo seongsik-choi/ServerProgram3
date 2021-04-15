@@ -5064,8 +5064,8 @@ CREATE TABLE contents(
         thumb1                              VARCHAR(100)          NULL,
         size1                                 NUMBER(10)      DEFAULT 0 NULL,  
         price                                 NUMBER(10)      DEFAULT 0 NULL,  
+	dc                                    NUMBER(10)      DEFAULT 0 NULL,  
         saleprice                            NUMBER(10)      DEFAULT 0 NULL,  
-        dc                                    NUMBER(10)      DEFAULT 0 NULL,  
         point                                 NUMBER(10)      DEFAULT 0 NULL,  
         salecnt                               NUMBER(10)      DEFAULT 0 NULL,  
   FOREIGN KEY (adminno) REFERENCES admin (adminno),
@@ -5107,10 +5107,10 @@ public class ContentsVO {
   private long size1;
   /** 정가 */
   private int price;
-  /** 판매가 */
-  private int saleprice;
   /** 할인률 */
   private int dc;
+  /** 판매가 */
+  private int saleprice;
   /** 포인트 */
   private int point;
   /** 재고 수량 */
@@ -5218,8 +5218,454 @@ commit;
 2. MyBATIS - java.sql.SQLException: 부적합한 열 유형: 1111: 컬럼의 값이 null 전달됨.
 ▷ /src/main/resources/contents.xml 
 ----------------------------------------------------------------------------------
-
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<!-- dev.mvc.categrp.CategrpDAOInter 패키지에 등록된 interface 명시,
+      패키지명과 인터페이스명은 실제로 존재해야함,
+      Spring이 내부적으로 자동으로 interface를 구현해줌. -->
+<mapper namespace="dev.mvc.contents.ContentsDAOInter">
+  <!-- 
+  insert: INSERT SQL 실행
+  id: Spring에서 호출시 사용
+  parameterType: 전달받는 데이터 객체
+  return: 등록한 레코드 갯수 리턴
+  SQL선언시 ';'은 삭제
+  #{}: 컬럼의 값
+  #{name}: public String getName(){...
+  -->
+  
+  <!--  [36][Contents] 등록 기능 제작(INSERT ~ INTO ~ VALUES ~) -->
+  <insert id="create" parameterType="dev.mvc.contents.ContentsVO">
+    INSERT INTO contents(contentsno, adminno, cateno, title, content, passwd, word,
+                                     file1, file1saved, thumb1, size1, rdate)
+    VALUES(contents_seq.nextval, #{adminno}, #{cateno}, #{title}, #{content}, #{passwd}, #{word},
+                #{file1}, #{file1saved}, #{thumb1}, #{size1}, sysdate)
+  </insert>
+       
+</mapper> 
 ----------------------------------------------------------------------------------
 
+▷ /dev/mvc/contents/ContentsDAOInter.java  ▷ ContentsProcInter.java 
+----------------------------------------------------------------------------------
+package dev.mvc.contents;
 
+import java.util.HashMap;
+import java.util.List;
+
+public interface ContentsDAOInter {
+  /**
+   * [36][Contents] 등록 기능 제작(INSERT ~ INTO ~ VALUES ~)
+   * 등록
+   * @param contentsVO
+   * @return
+   */
+  public int create(ContentsVO contentsVO);
+}
+----------------------------------------------------------------------------------
+
+▷ ContentsProc.java
+----------------------------------------------------------------------------------
+package dev.mvc.contents;
+
+import java.util.HashMap;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import dev.mvc.tool.Tool;
+
+@Component("dev.mvc.contents.ContentsProc")
+  public class ContentsProc implements ContentsProcInter {
+    @Autowired
+    private ContentsDAOInter contentsDAO;
+
+    // [36][Contents] 등록 기능 제작(INSERT ~ INTO ~ VALUES ~)
+    @Override
+    public int create(ContentsVO contentsVO) {
+       int cnt=this.contentsDAO.create(contentsVO);
+      return cnt;
+    }
+}
+----------------------------------------------------------------------------------
+
+->★★ VO마지막에 추가
+- VO에 실제 존재하지않는 컬럼을 명시해도 됨(테이블에 없는 변수를 필요에의해 추가 선언 가능.)
+- SpringFramework의 파일 저장 형식 : MultipartFile
+----------------------------------------------------------------------------------
+★★FILE명에 해당하는 실제 파일을 저장하는 객체★★
+  /** 
+  /** 
+  이미지 MultipartFile 
+  <input type='file' class="form-control" name='file1MF' id='file1MF' 
+                   value='' placeholder="파일 선택" >
+  */
+ private MultipartFile file1MF;
+
+ // Getter, Setter 추가
+   public MultipartFile getFile1MF() {
+    return file1MF;
+  }
+  public void setFile1MF(MultipartFile file1mf) {
+    file1MF = file1mf;
+  }
+----------------------------------------------------------------------------------
+
+▷ ContentsCont.java
+----------------------------------------------------------------------------------
+package dev.mvc.contents;
+
+import java.util.HashMap;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
+
+import dev.mvc.cate.CateProcInter;
+import dev.mvc.cate.CateVO;
+import dev.mvc.categrp.CategrpProcInter;
+import dev.mvc.categrp.CategrpVO;
+//import dev.mvc.member.MemberProcInter;
+import dev.mvc.tool.Tool;
+import dev.mvc.tool.Upload;
+
+@Controller
+public class ContentsCont {
+  
+  // Contents 테이블은 Catrgrp, Cate 테이블에 대한 권한
+  @Autowired
+  @Qualifier("dev.mvc.categrp.CategrpProc")
+  private CategrpProcInter categrpProc;
+  
+  @Autowired
+  @Qualifier("dev.mvc.cate.CateProc")
+  private CateProcInter cateProc;
+  
+  @Autowired
+  @Qualifier("dev.mvc.contents.ContentsProc")
+  private ContentsProcInter contentsProc;
+   
+  public ContentsCont() {
+    System.out.println("--> ContentsCont created.");
+  }
+  
+  /**
+   * 새로고침 방지
+   * @return
+   */
+  @RequestMapping(value="/contents/msg.do", method=RequestMethod.GET)
+  public ModelAndView msg(String url){
+    ModelAndView mav = new ModelAndView();
+    mav.setViewName(url); // forward
+    return mav; // forward
+  }
+
+  /**
+   * [36][Contents] 등록 기능 제작(INSERT ~ INTO ~ VALUES ~)
+   * 등록폼
+   * 사전 준비된 레코드: adminno(관리자) 1번, cateno(카테고리) 1번, 
+   * categrpno(카테고리 그룹) 1번을 사용하는 경우 테스트 URL
+   * http://localhost:9091/contents/create.do?adminno=1&cateno=1&categrpno=1
+   * 
+   * @return
+   */
+  @RequestMapping(value = "/contents/create.do", method = RequestMethod.GET)
+  public ModelAndView create(int cateno, int categrpno) {
+    
+    // int cateno = Integer.parseInt(request.getParameter("cateno")); //  자동으로 수행
+    ModelAndView mav = new ModelAndView();
+    
+    CateVO cateVO = this.cateProc.read(cateno); // Cate(부모) 정보를 읽어옴
+    CategrpVO categrpVO = this.categrpProc.read(cateVO.getCategrpno()); // Categrp에 대한 정보도 읽어옴.
+    
+    mav.addObject("cateVO", cateVO);  // ==request.setAttritube("cateVO", cateVO);
+    mav.addObject("categrpVO", categrpVO);
+    
+    mav.setViewName("/contents/create"); // /webapp/WEB-INF/views/categrp/create.jsp
+    // String content = "장소:\n인원:\n준비물:\n비용:\n기타:\n";
+    // mav.addObject("content", content);
+
+    return mav; // forward
+  }
+  
+  /**
+   * [36][Contents] 등록 기능 제작(INSERT ~ INTO ~ VALUES ~)
+   * 등록 처리 http://localhost:9090/contents/create.do
+   * 
+   * @return
+   */
+  @RequestMapping(value = "/contents/create.do", method = RequestMethod.POST)
+  public ModelAndView create(HttpServletRequest request, ContentsVO contentsVO) {
+    
+    ModelAndView mav = new ModelAndView();
+    // -------------------------------------------------------------------
+    // 파일 전송 코드 시작
+    // -------------------------------------------------------------------
+    String file1 = "";     // 원본 파일명, image
+    String file1saved = "";     // 저장된 파일명, image
+    String thumb1 = ""; // preview image
+
+    // 기준 경로 확인
+    String user_dir = System.getProperty("user.dir");
+    System.out.println("--> User dir: " + user_dir);
+    //  --> User dir: F:\ai6\ws_frame\resort_v1sbm3a
+    
+    // 파일 접근이기에 절대 경로 지정 필요
+    // 외부에서 파일의 접근이기에 resource/static dic로 지정 필요
+    // 완성된 경로 F:/ai6/ws_frame/resort_v1sbm3a/src/main/resources/static/contents/storage
+    String upDir =  user_dir + "/src/main/resources/static/contents/storage"; // 절대 경로
+    
+    // 전송 파일이 없어서도 fnamesMF 객체가 생성됨.
+    // <input type='file' class="form-control" name='file1MF' id='file1MF' 
+    //           value='' placeholder="파일 선택">
+    MultipartFile mf = contentsVO.getFile1MF(); // VO에 추가된 파일저장 변수
+    file1 = mf.getOriginalFilename(); // 원본 파일명
+
+    long size1 = mf.getSize();  // 파일 크기
+    if (size1 > 0) { // 파일 크기 체크
+      
+      // 파일 저장 후 업로드된 파일명이 리턴됨, spring.jsp, spring_1.jpg...
+      file1saved = Upload.saveFileSpring(mf, upDir);  // 저장된 파일명
+      
+      if (Tool.isImage(file1saved)) { // 이미지인지 검사, Tool.java(Componet)의 메소드 사용.
+        // thumb 이미지 생성후 파일명 리턴됨, width: 200, height: 150
+        thumb1 = Tool.preview(upDir, file1saved, 200, 150); 
+      }
+    }    
+    contentsVO.setFile1(file1);
+    contentsVO.setFile1saved(file1saved);
+    contentsVO.setThumb1(thumb1);
+    contentsVO.setSize1(size1);
+    // -------------------------------------------------------------------
+    // 파일 전송 코드 종료
+    // -------------------------------------------------------------------
+    
+    
+    // Call By Reference: 메모리 공유, Hashcode 전달
+    int cnt = this.contentsProc.create(contentsVO); 
+    
+    // -------------------------------------------------------------------
+    // PK의 return
+    // -------------------------------------------------------------------
+    // System.out.println("--> contentsno: " + contentsVO.getContentsno());
+    // mav.addObject("contentsno", contentsVO.getContentsno()); // redirect parameter 적용
+    // -------------------------------------------------------------------
+    
+//    if (cnt == 1) {
+//      cateProc.increaseCnt(contentsVO.getCateno()); // 글수 증가
+//    }
+    mav.addObject("cnt", cnt); // request.setAttribute("cnt", cnt)
+
+    // System.out.println("--> cateno: " + contentsVO.getCateno());
+    // redirect시에 hidden tag로 보낸것들이 전달이 안됨으로 request에 다시 저장
+    mav.addObject("cateno", contentsVO.getCateno()); // redirect parameter 적용
+    mav.addObject("url", "/contents/create_msg"); // create_msg.jsp, redirect parameter 적용
+    mav.setViewName("redirect:/contents/msg.do");  //webapp/WEB-INF/views/
+    
+    return mav; // forward
+  }
+  
+}
+----------------------------------------------------------------------------------
+
+View: JSP
+① 글만 DBMS에 등록되는지 테스트
+② 글과 파일이 모두 DBMS에 등록되는지 테스트
+- 업로드된 파일 인식을위한 새로고침
+1) 등록 화면▷ /webapp/WEB-INF/views/contents/create.jsp 
+ - /cate/creat.jsp 활용
+ - dir 생성(Cont에서 명시해던 dir) /src/main/resources/static/contents/storage
+----------------------------------------------------------------------------------
+<%-- 
+0415
+1) 등록 화면▷ /webapp/WEB-INF/views/contents/create.jsp
+-/cate/create.jsp 기반 수정
+--%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+ 
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<!-- Bootstrap -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    
+<script type="text/javascript">
+  $(function(){
+ 
+  });
+</script>
+ 
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+<DIV class='title_line'>
+  <A href="../categrp/list.do" class='title_link'>카테고리 그룹</A> > 
+  <!--      영화 > SF >  글 등록   -->
+   ${categrpVO.name } > ${cateVO.name } > 글 등록    
+</DIV>
+
+<DIV class='content_body'>
+  <FORM name='frm' method='POST' action='./create.do' class="form-horizontal"
+               enctype="multipart/form-data" >
+              <!--  INPUT 태그에 파일이 존재할때 multipart 지정 필요 -->
+              
+    <!--  부모 테이블 들, FK는 구현해줘야 오류 NO -->
+    <input type="hidden" name="categrpno" value="${param.categrpno }">
+    <input type="hidden" name="cateno" value="${param.cateno }"> 
+    <input type="hidden" name="adminno" value="1">  <!--  1로 지정, (부모)관리자 개발 후 변경 필요. -->
+    <!-- <input type="hidden" name="adminno" value="${param.adminno }">   -->
+
+    <div class="form-group">
+       <!-- xml에서 구현한 입력받아야하는 값들 title부터~ -->
+       <label class="control-label col-md-2">제목</label>
+       <div class="col-md-10">
+         <input type="text" name='title' value='봄' required="required" 
+                     autofocus="autofocus" class="form-control" style='width: 100%;'>
+       </div>
+    </div>        
+    
+    <div class="form-group">
+       <label class="control-label col-md-2">내용</label>
+       <div class="col-md-10">
+       <!--  값을 입력하는 textarea, value 지정No, rows는 10행의 크기를 의미, /종단문 필요 -->
+         <textarea name='content' required="required" 
+                          class="form-control" rows="12" style='width: 100%;'>봄의 내용입니다.</textarea>
+       </div>
+    </div>
+    
+    <div class="form-group">
+       <label class="control-label col-md-2">검색어</label>
+       <div class="col-md-10">
+         <input type='text' name='word' value='월터, 벤, 스틸러, 크리스튼위그' required="required" 
+                     class="form-control" style='width: 100%;'>
+       </div>
+    </div>    
+
+    <div class="form-group">
+       <label class="control-label col-md-2">파일(이미지)</label>
+       <div class="col-md-10">
+          <!--  ContenstCont의 주석 부분 -->
+          <input type='file' class="form-control" name='file1MF' id='file1MF' 
+                     value='' placeholder="파일 선택">
+       </div>
+    </div>        
+    
+    <div class="form-group">
+       <label class="control-label col-md-2">패스워드</label>
+       <div class="col-md-10">
+         <input type='password' name='passwd' value='1234' required="required" 
+                     class="form-control" style='width: 50%;'>
+       </div>
+    </div>
+        
+    <div class="content_body_bottom">
+      <button type="submit" class="btn btn-primary">등록</button>
+      <button type="button" onclick="location.href='./list_all.do'" class="btn btn-primary">목록</button>
+    </div>
+  
+  </FORM>
+</DIV>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+ 
+</html>
+----------------------------------------------------------------------------------
+
+2) 메시지 ▷ /webapp/WEB-INF/views/contents/create_msg.jsp 
+----------------------------------------------------------------------------------
+<%-- 
+0409
+2. 메시지 출력
+▷ /webapp/views/cate/create_msg.jsp 
+--%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+  
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+
+<DIV class='title_line'>알림</DIV>
+
+<DIV class='message'>
+  <fieldset class='fieldset_basic'>
+    <UL>
+      <c:choose>
+        <c:when test="${param.cnt == 1}">
+          <LI class='li_none'>
+            <span class="span_success">새로운 콘텐츠를 등록했습니다.</span>
+          </LI>
+        </c:when>
+        <c:otherwise>
+          <LI class='li_none_left'>
+            <span class="span_fail">새로운 콘텐츠 등록에 실패했습니다.</span>
+          </LI>
+          <LI class='li_none_left'>
+            <span class="span_fail">다시 시도해주세요.</span>
+          </LI>
+        </c:otherwise>
+      </c:choose>
+      <LI class='li_none'>
+        <br>
+        <c:choose>
+          <c:when test="${param.cnt == 1 }">
+            <button type='button' 
+                         onclick="location.href='./create.do?cateno=${param.cateno}&categrpno=${param.categrpno }'"
+                         class="btn btn-primary">새로운 컨텐츠 등록</button>
+          </c:when>
+          <c:otherwise>
+            <button type='button' onclick="history.back();" class="btn btn-primary">다시 시도</button>
+          </c:otherwise>
+        </c:choose>
+        
+       <button type='button' onclick="location.href='./list_by_cateno.do?cateno=${param.cateno}'" class="btn btn-primary">목록</button>
+      </LI>
+    </UL>
+  </fieldset>
+
+</DIV>
+
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+
+</html>
+----------------------------------------------------------------------------------
 ~~~
