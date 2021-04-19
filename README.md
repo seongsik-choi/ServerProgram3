@@ -5719,7 +5719,7 @@ review) contents는 값의 전달은
 (수정전) <input type="hidden" name="categrpno" value="${param.categrpno }"> 
 (수정 후)<input type="hidden" name="categrpno" value="${cateVO.categrpno }">     <!-- 수정(cateVO의 categrp(FK) 호출 -->
 
-★★create_msg.jsp 수정(cateno를 제외한 나머지 request.getParameter 삭제
+★★create_msg.jsp 수정(cateno를 제외한 나머지 request.getParameter 삭제)
             <button type='button' 
                          onclick="location.href='./create.do?cateno=${param.cateno}'"
                          class="btn btn-primary">새로운 컨텐츠 등록</button>
@@ -5987,6 +5987,4 @@ spring.servlet.multipart.maxRequestSize=10MB
       return list;
     }
 -------------------------------------------------------------------------------------
-
-
 ~~~
