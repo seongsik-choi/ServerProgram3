@@ -4307,8 +4307,8 @@ public class Categrp_CateVO {
  1) ★★★list_by_categrpno와 list_all와 수정★★★ -> 변경하고 수정버튼 눌러보기.
 -------------------------------------------------------------------------------------
 <c:set var="categrpno" value="${cateVO.categrpno }" /> // 추가
-    <A href="./read_update.do?cateno=${cateno }" title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
-     <A href="./read_delete.do?cateno=${cateno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
+         <A href="./read_update.do?cateno=${cateno }&categrpno=${categrpno} " title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
+          <A href="./read_delete.do?cateno=${cateno }&categrpno=${categrpno} " title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
 -------------------------------------------------------------------------------------
 
 2) ★★★list_all_join 수정★★★ -> 변경하고 join 목록 오류 없는지 확인
@@ -4554,6 +4554,12 @@ mav.addObject("categrpVO", categrpVO);  // request.setAttritube("categrpVO", cat
 
 </html>
 
+-------------------------------------------------------------------------------------
+list_all. do의 수정, 삭제 부분 / list_all_join의 수정 삭제 부분 변경!
+
+<A href="./read_update.do?favno=${favno }&favgrpno=${favgrpno} " title="수정"><span class="glyphicon glyphicon-pencil"></span></A>
+<A href="./read_delete.do?favno=${favno }&favgrpno=${favgrpno} " title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
+-------------------------------------------------------------------------------------
 ~~~
 
 * **0414 : [31][Cate] Cate 삭제 기능의 제작(DELETE ~ WHERE)~**
@@ -5668,4 +5674,319 @@ View: JSP
 
 </html>
 ----------------------------------------------------------------------------------
+~~~
+
+* **0419 : [37][Contents] 테이블 이미지 기반 cateno별 목록 출력 변경(list_by_cateno.do)**
+~~~
+review) contents는 값의 전달은
+1) http://localhost:9091/contents/create.do?adminno=1&cateno=1&categrpno=1
+는 부모의 부모(categrpno)까지 값을 전달 해줘야함(필수는 아님)
+
+2) contents가 cate를 통해 categrp에 접근하는게 아닌 categrpno(categrp의 PK) 컬럼만 추가해주기
+ - reference로 연결이 아닌 단순 Column 추가
+
+★★ContentsCont.java의 등록폼 수정
+// 실행 주소의 변경(adminno, categrpno 제거) + 매개변수 수정(categrpno 삭제) + read(cateVO.categrpno())
+  /**
+   * [36][Contents] 등록 기능 제작(INSERT ~ INTO ~ VALUES ~)
+   * 등록폼
+   * 사전 준비된 레코드: adminno(관리자) 1번, cateno(카테고리) 1번, 
+   * categrpno(카테고리 그룹) 1번을 사용하는 경우 테스트 URL
+   * http://localhost:9091/contents/create.do?&cateno=1
+   * 
+   * @return
+   */
+  @RequestMapping(value = "/contents/create.do", method = RequestMethod.GET)
+  public ModelAndView create(int cateno) { (수정)
+    
+    // int cateno = Integer.parseInt(request.getParameter("cateno")); //  자동으로 수행
+    ModelAndView mav = new ModelAndView();
+    
+    CateVO cateVO = this.cateProc.read(cateno); // Cate(부모) 정보를 읽어옴
+    CategrpVO categrpVO = this.categrpProc.read(cateVO.getCategrpno()); // (수정)Categrp에 대한 정보도 읽어옴.
+    
+    mav.addObject("cateVO", cateVO);  // ==request.setAttritube("cateVO", cateVO);
+    mav.addObject("categrpVO", categrpVO);
+    
+    mav.setViewName("/contents/create"); // /webapp/WEB-INF/views/categrp/create.jsp
+    // String content = "장소:\n인원:\n준비물:\n비용:\n기타:\n";
+    // mav.addObject("content", content);
+
+    return mav; // forward
+  }
+
+★★create.jsp 수정
+(수정전) <input type="hidden" name="categrpno" value="${param.categrpno }"> 
+(수정 후)<input type="hidden" name="categrpno" value="${cateVO.categrpno }">     <!-- 수정(cateVO의 categrp(FK) 호출 -->
+
+★★create_msg.jsp 수정(cateno를 제외한 나머지 request.getParameter 삭제
+            <button type='button' 
+                         onclick="location.href='./create.do?cateno=${param.cateno}'"
+                         class="btn btn-primary">새로운 컨텐츠 등록</button>
+~~~
+
+~~~
+[37][Contents] 테이블 이미지 기반 cateno별 목록 출력 변경(list_by_cateno.do) 
+
+- 컬럼을 분리한 목록 화면(상품 정보는 제외됨) 진행 후 -> 컬럼을 결합한 목록 화면
+
+1. SQL
+▷ /webapp/WEB-INF/doc/dbms/contents_c.sql
+-----------------------------------------------------------------------------------
+-- cateno별 목록
+-- 출력하고자하는 컬럼명 선정이 필요!
+SELECT contentsno, adminno, cateno, title, content, recom, cnt, replycnt, rdate, 
+          file1, file1saved, thumb1, size1, price, dc, saleprice, point
+FROM contents
+WHERE cateno = 1
+ORDER BY contentsno ASC;  
+-----------------------------------------------------------------------------------
+ 
+2. MyBATIS ▷ /src/main/resources/mybatis/contents.xml 
+- id: list_by_cateno
+-----------------------------------------------------------------------------------
+  <!--  [37][Contents] 테이블 이미지 기반 cateno별 목록 출력 변경(list_by_cateno.do) -->
+  <select id="list_by_cateno" parameterType="int"  resultType="dev.mvc.contents.ContentsVO" >
+    SELECT contentsno, adminno, cateno, title, content, recom, cnt, replycnt, rdate, 
+              file1, file1saved, thumb1, size1, price, dc, saleprice, point
+    FROM contents
+    WHERE cateno = #{cateno}
+    ORDER BY contentsno ASC
+  </select> 
+-----------------------------------------------------------------------------------
+ 
+3. DAO interface  ▷ /dev/mvc/contents/ContentsDAOInter.java 
+4. Process interface ▷ ContentsProcInter.java 
+-------------------------------------------------------------------------------------
+  /**
+   * [37][Contents] 테이블 이미지 기반 cateno별 목록 출력 변경(list_by_cateno.do)
+   * 특정 카테고리의 등록된 글목록
+   * @return
+   */
+  public List<ContentsVO> list_by_cateno(int cateno);
+-------------------------------------------------------------------------------------
+
+5. Process class ▷ ContentsProc.java
+-----------------------------------------------------------------------------------
+    // [37][Contents] 테이블 이미지 기반 cateno별 목록 출력 변경(list_by_cateno.do)
+    @Override
+    public List<ContentsVO> list_by_cateno(int cateno) {
+      List<ContentsVO> list = this.contentsDAO.list_by_cateno(cateno);
+      return list;
+    }
+-----------------------------------------------------------------------------------
+
+6. Controller class 1) 목록 우선순위의 지정 ▷ ContentsCont.java
+    - http://localhost:9090/resort/contents/list.do (main)
+    - http://localhost:9090/resort/contents/list_all.do (sub)
+-------------------------------------------------------------------------------------
+  /**
+   * [37][Contents] 테이블 이미지 기반 cateno별 목록 출력 변경(list_by_cateno.do)
+   * cateno별 목록 http://localhost:9091/contents/list_by_cateno.do?cateno=1
+   * 
+   * @return
+   */
+   @RequestMapping(value = "/contents/list_by_cateno.do", method = RequestMethod.GET)
+    public ModelAndView list_by_cateno(int cateno) { 
+      ModelAndView mav = new  ModelAndView(); 
+     
+      // 테이블 이미지 기반, list_by_cateno.jsp
+      mav.setViewName("/contents/list_by_cateno");
+      
+      CateVO cateVO = this.cateProc.read(cateno); 
+      mav.addObject("cateVO", cateVO);
+      
+      CategrpVO categrpVO = this.categrpProc.read(cateVO.getCategrpno());
+      mav.addObject("categrpVO", categrpVO);
+      
+      List<ContentsVO> list = this.contentsProc.list_by_cateno(cateno);
+      mav.addObject("list", list);
+      
+      mav.setViewName("/contents/list_by_cateno"); // /webapp/WEB-INF/views/contents/list_by_cateno.jsp
+      return mav; // forward 
+    }
+-------------------------------------------------------------------------------------
+ 
+7. View: JSP
+   - http://localhost:9090/resort/cate/list_by_cateno.jsp
+   - EL은 컬럼의 값이나 필드의 값이 null이면 null을 문자열로 출력하지 않습니다.
+   - null 비교 방법: <c:when test="${contentsVO.thumb != ''}">
+   - 테이블에 이미지 출력시 사용되는 주요 코드
+            <td style='vertical-align: middle; text-align: center;'>
+              <c:choose>
+                <c:when test="${thumb1.endsWith('jpg') || thumb1.endsWith('png') || thumb1.endsWith('gif')}">
+                  <IMG src="./storage/main_images/${thumb1 }"> 
+                </c:when>
+                <c:otherwise> <!-- 이미지가 아닌 일반 파일 -->
+                  ${contentsVO.file1}
+                </c:otherwise>
+              </c:choose>
+            </td>  
+   - em 단위
+     . 부모태그 기준으로 부모와 같은 글자크기는 1em, 90 작게는 0.9em, 150크게는 1.5em을 사용하는
+       가변크기 단위 따라서 부모 태그의 글자 크기가 변경되면 자동으로 자식또한 변경
+
+1) 카테고리별 목록의 개발 
+▷ /webapp/contents/list_by_cateno.jsp 
+
+★★★★★ 먼저 /cate/list_by_categrpno.jsp 수정
+-> 카테고리 그룹 > 영화(categrp의 name) > 공포(cate의 name) 클릭시 > contents로
+-------------------------------------------------------------------------------------
+        <TD class="td_bs_left">
+        <A href="../contents/list_by_cateno.do?cateno=${cateno }">${cateVO.name }</A>
+        </TD>
+-------------------------------------------------------------------------------------
+
+▷ /webapp/contents/list_by_cateno.jsp 
+★★★★★cate/list_all을 복사하여 수정(참고만)★★★★
+-> 우선 붙여넣고 <th> 주석 풀어주고 컬럼명 확인
+-------------------------------------------------------------------------------------
+<%-- 
+7. View: JSP
+1)목록 화면
+▷ /webapp/WEB-INF/views/cate/list_all.jsp기반
+/contents/list_by_cateno 생성
+--%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    
+<script type="text/javascript">
+ 
+</script>
+ 
+</head> 
+<body>
+
+<jsp:include page="../menu/top.jsp" />
+ 
+<DIV class='title_line'>
+  <A href="../categrp/list.do" class='title_link'>카테고리 그룹 전체</A> > 
+  <A href="../cate/list_by_categrpno.do?categrpno=${categrpVO.categrpno }" class='title_link'>${categrpVO.name }</A> > 
+  <A href="./list_by_cateno.do?cateno=${cateVO.cateno }" class='title_link'>${cateVO.name }</A> 
+  </DIV>
+  
+<DIV class='content_body'>
+  <ASIDE class="aside_right"> <!-- 서브 메뉴 -->
+    <A href="./create.do?cateno=${cateVO.cateno }">등록</A>
+    <span class='menu_divide' >│</span>
+    <A href="javascript:location.reload();">새로고침</A>    <%-- 앵커 태그를 사용해 javaSript 사용  --%>
+    <span class='menu_divide' >│</span>
+    <A href="./list_by_cateno_grid1.do?cateno=${cateVO.cateno }">갤러리형</A>
+  </ASIDE> 
+
+ <DIV class='menu_line'></DIV>
+    
+  <table class="table table-striped" style='width: 100%;'>
+  <colgroup>
+    <col style="width: 10%;"></col>
+    <col style="width: 60%;"></col>
+    <col style="width: 20%;"></col>
+    <col style="width: 10%;"></col>
+  </colgroup>
+  
+  <%-- table 컬럼 --%>
+<%--   <thead>
+    <tr>
+      <th style='text-align: center;'>파일</th>
+      <th style='text-align: center;'>제목/내용</th>
+      <th style='text-align: center;'>정가/할인율/판매가/포인트</th> 컬럼 합쳐서 표시, UI를 위함
+      <th style='text-align: center;'>기타</th>
+    </tr>
+  </thead> --%>
+    
+  <%-- table 내용 --%>
+  <tbody>
+    <c:forEach var="contentsVO" items="${list }">
+      <c:set var="contentsno" value="${contentsVO.contentsno }" />
+      <c:set var="thumb1" value="${contentsVO.thumb1 }" />
+      
+      <tr> <%-- 레코드 들 (등록일 부터~ 기타까지) --%>
+        
+        <td style='vertical-align: middle; text-align: center;'>
+          
+          <%-- 이미지(파일) 출력 고정 소스  --%>
+          <c:choose>
+            <c:when test="${thumb1.endsWith('jpg') || thumb1.endsWith('png') || thumb1.endsWith('gif')}">
+              <IMG src="/contents/storage/${thumb1 }" style="width: 120px; height: 80px;"> 
+            </c:when>
+            <c:otherwise> <!-- 이미지가 아닌 일반 파일 -->
+              ${contentsVO.file1}
+            </c:otherwise>
+          </c:choose>  <%-- 이미지 출력 고정 소스 종료 --%>
+        </td>  
+       
+        <td style='vertical-align: middle;'>
+          <%-- ContentProc에서 content 컬럼은 200자 이상 시...으로 설정  --%>
+          <%-- String tag 사용 강조 --%>
+          <a href="./read.do?contentsno=${contentsno}"> <strong>${contentsVO.title}</strong> ${contentsVO.content }</a> 
+        </td>   
+        
+        <%-- 컬럼 합친거 표현 td표현
+        <td style='vertical-align: middle; text-align: center;'>${contentsVO.price}</td>
+        <td style='vertical-align: middle; text-align: center;'>${contentsVO.dc}</td>
+        <td style='vertical-align: middle; text-align: center;'>${contentsVO.saleprice}</td>
+        <td style='vertical-align: middle; text-align: center;'>${contentsVO.point}</td>
+         --%>
+        
+        <td style='vertical-align: middle; text-align: center;'> <%-- 컬럼 합친거 표현 td표현  --%>
+            정가 : <del>${contentsVO.price}원</del><BR>          <!-- del로 취소선 -->
+            할인율 : <span style= "color:#FF0000; font-size: 1.2em" >${contentsVO.dc}%</span><BR> <!--  스타일적용 -->
+            판매가 : ${contentsVO.saleprice}원<BR>
+            포인트 : ${contentsVO.point}포인트</td>
+            
+<%--         <td style='vertical-align: middle; text-align: center;'>${contentsVO.rdate.substring(0, 10)}</td> --%>
+        <td style='vertical-align: middle; text-align: center;'>수정/삭제<BR>상품정보</td>
+      </tr>
+    </c:forEach>
+    
+  </tbody>
+ </table>
+</DIV>
+
+<jsp:include page="../menu/bottom.jsp" />
+</body>
+ 
+</html>
+-------------------------------------------------------------------------------------
+
+★★★★★ application.properties 추가(업로드 파일 크기 지정) ★★★★★
+-------------------------------------------------------------------------------------
+# File size max setting.
+spring.servlet.multipart.maxFileSize=10MB
+spring.servlet.multipart.maxRequestSize=10MB
+-------------------------------------------------------------------------------------
+
+★★★★★ContentsProc 수정
+-> content 컬럼(내용)이 200자 이상 시 ... 표시로 출력되게하기
+-------------------------------------------------------------------------------------
+    // [37][Contents] 테이블 이미지 기반 cateno별 목록 출력 변경(list_by_cateno.do)
+    @Override
+    public List<ContentsVO> list_by_cateno(int cateno) {
+      List<ContentsVO> list = this.contentsDAO.list_by_cateno(cateno);
+      
+      for(ContentsVO contentsVO : list) {       // content 컬럼(내용)이 200자 이상 시 ... 표시로 출력되게하기
+        String content = contentsVO.getContent(); // 내용을 가져와서
+        if(content.length() > 150) {
+          content = content.substring(0, 150) + "...";  
+          contentsVO.setContent(content);
+        }// if end
+      }// for end
+      return list;
+    }
+-------------------------------------------------------------------------------------
+
+
 ~~~
