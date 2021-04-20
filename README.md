@@ -6233,7 +6233,7 @@ WHERE cateno=13 AND (title LIKE '%노트북%' OR content LIKE '%노트북%' OR w
 -----------------------------------------------------------------------------------
 
 7. View: JSP 1) 검색 기능이 추가된 목록 화면 ▷ /webapp/contents/list_by_cateno_search.jsp
-★list_bt_cateno.jsp를 복제하여 수정.
+★list_by_cateno.jsp를 복제하여 수정.
 -----------------------------------------------------------------------------------
 // 이부분만 붙여넣기(aside와 menu_line 사이)
 <DIV style="text-align: right; clear: both;" >  
