@@ -5809,7 +5809,7 @@ ORDER BY contentsno ASC;
  
 7. View: JSP
    - http://localhost:9090/resort/cate/list_by_cateno.jsp
-   - EL은 컬럼의 값이나 필드의 값이 null이면 null을 문자열로 출력하지 않습니다.
+   - EL은 컬럼의 값이나 필드의 값이 null이면 null을 문자열로 출력no
    - null 비교 방법: <c:when test="${contentsVO.thumb != ''}">
    - 테이블에 이미지 출력시 사용되는 주요 코드
             <td style='vertical-align: middle; text-align: center;'>
@@ -5825,6 +5825,14 @@ ORDER BY contentsno ASC;
    - em 단위
      . 부모태그 기준으로 부모와 같은 글자크기는 1em, 90 작게는 0.9em, 150크게는 1.5em을 사용하는
        가변크기 단위 따라서 부모 태그의 글자 크기가 변경되면 자동으로 자식또한 변경
+   - 등록일을 출력하는 경우
+     <td style='vertical-align: middle; text-align: center;'>${contentsVO.rdate.substring(0, 10)}</td>
+   - 취소선
+     <del>${contentsVO.price} 원</del>
+   - 천단위 컴마
+    <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+     ......
+     급여: <fmt:formatNumber value="${pay }" pattern="￦ #,###" />
 
 1) 카테고리별 목록의 개발 
 ▷ /webapp/contents/list_by_cateno.jsp 
@@ -5988,3 +5996,545 @@ spring.servlet.multipart.maxRequestSize=10MB
     }
 -------------------------------------------------------------------------------------
 ~~~
+
+* **0420 : 상품정보 업데이트(컨텐츠 등록후 -> 상품정보 업데이트)**
+~~~
+- 개인프로젝트는 기능 없음.
+--[38] 상품정보 업데이트(컨텐츠 등록후 -> 상품정보 업데이트)
+UPDATE contents 
+SET price=15000, dc=10, saleprice=13500, point=750
+WHERE contentsno = 19 OR contentsno = 20 OR contentsno = 21 OR contentsno = 22;
+
+COMMIT;
+
+▷ /webapp/contents/list_by_cateno.jsp
+-> 수정 : 천단위 컴마 + 이미지에 링커 걸기
+-------------------------------------------------------------------------------------
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+ 정가: ${contentsVO.price} 원<br> // 수정전 
+
+<td style='vertical-align: middle; text-align: center;'> <%-- 컬럼 합친거 표현 td표현  --%>
+	<del><fmt:formatNumber value="${contentsVO.price}" pattern="#,###" /> 원</del><BR>          <!-- del로 취소선 -->
+	<span style= "color:#FF0000; font-size: 1.2em" >${contentsVO.dc} %</span> <!--  스타일적용 -->
+	<Strong><fmt:formatNumber value='${contentsVO.saleprice}' pattern="#,###" />원</Strong><BR>
+	<span style= "font-size: 0.8em" >
+	<fmt:formatNumber value='${contentsVO.point}' pattern="#,###" /> point</span>
+</td>  
+
++ 이미지에도 링커 걸어주기
+<a href="./read.do?contentsno=${contentsno}"><IMG src="/contents/storage/${thumb1 }" style="width: 120px; height: 80px;"></a> 
+-------------------------------------------------------------------------------------
+~~~
+
+* **0420 : [38][Contents] 검색 기능을 지원하는 목록, 검색된 레코드의 갯수, Dynamic SQL, HashMap, list_by_cateno_search.jsp 제작**
+~~~
+1. SQL
+1) 검색(%: 없거나 하나 이상의 모든 문자)
+-- word LIKE '스위스' → word = '스위스'
+   ^스위스$
+-- word LIKE '%스위스' → word = '잊지 못할 스위스'
+   .*스위스$
+-- word LIKE '스위스%' → word = '스위스에서~'
+   ^스위스.*
+-- word LIKE '%스위스%' → word = '유럽 여행은 스위스 꼭 방문해야~'
+   .*스위스.*
+ 
+▷ /webapp/WEB-INF/doc/dbms/contents_c.sql
+-----------------------------------------------------------------------------------
+--[38] 1) 검색  ① cateno별 검색 목록
+-- word 컬럼의 사용(추가)로 검색 정확도를 높이기 위하여 중요 단어를 명시
+-- ex) 노트북, notebook, 놋북 등
+SELECT contentsno, adminno, cateno, title, content, recom, cnt, replycnt, rdate, 
+          file1, file1saved, thumb1, size1, price, dc, saleprice, point
+FROM contents
+WHERE cateno=13 AND word LIKE '%노트북%'
+ORDER BY contentsno DESC;
+
+-- cateno= 13이면서 OR로(title, content, word 중 1)
+SELECT contentsno, adminno, cateno, title, content, recom, cnt, replycnt, rdate, 
+          file1, file1saved, thumb1, size1, price, dc, saleprice, point
+FROM contents
+WHERE cateno=13 AND (title LIKE '%노트북%' OR content LIKE '%노트북%' OR word LIKE '%노트북%')
+ORDER BY contentsno DESC;
+
+-- ② 검색 레코드 갯수 전체 레코드 갯수
+SELECT COUNT(*) as cnt
+FROM contents
+WHERE cateno=13;
+
+-- cateno 별 검색된 레코드 갯수
+SELECT COUNT(*) as cnt
+FROM contents
+WHERE cateno=13 AND word LIKE '%스위스%';
+
+SELECT COUNT(*) as cnt
+FROM contents
+WHERE cateno=13 AND (title LIKE '%노트북%' OR content LIKE '%노트북%' OR word LIKE '%노트북%')
+-----------------------------------------------------------------------------------
+
+2. MyBATIS
+- 동적 SQL 선언 기법 사용
+- elseif + jstl 혼합 문법 비슷함.
+  <choose>
+    <when test="word == null or word == ''">
+      WHERE cateno=#{cateno}
+    </when>
+    <otherwise>
+         WHERE cateno=#{cateno} AND (title LIKE '%' || #{word} || '%' 
+                                                        OR content LIKE '%' || #{word} || '%' 
+                                                        OR word LIKE '%' || #{word} || '%')
+    </otherwise>
+  </choose>
+.....
+  <choose>
+    <when test="code == 1">
+      WHERE area='SEOUL'
+    </when>
+    <when test="code == 2">
+      WHERE area='INCHEON'
+    </when>
+    <otherwise>
+      WHERE area='BUSAN'
+    </otherwise>
+  </choose>
+
+ ▷ /src/main/resources/contents.xml 
+- id="list_by_cateno_search" - id="search_count" 
+★★★★★ MySQL에서는 동적 SQL 구문이 다름.
+-----------------------------------------------------------------------------------
+   <!-- [38][Contents] 검색 기능을 지원하는 목록
+   카테고리별 검색 목록 -->
+   <select id="list_by_cateno_search" resultType="dev.mvc.contents.ContentsVO" parameterType="HashMap">
+     SELECT contentsno, adminno, cateno, title, content, recom, cnt, replycnt, rdate, 
+              file1, file1saved, thumb1, size1, price, dc, saleprice, point
+     FROM contents
+     <choose>
+       <when test="word == null or word == ''"> <!-- 검색하지 않는 경우, cateno가 hashmap에  key 값으로 지정 -->
+         WHERE cateno=#{cateno}
+       </when>
+       <otherwise> <!-- 검색하는 경우 -->
+         WHERE cateno=#{cateno} AND (title LIKE '%' || #{word} || '%' 
+                                                      OR content LIKE '%' || #{word} || '%' 
+                                                      OR word LIKE '%' || #{word} || '%')
+       </otherwise>
+     </choose>
+     ORDER BY contentsno DESC   
+   </select>
+   
+   <!-- [38][Contents] 검색된 레코드의 갯수
+   카테고리별 검색 레코드 갯수 -->
+   <select id="search_count" resultType="int" parameterType="HashMap">
+     SELECT COUNT(*) as cnt
+     FROM contents
+     <choose>
+       <when test="word == null or word == ''"> <!-- 검색하지 않는 경우의 레코드 갯수 -->
+         WHERE cateno=#{cateno}
+       </when>
+       <otherwise> <!-- 검색하는 경우의 레코드 갯수 -->
+         WHERE cateno=#{cateno} AND (title LIKE '%' || #{word} || '%' 
+                                                        OR content LIKE '%' || #{word} || '%' 
+                                                        OR word LIKE '%' || #{word} || '%')
+       </otherwise>
+     </choose>
+   </select>    
+-----------------------------------------------------------------------------------
+
+3. DAO interface 4. Process interface
+-----------------------------------------------------------------------------------
+  /**
+   * [38][Contents] 검색 기능을 지원하는 목록
+   * 카테고리별 검색 목록
+   * @param hashMap
+   * @return
+   */
+  public List<ContentsVO> list_by_cateno_search(HashMap<String, Object> hashMap);
+
+  /**
+   * [38][Contents] 검색된 레코드의 갯수
+   * 카테고리별 검색 레코드 갯수
+   * @param hashMap
+   * @return
+   */
+  public int search_count(HashMap<String, Object> hashMap);
+-----------------------------------------------------------------------------------
+
+5. Process class
+-----------------------------------------------------------------------------------
+    // [38][Contents] 검색 기능을 지원하는 목록
+    @Override
+    public List<ContentsVO> list_by_cateno_search(HashMap<String, Object> hashMap) {
+      List<ContentsVO> list = contentsDAO.list_by_cateno_search(hashMap);
+      for(ContentsVO contentsVO : list) {       // content 컬럼(내용)이 200자 이상 시 ... 표시로 출력되게하기
+        String content = contentsVO.getContent(); // 내용을 가져와서
+        if(content.length() > 150) {
+          content = content.substring(0, 150) + "...";  
+          contentsVO.setContent(content);
+        }// if end
+      }// for end
+      return list;
+    }
+
+    // [38][Contents] 검색된 레코드의 갯수
+    @Override
+    public int search_count(HashMap<String, Object> hashMap) {
+      int count = contentsDAO.search_count(hashMap);
+      return count;
+    }
+    
+-----------------------------------------------------------------------------------
+
+6. Controller class
+1) parameter에 값이 전송되지 않아 발생 할 수 있는 에러를 방지하는 기법
+   - cateno가 전달이 안되면 정수 1이 할당됨.
+   int cateno
+   ↓
+   @RequestParam(value="cateno", defaultValue="1") int cateno
+
+2) hashMap의 사용
+   - 필요한 변수의 조합 
+   - HashMap hashMap = new HashMap();
+   - HashMap<String, Object> hashMap = new HashMap<String, Object>();
+-----------------------------------------------------------------------------------
+ /**
+  * [38][Contents] 검색 기능을 지원하는 목록 + 검색된 레코드의 갯수
+  * 목록 + 검색 지원
+  * http://localhost:9090/contents/list_by_cateno_search.do?cateno=1&word=스위스
+  * @param cateno
+  * @param word
+  * @return
+  */
+   @RequestMapping(value = "/contents/list_by_cateno_search.do", method = RequestMethod.GET)
+   public ModelAndView list_by_cateno_search(@RequestParam(value="cateno", defaultValue="1") int cateno,
+                                                                   @RequestParam(value="word", defaultValue="") String word ) {
+   ModelAndView mav = new ModelAndView(); 
+   
+   // 숫자와 문자열 타입을 저장해야함으로 Obejct 사용 
+   HashMap<String, Object> map = new HashMap<String, Object>(); 
+   map.put("cateno", cateno); // #{cateno}
+   map.put("word", word); // #{word}
+   
+   // 검색 목록 
+   List<ContentsVO> list = contentsProc.list_by_cateno_search(map);
+   mav.addObject("list", list);
+   
+   // 검색된 레코드 갯수 
+   int search_count = contentsProc.search_count(map);
+   mav.addObject("search_count", search_count);
+   
+   CateVO cateVO = cateProc.read(cateno); 
+   mav.addObject("cateVO", cateVO);
+   
+   CategrpVO categrpVO = this.categrpProc.read(cateVO.getCategrpno());
+   mav.addObject("categrpVO", categrpVO);
+   
+   mav.setViewName("/contents/list_by_cateno_search");   // /contents/list_by_cateno_search.jsp
+   return mav; 
+ }
+-----------------------------------------------------------------------------------
+
+7. View: JSP 1) 검색 기능이 추가된 목록 화면 ▷ /webapp/contents/list_by_cateno_search.jsp
+★list_bt_cateno.jsp를 복제하여 수정.
+-----------------------------------------------------------------------------------
+// 이부분만 붙여넣기(aside와 menu_line 사이)
+<DIV style="text-align: right; clear: both;" >  
+    <form name='frm' id='frm' method='get' action='./list_by_cateno_search.do'>
+      <input type='hidden' name='cateno' value='${cateVO.cateno }'>
+      <c:choose>
+        <c:when test="${param.word != '' }"> <%-- 공백이 아니면, 검색하는 경우 --%>
+          <input type='text' name='word' id='word' value='${param.word }'  
+                     style='width: 20%;' autofocus="autofocus"><%--value에 값 출력  --%>
+        </c:when>
+        <c:otherwise> <%-- 검색하지 않는 경우, value는 비어있어야함--%>
+          <input type='text' name='word' id='word' value='' style='width: 20%;'>
+        </c:otherwise>
+      </c:choose>
+      <button type='submit'>검색</button>
+      <c:if test="${param.word.length() > 0 }">  <%-- 검색 취소 부분 --%>
+        <button type='button' 
+                     onclick="location.href='./list_by_cateno_search.do?cateno=${cateVO.cateno}&word='">검색 취소</button>  
+      </c:if>    
+    </form>
+  </DIV>
+-----------------------------------------------------------------------------------
+
+-> cate/list_by_categrpno 수정
+-----------------------------------------------------------------------------------
+<%--         <!--검색하지않는 목록 -->
+        <A href="../contents/list_by_cateno.do?cateno=${cateno }">${cateVO.name }</A> --%>
+        <!--  검색한느 목록 -->
+        <A href="../contents/list_by_cateno_search.do?cateno=${cateno }">${cateVO.name }</A>
+-----------------------------------------------------------------------------------
+~~~
+
+* **0420 : [39][Contents] Oracle 페이징, SQL Subquery의 사용**
+~~~
+[01] Oracle 페이징, SQL Subquery의 사용
+1. SQL
+▷ /webapp/WEB-INF/doc/컨텐츠 영화 상품/paging_c.sql
+11) ★★★ 해답 : Paging Step 3, subquery★★★
+★★★3단쿼리 생성★★★
+내부쿼리 rownum을 제외한 컬럼을 통해 정렬 -> 중간쿼리 rownum 포함 컬럼 명시
+-> 외부쿼리 rownum 포함 컬럼 명시 + WHERE 절에 rownum 기준 조건 명시
+-----------------------------------------------------------------------------------
+-- 1) 테이블 생성 및 데이터 준비
+DROP TABLE PG;
+ 
+CREATE TABLE PG(
+  no  NUMBER(5) NOT NULL,
+  title  VARCHAR(20) NOT NULL,
+  PRIMARY KEY(no )
+);
+
+-- 일련번호를 sequence를 사용하지 않고, subquery를 이용하여 생성하는 경우.
+-- 서브 쿼리: SQL 내부에 SQL 사용, ()가 존재해야함, 독립적으로 실행 가능.
+-- (SELECT NVL(MAX(no ), 0) +1 as no  FROM pg)
+-- MAX(): 최대값을 가져오는 함수, 레코드가 없으면 null을 리턴
+-- NVL(MAX(no ), 0): MAX 함수가 null이면 특정값으로 대체
+
+-- 레코드가 없는 경우 null return / +1 등의 사칙연산도 null return
+SELECT MAX(no ) as no  FROM pg
+
+-- 레코드가 있기에 1 return
+SELECT NVL(MAX(no ), 0) +1 as no  FROM pg
+
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '01월');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '02월');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '03월');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '04월');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '05월');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '06월');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '07월');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '08월');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '09월');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '10월');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '11월');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '12월');
+ 
+SELECT no , title FROM pg;
+COMMIT;
+ 
+ NUM TITLE
+ --- -----
+   1 01월
+    ... .....
+  12 12월
+ 
+-- 1) 분기별로 분할하여 레코드를 추출하는 경우(페이징)
+SELECT no , title FROM pg;
+ 
+-- rownum: oralce system에서 select시에 자동으로 붙여주는 일련번호
+-- rownum(select시 오라클에서 붙여주는 가상의 Column)
+SELECT no , title, rownum FROM pg;
+ 
+ NUM TITLE ROWNUM
+ --- ----- ------
+   1 01월        1
+   2 02월        2
+   ..  ...          .. 
+  11 11월       11
+  12 12월       12
+ 
+-- 2) 2,3월 삭제 -> rownum은 일련번호처럼 남겨두는게 아닌 que 처럼 한칸씩 up
+DELETE FROM pg WHERE no =2 or no =3;
+ 
+SELECT no , title, rownum FROM pg;
+ 
+ NUM TITLE ROWNUM
+ --- ----- ------
+   1 01월        1
+   4 04월        2
+   5 05월        3
+   ...........................
+  11 11월        9
+  12 12월       10
+ 
+ 
+-- 3) 페이징시는 일정한 순차값이 생성되는 rownum 값을 사용합니다.
+-- rownum주의: rownum은 정렬(ORDER BY ~)보다 먼저 생성됨으로
+--정렬을 한 후 rownum 컬럼을 사용
+ 
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '봄');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '여름');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '가을');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '겨울');
+
+SELECT no , title, rownum FROM pg;
+commit;
+
+-- 4) Paging Step 1
+-- rownum은 정렬시에 순서가 일정하지 않게됨.
+-- SELECT → ROWNUM 생성 → ORDER BY ~
+SELECT no , title, rownum FROM pg
+ORDER BY title ASC;
+ 
+ NUM TITLE ROWNUM
+ --- ----- ------
+   1 01월        1
+   4 04월        4
+     ......................
+  15 가을         2
+  16 겨울         3
+  13 봄          13
+  14 여름       14
+  
+-- 5) Paging Step 2, subquery, 내부 View의 사용
+-- 정렬을한 테이블(메모리상에 생성됨)을 전달받아 rownum 생성함으로 일정하게됨
+-- 선 정렬 후 -> rownum 생성
+SELECT no , title, rownum
+FROM (
+           SELECT no , title 
+           FROM pg
+           ORDER BY title ASC
+);
+ 
+       NUM TITLE                    ROWNUM
+---------- -------------------- ----------
+         1 01월                          1
+         4 04월                          2
+    ....................................................................
+        13 봄                            13
+        14 여름                         14
+
+-- 6) 서브쿼리에서 SELECT한 컬럼만 외부 쿼리에서 사용 가능
+SELECT no , title, rownum
+FROM (
+           SELECT no  
+           FROM pg
+           ORDER BY title ASC
+);  
+-- ORA-00904: "TITLE": invalid identifier
+  
+-- 7) 2,3 월을 추가하세요.
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '02월');
+INSERT INTO pg(no , title) VALUES((SELECT NVL(MAX(no ), 0) +1 as no  FROM pg), '03월');
+commit;
+SELECT no , title FROM pg;
+
+ NUM TITLE
+ --- -----
+   1 01월
+  15 가을
+   .............
+  14 여름
+  17 02월
+  18 03월
+  
+-- 8) 목록 다시 출력, ☆ rownum이 생성되고 정렬 기능이 작동함
+-- SELECT → ROWNUM 생성 → ORDER BY ~
+SELECT no , title, rownum FROM pg ORDER BY title ASC;
+  
+ NUM TITLE ROWNUM
+ --- ----- ------
+   1 01월        1
+  17 02월       15
+  18 03월       16
+  ..................
+  14 여름        14
+
+-- 9) Subquery의 사용  
+-- Subquery에서 정렬후 테이블을 넘겨받아 rownum을 생성
+SELECT no , title, rownum
+FROM (
+           SELECT no , title
+           FROM pg
+           ORDER BY title ASC
+);
+ 
+ NUM TITLE ROWNUM
+ --- ----- ------
+   1 01월        1
+  17 02월        2
+  18 03월        3
+ .....................
+  14 여름        16
+ 
+-- 10) 2단으로 레코드 분할시 문제점 발생, 하나의 페이지는 레코드 3개로 구성 
+SELECT no , title, rownum
+FROM (
+           SELECT no , title
+           FROM pg
+           ORDER BY title ASC
+)
+WHERE rownum>=1 AND rownum <=3;
+ 
+ NUM TITLE ROWNUM
+ --- ----- ------
+   1 01월        1
+  17 02월        2
+  18 03월        3
+ 
+-- 2 페이지 출력시 출력 안되는 문제 발생 
+SELECT no , title, rownum
+FROM (
+           SELECT no , title
+           FROM pg
+           ORDER BY title ASC
+)
+WHERE rownum>=4 AND rownum <=6;
+ 
+ NUM TITLE ROWNUM
+ --- ----- ------
+ 
+-- 11) ★★★ 해답 : Paging Step 3, subquery★★★
+-- 1 분기
+SELECT no , title, r
+FROM(
+         SELECT no , title, rownum as r
+         FROM (
+                   SELECT no , title 
+                   FROM pg
+                   ORDER BY title ASC
+         )  
+)
+WHERE r>=1 AND r <=3;
+ 
+ NUM TITLE R
+ --- ----- -
+   1 01월   1
+  17 02월   2
+  18 03월   3
+   
+-- 2 분기
+SELECT no , title, r
+FROM(
+         SELECT no , title, rownum as r
+         FROM (
+                   SELECT no , title 
+                   FROM pg
+                   ORDER BY title ASC
+         )  
+)
+WHERE r>=4 AND r <=6;
+   
+ NUM TITLE R
+ --- ----- -
+   4 04월   4
+   5 05월   5
+   6 06월   6
+
+-- 3 분기
+SELECT no , title, r
+FROM(
+         SELECT no , title, rownum as r
+         FROM (
+                   SELECT no , title 
+                   FROM pg
+                   ORDER BY title ASC
+         )  
+)
+WHERE r>=7 AND r <=9;
+
+       NUM TITLE                      R
+---------- -------------------- ----------
+         7 07월                          7
+         8 08월                          8
+         9 09월                          9
+-----------------------------------------------------------------------------------
+~~~
+
+* **0420 : [40][Contents] 페이징, SQL, DAO, Process, list_by_cateno_search_paging.jsp**
+~~~
+[01] 페이징 구현
+
+~~~
+
