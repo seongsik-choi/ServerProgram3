@@ -7061,7 +7061,16 @@ public class Contents {
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0421 : [42][Contents] 등록 기능의 제작의 상품 정보의 등록(연속입력)**
+* **0421 : [42][Contents] 조회 기능의 제작, Tool.java 유틸리티 클래스, ContentsProc.java 특수 문자 처리, Categrp, Cate, Contents 결합**
+~~~
+[01] 조회 기능 제작
+
+~~~
+
+
+
+
+* **0421 : [43][Contents] 등록 기능의 제작의 상품 정보의 등록(연속입력)**
 ~~~
 [01] 등록 기능 제작 응용 상품 정보의 등록
 1. SQL 
@@ -7098,7 +7107,7 @@ WHERE contentsno = 20;
 ▷ /src/main/resources/contents.xml 
 ★★★★★ (수정) 제일 처음 작성했던 등록 SQL (INSERT)문 주석 처리 ★★★★★
 -------------------------------------------------------------------------------------
- <!-- [42][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속 입력) -->
+ <!-- [43][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속 입력) -->
  <insert id="create" parameterType="dev.mvc.contents.ContentsVO">
     <!--sql 생성 전 keyProperty= contentsno -> VO에 저장 -> VO는 INSERT 문 으로 전달-->
     <selectKey keyProperty="contentsno" resultType="int" order="BEFORE"> 
@@ -7110,7 +7119,7 @@ WHERE contentsno = 20;
               #{file1}, #{file1saved}, #{thumb1}, #{size1}, sysdate)
  </insert>
 
-  <!--[42][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속입력)에 따른 등록  -->
+  <!--[43][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속입력)에 따른 등록  -->
   <update id="product_update" parameterType="dev.mvc.contents.ContentsVO">
     UPDATE contents 
     SET price=#{price}, dc=#{dc}, saleprice=#{saleprice}, point=#{point}
@@ -7123,7 +7132,7 @@ WHERE contentsno = 20;
 ▷ ContentsProcInter.java 
 -------------------------------------------------------------------------------------
   /**
-   * [42][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속입력)
+   * [43][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속입력)
    * 상품 정보 수정 처리
    * @param contentsVO
    * @return
@@ -7133,7 +7142,7 @@ WHERE contentsno = 20;
 
 5. Process class ▷ ContentsProcess.java
 -----------------------------------------------------------------------------------
-    // [42][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속입력)
+    // [43][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속입력)
     @Override
     public int product_update(ContentsVO contentsVO) {
       int cnt = this.contentsDAO.product_update(contentsVO);
@@ -7160,7 +7169,7 @@ WHERE contentsno = 20;
        <button type='button' onclick="location.href='./list_by_cateno_search_paging.do?cateno=${param.cateno}'" class="btn btn-primary">목록</button>
 -------------------------------------------------------------------------------------
 
-★★★★수정) ContentsCont의 Create 메소드 하단에 ★★★★한줄 추가★★★★
+★★★★수정) ContentsCont의 Create(POST) 메소드 하단에 ★★★★한줄 추가★★★★
 // 등록 후 create_msg에서 contentsno 값을 받기 위함.
 insert 되는 순간 -> contentsno 전달
 -------------------------------------------------------------------------------------
@@ -7181,7 +7190,16 @@ insert 되는 순간 -> contentsno 전달
  
 -------------------------------------------------------------------------------------
  
-7. View: JSP 1) 변경 화면 ▷ /webapp/contents/update.jsp
+7. View: JSP 
+상품 정보 등록 화면 ▷ /webapp/contents/product_update.jsp
+-------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------
+
+7. View: JSP 
+상품 등록 메시지 ▷ /webapp/contents/product_update_msg.jsp
+-------------------------------------------------------------------------------------
+
 -------------------------------------------------------------------------------------
 
 ~~~
