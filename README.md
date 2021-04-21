@@ -7083,7 +7083,7 @@ WHERE contentsno = 20;
     </selectKey> 
   INSERT INTO contents(contentsno, adminno, cateno, title, content, passwd, word,
                                    file1, file1saved, thumb1, size1, rdate)
-  VALUES(contents_seq.nextval, #{adminno}, #{cateno}, #{title}, #{content}, #{passwd}, #{word},
+  VALUES(#{contentsno}, #{adminno}, #{cateno}, #{title}, #{content}, #{passwd}, #{word},
               #{file1}, #{file1saved}, #{thumb1}, #{size1}, sysdate)
  </insert>
    
@@ -7106,7 +7106,7 @@ WHERE contentsno = 20;
     </selectKey> 
   INSERT INTO contents(contentsno, adminno, cateno, title, content, passwd, word,
                                    file1, file1saved, thumb1, size1, rdate)
-  VALUES(contents_seq.nextval, #{adminno}, #{cateno}, #{title}, #{content}, #{passwd}, #{word},
+  VALUES(#{contentsno}, #{adminno}, #{cateno}, #{title}, #{content}, #{passwd}, #{word},
               #{file1}, #{file1saved}, #{thumb1}, #{size1}, sysdate)
  </insert>
 
@@ -7144,10 +7144,10 @@ WHERE contentsno = 20;
 ★★★★수정) create_msg.jsp  -> 컨턴체 등록시 관련 상품 등록을 위한 연속 폼(product_update)로 이동
 -------------------------------------------------------------------------------------
             <button type='button' 
-                         onclick="location.href='./product_update.do?cateno=${param.cateno}'"
+                         onclick="location.href='./product_update.do?cateno=${param.cateno}&categrpno=${param.categrpno }&contentsno=${param.contentsno }'"
                          class="btn btn-primary">관련 상품 등록</button>          
             <button type='button' 
-                         onclick="location.href='./create.do?cateno=${param.cateno}'"
+                         onclick="location.href='./create.do?cateno=${param.cateno}&categrpno=${param.categrpno }&contentsno=${param.contentsno }'"
                          class="btn btn-primary">새로운 컨텐츠 등록</button>
           </c:when>
           <c:otherwise>
@@ -7158,6 +7158,21 @@ WHERE contentsno = 20;
        <%-- <button type='button' onclick="location.href='./list_by_cateno.do?cateno=${param.cateno}'" class="btn btn-primary">목록</button>
        <button type='button' onclick="location.href='./list_by_cateno_search.do?cateno=${param.cateno}'" class="btn btn-primary">목록</button> --%>
        <button type='button' onclick="location.href='./list_by_cateno_search_paging.do?cateno=${param.cateno}'" class="btn btn-primary">목록</button>
+-------------------------------------------------------------------------------------
+
+★★★★수정) ContentsCont의 Create 메소드 하단에 ★★★★한줄 추가★★★★
+// 등록 후 create_msg에서 contentsno 값을 받기 위함.
+insert 되는 순간 -> contentsno 전달
+-------------------------------------------------------------------------------------
+    // System.out.println("--> cateno: " + contentsVO.getCateno());
+    // redirect시에 hidden tag로 보낸것들이 전달이 안됨으로 request에 다시 저장
+    mav.addObject("cateno", contentsVO.getCateno()); // redirect parameter 적용
+    mav.addObject("url", "/contents/create_msg"); // create_msg.jsp, redirect parameter 적용
+    
+    // ★★★★이부분 추가해주기★★★★
+    // 연속 입력 추가 : url 주소 받기
+    // 연속 입력 지원용 변수, Call By Reference에 기반하여 contentsno를 전달 받음.
+    mav.addObject("contentsno", contentsVO.getContentsno()); 
 -------------------------------------------------------------------------------------
 
 6. Controller class ▷ ContentsCont.java
