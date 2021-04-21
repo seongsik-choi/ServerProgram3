@@ -7061,47 +7061,79 @@ public class Contents {
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0421 : [42][Contents] 조회 기능의 제작, Tool.java 유틸리티 클래스, ContentsProc.java 특수 문자 처리, Categrp, Cate, Contents 결합**
+* **0421 : [42][Contents] 조회 기능의 제작(Proc까지만 제작)결합**
 ~~~
+★ 조회기능이지만 Proc 까지만 생성 -> 연속 입력을 위함
+
 [01] 조회 기능 제작 1. SQL
 ▷ /webapp/WEB-INF/doc/dbms/contents_c.sql
 -------------------------------------------------------------------------------------
-
+-- [42][Contents] 조회 기능의 제작 
+SELECT contentsno, adminno, cateno, title, content, recom, cnt, replycnt, rdate, 
+          file1, file1saved, thumb1, size1, price, dc, saleprice, point
+FROM contents
+WHERE contentsno = 20;
 -------------------------------------------------------------------------------------
 
 2. MyBATIS- id: read ▷ /src/main/resources/contents.xml 
 -------------------------------------------------------------------------------------
-
+  <!--  [42][Contents] 조회 기능의 제작
+    일반적인 조회 -->
+  <select id="read" resultType="dev.mvc.contents.ContentsVO" parameterType="int">
+    SELECT contentsno, adminno, cateno, title, content, recom, cnt, replycnt, rdate, 
+              file1, file1saved, thumb1, size1, price, dc, saleprice, point, salecnt
+    FROM contents
+    WHERE contentsno = #{contentsno }
+  </select>
 -------------------------------------------------------------------------------------
 
 3. DAO interface ▷ /dev/mvc/contents/ContentsDAOInter.java 
 4. Process interface▷ ContentsProcInter.java 
 -------------------------------------------------------------------------------------
+  /**
+   * [42][Contents] 조회 기능의 제작
+   * 조회
+   * @param contentsno
+   * @return
+   */
+  public ContentsVO read(int contentsno);
+-------------------------------------------------------------------------------------
 
+★★★★ 추가) ContentsVO.java 
+- VO class 파일 크기 단위 출력 변수 추가
+-------------------------------------------------------------------------------------
+/* 파일 크기 단위 출력 */
+ private String size1_label;
 -------------------------------------------------------------------------------------
 
 5. Process class ▷ ContentsProc.java
-- content = Tool.convertChar(content); // 특수 문자 변환
+- content = Tool.convertChar(content); // 특수 문자 변환 : 안할시 layout이 깨짐
 -----------------------------------------------------------------------------------
-
+    /**
+     * [42][Contents] 조회 기능의 제작 
+     */
+    @Override
+    public ContentsVO read(int contentsno) {
+      ContentsVO contentsVO = this.contentsDAO.read(contentsno);
+      
+      String title = contentsVO.getTitle();
+      String content = contentsVO.getContent();
+      
+//    title = Tool.convertChar(title);  // 특수 문자 처리
+//    content = Tool.convertChar(content); 
+      
+      contentsVO.setTitle(title);
+      contentsVO.setContent(content);  
+      
+      long size1 = contentsVO.getSize1();
+      contentsVO.setSize1_label(Tool.unit(size1));
+      
+      return contentsVO;
+    }
 -----------------------------------------------------------------------------------
-
-6. Controller class ▷ ContentsCont.java
--------------------------------------------------------------------------------------
-
--------------------------------------------------------------------------------------
- 
-  
-7. View: JSP 1) 조회 ▷ /webapp/contents/read_img.jsp 
--------------------------------------------------------------------------------------
-
--------------------------------------------------------------------------------------
 ~~~
 
-
-
-
-* **0421 : [43][Contents] 등록 기능의 제작의 상품 정보의 등록(연속입력)**
+* **0421 : [43~4][Contents] 글 등록 후 추가 상품 정보의 연속 등록**
 ~~~
 [01] 등록 기능 제작 응용 상품 정보의 등록
 1. SQL 
@@ -7218,19 +7250,183 @@ insert 되는 순간 -> contentsno 전달
 6. Controller class ▷ ContentsCont.java
 - VO 클래스의 일부 변수만 전달하는 경우 HashMap을 이용하여 전달하면 메모리가 절약됨.
 -------------------------------------------------------------------------------------
- 
+  /**
+   * [43][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속 입력) 
+   * 상품 정보 수정폼
+   * http://localhost:9091/contents/create.do?&cateno=1
+   * 
+   * @return
+   */
+  @RequestMapping(value = "/contents/product_update.do", method = RequestMethod.GET)
+  public ModelAndView product_update(int cateno, int contentsno) {
+    
+    // int cateno = Integer.parseInt(request.getParameter("cateno")); //  자동으로 수행
+    ModelAndView mav = new ModelAndView();
+    
+    CateVO cateVO = this.cateProc.read(cateno); // Cate(부모) 정보를 읽어옴
+    CategrpVO categrpVO = this.categrpProc.read(cateVO.getCategrpno()); // Categrp에 대한 정보도 읽어옴.
+    ContentsVO contentsVO = this.contentsProc.read(contentsno);
+    
+    mav.addObject("cateVO", cateVO);  // ==request.setAttritube("cateVO", cateVO);
+    mav.addObject("categrpVO", categrpVO);
+    mav.addObject("contentsVO", contentsVO);
+    
+    mav.setViewName("/contents/product_update"); // /webapp/WEB-INF/views/contents/product_update.jsp
+    // String content = "장소:\n인원:\n준비물:\n비용:\n기타:\n";
+    // mav.addObject("content", content);
+
+    return mav; // forward
+  }  
+  
+  /**
+   * [43][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속 입력) 
+   * 상품 정보 수정 처리 http://localhost:9091/contents/product_update.do
+   * 
+   * @return
+   */
+  @RequestMapping(value = "/contents/product_update.do", method = RequestMethod.POST)
+  public ModelAndView product_update(ContentsVO contentsVO) {
+    ModelAndView mav = new ModelAndView();
+    
+    // Call By Reference: 메모리 공유, Hashcode 전달
+    int cnt = this.contentsProc.product_update(contentsVO);
+    
+    mav.addObject("cnt", cnt); // request.setAttribute("cnt", cnt)
+    mav.addObject("cateno", contentsVO.getCateno()); // redirect parameter 적용
+
+    // 연속 입력 지원용 변수, Call By Reference에 기반하여 contentsno를 전달 받음
+    mav.addObject("contentsno", contentsVO.getContentsno());
+    
+    mav.addObject("url", "/contents/product_update_msg"); // product_update_msg.jsp
+
+    mav.setViewName("redirect:/contents/msg.do"); 
+    
+    return mav; // forward
+  }
 -------------------------------------------------------------------------------------
  
 7. View: JSP 
 상품 정보 등록 화면 ▷ /webapp/contents/product_update.jsp
+★★★★create.jsp 복사하여 사용
+- 메뉴 라인 위 타이틀 수정
+- hidden에 adminno 대신 contentsno 사용
+- update 한 항목들만 적용
 -------------------------------------------------------------------------------------
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+<DIV class='title_line'>
+  <A href="../categrp/list.do" class='title_link'>카테고리 그룹</A> > 
+  ${categrpVO.name } > ${cateVO.name } >
+  상품 정보 등록(수정)
+</DIV>
 
+<DIV class='content_body'>
+  <FORM name='frm' method='POST' action='./product_update.do' class="form-horizontal">
+    <input type="hidden" name="categrpno" value="${cateVO.categrpno }"> 
+    <input type="hidden" name="cateno" value="${param.cateno }">
+    <input type="hidden" name="contentsno" value="${contentsVO.contentsno}"> 
+    
+    <div class="form-group">
+       <label class="control-label col-md-2">상품명</label>
+       <div class="col-md-10">
+         ${contentsVO.title }
+       </div>
+    </div>
+    <div class="form-group">
+       <label class="control-label col-md-2">정가</label>
+       <div class="col-md-10">
+         <input type='number' name='price' value='0' required="required"
+                    min="0" max="10000000" step="100" autofocus="autofocus"
+                    class="form-control" style='width: 100%;'>
+       </div>
+    </div>   
+    <div class="form-group">
+       <label class="control-label col-md-2">할인률</label>
+       <div class="col-md-10">
+         <input type='number' name='dc' value='10' required="required"
+                    min="0" max="100" step="1" 
+                    class="form-control" style='width: 100%;'>
+       </div>
+    </div> 
+    <div class="form-group">
+       <label class="control-label col-md-2">판매가</label>
+       <div class="col-md-10">
+         <input type='number' name='saleprice' value='0' required="required"
+                    min="0" max="10000000" step="100" 
+                    class="form-control" style='width: 100%;'>
+       </div>
+    </div>         
+    <div class="form-group">
+       <label class="control-label col-md-2">포인트</label>
+       <div class="col-md-10">
+         <input type='number' name='point' value='0' required="required"
+                    min="0" max="10000000" step="10" 
+                    class="form-control" style='width: 100%;'>
+       </div>
+    </div>        
+    <div class="content_body_bottom">
+      <button type="submit" class="btn btn-primary">저장</button>
+      <button type="button" onclick="location.href='./read.do?cateno=${param.cateno}&contentsno=${param.contentsno }'" class="btn btn-primary">취소</button>
+    </div>
+  
+  </FORM>
+</DIV>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
 -------------------------------------------------------------------------------------
 
 7. View: JSP 
 상품 등록 메시지 ▷ /webapp/contents/product_update_msg.jsp
+★★★★create_msg 복사하여 사용
 -------------------------------------------------------------------------------------
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
 
+<DIV class='title_line'>알림</DIV>
+
+<DIV class='message'>
+  <fieldset class='fieldset_basic'>
+    <UL>
+      <c:choose>
+        <c:when test="${param.cnt == 1}">
+          <LI class='li_none'>
+            <span class="span_success">상품 정보를 등록했습니다.</span>
+          </LI>
+        </c:when>
+        <c:otherwise>
+          <LI class='li_none_left'>
+            <span class="span_fail">상품 정보 등록에 실패했습니다.</span>
+          </LI>
+          <LI class='li_none_left'>
+            <span class="span_fail">다시 시도해주세요.</span>
+          </LI>
+        </c:otherwise>
+      </c:choose>
+      <LI class='li_none'>
+        <br>
+        <c:choose>
+          <c:when test="${param.cnt == 1 }">
+            <button type='button' 
+                         onclick="location.href='./product_update.do?cateno=${param.cateno}&categrpno=${param.categrpno }&contentsno=${param.contentsno }'"
+                         class="btn btn-primary">관련 상품 정보 재등록</button>
+          </c:when>
+          <c:otherwise>
+            <button type='button' onclick="history.back();" class="btn btn-primary">다시 시도</button>
+          </c:otherwise>
+        </c:choose>
+        
+        <%-- <button type='button' onclick="location.href='./list_by_cateno.do?cateno=${param.cateno}'" class="btn btn-primary">목록</button> --%>
+        <%-- <button type='button' onclick="location.href='./list_by_cateno_search.do?cateno=${param.cateno}'" class="btn btn-primary">목록</button> --%>
+        <button type='button' onclick="location.href='./list_by_cateno_search_paging.do?cateno=${param.cateno}'" class="btn btn-primary">목록</button>
+      </LI>
+    </UL>
+  </fieldset>
+
+</DIV>
+
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
 -------------------------------------------------------------------------------------
-
 ~~~
