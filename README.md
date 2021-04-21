@@ -7060,3 +7060,113 @@ public class Contents {
         thumb1 = Tool.preview(upDir, file1saved, 250, 200); 
 -------------------------------------------------------------------------------------
 ~~~
+
+* **0421 : [42][Contents] 등록 기능의 제작의 상품 정보의 등록(연속입력)**
+~~~
+[01] 등록 기능 제작 응용 상품 정보의 등록
+1. SQL 
+▷ /webapp/WEB-INF/doc/dbms/contents_c.sql
+-------------------------------------------------------------------------------------
+-- 글 수정, id="update"
+UPDATE contents 
+SET price=5000, dc=10, saleprice=4500, point=250
+WHERE contentsno = 20;
+-------------------------------------------------------------------------------------
+ 
+2. MyBATIS - 연속입력
+★★★★★ Oracle 기반 연속 입력
+  <!-- ContentsVO class의 contentsno 컬럼에 PK return하는 유형 --> 
+ <insert id="create" parameterType="dev.mvc.contents.ContentsVO">
+    <!--sql 생성 전 keyProperty= contentsno -> VO에 저장 -> VO는 INSERT 문 으로 전달-->
+    <selectKey keyProperty="contentsno" resultType="int" order="BEFORE"> 
+      SELECT contents_seq.nextval FROM dual
+    </selectKey> 
+  INSERT INTO contents(contentsno, adminno, cateno, title, content, passwd, word,
+                                   file1, file1saved, thumb1, size1, rdate)
+  VALUES(contents_seq.nextval, #{adminno}, #{cateno}, #{title}, #{content}, #{passwd}, #{word},
+              #{file1}, #{file1saved}, #{thumb1}, #{size1}, sysdate)
+ </insert>
+   
+★★★★★ MariaDB(MySQL) 기반 연속 입력(MariaDB, MySQL에서 AUTO_INCREMENT를 사용하는 경우)
+  <!-- ContentsVO class의 contentsno 컬럼에 PK return하는 유형 --> 
+  <insert id="create" parameterType="dev.mvc.contents.ContentsVO" 
+            useGeneratedKeys="true" keyProperty="contentsno">
+    INSERT INTO write(wtitle, wcontent, wrecom, wreplycnt, rdate, wword, boardno)
+    VALUES(#{wtitle}, #{wcontent}, 0, 0, sysdate, #{wword}, #{boardno})             
+  </insert>
+
+▷ /src/main/resources/contents.xml 
+★★★★★ (수정) 제일 처음 작성했던 등록 SQL (INSERT)문 주석 처리 ★★★★★
+-------------------------------------------------------------------------------------
+ <!-- [42][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속 입력) -->
+ <insert id="create" parameterType="dev.mvc.contents.ContentsVO">
+    <!--sql 생성 전 keyProperty= contentsno -> VO에 저장 -> VO는 INSERT 문 으로 전달-->
+    <selectKey keyProperty="contentsno" resultType="int" order="BEFORE"> 
+      SELECT contents_seq.nextval FROM dual
+    </selectKey> 
+  INSERT INTO contents(contentsno, adminno, cateno, title, content, passwd, word,
+                                   file1, file1saved, thumb1, size1, rdate)
+  VALUES(contents_seq.nextval, #{adminno}, #{cateno}, #{title}, #{content}, #{passwd}, #{word},
+              #{file1}, #{file1saved}, #{thumb1}, #{size1}, sysdate)
+ </insert>
+
+  <!--[42][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속입력)에 따른 등록  -->
+  <update id="product_update" parameterType="dev.mvc.contents.ContentsVO">
+    UPDATE contents 
+    SET price=#{price}, dc=#{dc}, saleprice=#{saleprice}, point=#{point}
+    WHERE contentsno=#{contentsno}
+  </update>
+-------------------------------------------------------------------------------------
+ 
+3. DAO interface ▷ /dev/mvc/contents/ContentsDAOInter.java 
+4. Process interface - 조회와 수정용 조회가 분리되어 개발되어야함.
+▷ ContentsProcInter.java 
+-------------------------------------------------------------------------------------
+  /**
+   * [42][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속입력)
+   * 상품 정보 수정 처리
+   * @param contentsVO
+   * @return
+   */
+  public int product_update(ContentsVO contentsVO);  
+-------------------------------------------------------------------------------------
+
+5. Process class ▷ ContentsProcess.java
+-----------------------------------------------------------------------------------
+    // [42][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속입력)
+    @Override
+    public int product_update(ContentsVO contentsVO) {
+      int cnt = this.contentsDAO.product_update(contentsVO);
+      return cnt;
+    }
+-----------------------------------------------------------------------------------
+ 
+★★★★수정) create_msg.jsp  -> 컨턴체 등록시 관련 상품 등록을 위한 연속 폼(product_update)로 이동
+-------------------------------------------------------------------------------------
+            <button type='button' 
+                         onclick="location.href='./product_update.do?cateno=${param.cateno}'"
+                         class="btn btn-primary">관련 상품 등록</button>          
+            <button type='button' 
+                         onclick="location.href='./create.do?cateno=${param.cateno}'"
+                         class="btn btn-primary">새로운 컨텐츠 등록</button>
+          </c:when>
+          <c:otherwise>
+            <button type='button' onclick="history.back();" class="btn btn-primary">다시 시도</button>
+          </c:otherwise>
+        </c:choose>
+        
+       <%-- <button type='button' onclick="location.href='./list_by_cateno.do?cateno=${param.cateno}'" class="btn btn-primary">목록</button>
+       <button type='button' onclick="location.href='./list_by_cateno_search.do?cateno=${param.cateno}'" class="btn btn-primary">목록</button> --%>
+       <button type='button' onclick="location.href='./list_by_cateno_search_paging.do?cateno=${param.cateno}'" class="btn btn-primary">목록</button>
+-------------------------------------------------------------------------------------
+
+6. Controller class ▷ ContentsCont.java
+- VO 클래스의 일부 변수만 전달하는 경우 HashMap을 이용하여 전달하면 메모리가 절약됨.
+-------------------------------------------------------------------------------------
+ 
+-------------------------------------------------------------------------------------
+ 
+7. View: JSP 1) 변경 화면 ▷ /webapp/contents/update.jsp
+-------------------------------------------------------------------------------------
+
+~~~
