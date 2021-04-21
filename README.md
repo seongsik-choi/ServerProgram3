@@ -6913,3 +6913,150 @@ public class Contents {
 -------------------------------------------------------------------------------------
 ~~~
 
+* **0421 : [41][Contents] Grid 이미지 기반 cateno별 내용 요약 목록 출력, list_by_cateno_grid.jsp**
+~~~
+- 검색과 페이징이 빠진 GRID 페이지
+[01] Grid 이미지 기반 cateno별 내용 요약 목록 출력, list_by_cateno_grid_img.jsp
+1. SQL▷ /webapp/WEB-INF/doc/dbms/contents_c.sql
+2. MyBATIS▷ /src/main/resources/contents.xml 
+- id: list_by_cateno
+-----------------------------------------------------------------------------------
+변경 없음
+-----------------------------------------------------------------------------------
+
+3. DAOP interface ▷ /dev/mvc/contents/ContentsDAOInter.java 
+-------------------------------------------------------------------------------------
+변경 없음
+-------------------------------------------------------------------------------------
+
+4. Process interface  ▷ ContentsProcInter.java 
+-----------------------------------------------------------------------------------
+변경 없음
+-----------------------------------------------------------------------------------
+
+5. Process class ▷ ContentsProc.java
+-----------------------------------------------------------------------------------
+변경 없음
+-----------------------------------------------------------------------------------
+
+6. Controller class
+- 카테고리별 목록: Get, http://localhost:9090/resort/contents/list_by_cateno_grid.do
+▷ ContentsCont.java
+-----------------------------------------------------------------------------------
+  /**
+   * [41][Contents] Grid 이미지 기반 cateno별 내용 요약 목록 출력
+   * Grid 형태의 화면 구성 http://localhost:9091/contents/list_by_cateno_grid.do
+   * 
+   * @return
+   */
+  @RequestMapping(value = "/contents/list_by_cateno_grid.do", method = RequestMethod.GET)
+  public ModelAndView list_by_cateno_grid(int cateno) {
+    ModelAndView mav = new ModelAndView();
+    
+    CateVO cateVO = this.cateProc.read(cateno);
+    mav.addObject("cateVO", cateVO);
+    
+    CategrpVO categrpVO = this.categrpProc.read(cateVO.getCategrpno());
+    mav.addObject("categrpVO", categrpVO);
+    
+    List<ContentsVO> list = this.contentsProc.list_by_cateno(cateno);
+    mav.addObject("list", list);
+
+    // 테이블 이미지 기반, /webapp/contents/list_by_cateno_grid.jsp
+    mav.setViewName("/contents/list_by_cateno_grid");
+
+    return mav; // forward
+  }
+-----------------------------------------------------------------------------------
+
+7. View: JSP ▷ /webapp/contents/list_by_cateno_grid.jsp
+-> contenst/list_by_cateno.jsp 복사하여 사용
+
++ 링크 수정 /contents/list_by_cateno_search_paging
+    <A href="./list_by_cateno_grid.do?cateno=${cateVO.cateno }">갤러리형</A>
+-------------------------------------------------------------------------------------
+ // <DIV class='menu_line'></DIV> 밑 부분 테이블 시작부터 끝까지 삭제
+// 링크 수정   <A href="./list_by_cateno_search_paging.do?cateno=${cateVO.cateno }">기본 목록형</A> 
+
+// 홈페이지 GRID 부분 복사
+  <div style='width: 100%;'> <%-- 갤러리 Layout 시작 --%>
+    <c:forEach var="contentsVO" items="${list }" varStatus="status"> <%-- Controller의 addobject--%>
+      <c:set var="contentsno" value="${contentsVO.contentsno }" />
+      <c:set var="thumb1" value="${contentsVO.thumb1 }" />
+      <c:set var="file1" value="${contentsVO.file1 }" />
+      <c:set var="size1" value="${contentsVO.size1 }" />
+      <c:set var="title" value="${contentsVO.title }" />
+      <c:set var="content" value="${contentsVO.content }" />
+      
+      <c:set var="price" value="${contentsVO.price }" />
+      <c:set var="dc" value="${contentsVO.dc }" />
+      <c:set var="saleprice" value="${contentsVO.saleprice }" />
+      <c:set var="point" value="${contentsVO.point }" />
+
+      <%--하나의 행에 이미지를 4개씩 출력후 행 변경 --%>
+      <c:if test="${status.index % 4 == 0 && status.index != 0 }"> 
+        <HR class='menu_line'>
+      </c:if>
+      
+      <!-- 하나의 이미지, 24 * 4 = 96% -->
+      <DIV style='width: 24%; 
+              float: left; 
+              margin: 0.5%; padding: 0.5%; background-color: #EEEFFF; text-align: center;' > <!-- 반응형 웹 표현, 가변적인 위치 -->
+        <c:choose>
+          <c:when test="${size1 > 0}"> <!-- 파일이 존재하면 -->
+            <c:choose> 
+              <c:when test="${thumb1.endsWith('jpg') || thumb1.endsWith('png') || thumb1.endsWith('gif')}"> <!-- 이미지 인경우 -->
+                <a href="./read.do?contentsno=${contentsno}">               
+                  <IMG src="./storage/${thumb1 }" style='width: 100%; height: 150px;'> <!-- width는 %, 높이는 px로 고정 -->
+                </a>
+                
+              <DIV class='menu_line2'><strong>${title}</strong></DIV>
+               <del><fmt:formatNumber value="${price}" pattern="#,###" />원</del>
+               <span style= "color:#FF0000; font-size: 1.0em" >${dc} %</span> <!--  스타일적용 --> 
+               <Strong><fmt:formatNumber value='${saleprice}' pattern="#,###" />원</Strong><BR>
+                 
+              </c:when>
+              <c:otherwise> <!-- 이미지가 아닌 일반 파일 -->
+                <DIV style='width: 100%; height: 150px; display: table; border: solid 1px #CCCCCC;'>
+                  <DIV style='display: table-cell; vertical-align: middle; text-align: center;'> <!-- 수직 가운데 정렬 -->
+                    <a href="./read.do?contentsno=${contentsno}">${file1}</a><br>
+                  </DIV>
+                </DIV>
+                ${title} (${cnt})              
+              </c:otherwise>
+            </c:choose>
+          </c:when>
+          <c:otherwise> <%-- 파일이 없는 경우 기본 이미지 출력 --%>
+            <a href="./read.do?contentsno=${contentsno}">
+              <img src='/contents/images/none2.png' style='width: 100%; height: 150px;'>
+            </a><br>
+            이미지를 등록해주세요.
+          </c:otherwise>
+        </c:choose>         
+      </DIV>  
+    </c:forEach>
+    <!-- 갤러리 Layout 종료 -->
+    <br><br>
+  </div>    
+-------------------------------------------------------------------------------------
+
++  수정 /contents/list_by_cateno_search_paging
++ jstl로 value 미리 선언 -> 하단의 EL 문장들 수정 
+-------------------------------------------------------------------------------------
+      <c:set var="contentsno" value="${contentsVO.contentsno }" />
+      <c:set var="thumb1" value="${contentsVO.thumb1 }" />
+      <c:set var="file1" value="${contentsVO.file1 }" />
+      <c:set var="title" value="${contentsVO.title }" />
+      <c:set var="content" value="${contentsVO.content }" />
+      
+      <c:set var="price" value="${contentsVO.price }" />
+      <c:set var="dc" value="${contentsVO.dc }" />
+      <c:set var="saleprice" value="${contentsVO.saleprice }" />
+      <c:set var="point" value="${contentsVO.point }" />
+-------------------------------------------------------------------------------------
+
++ Controller 수정 : 등록되는 이미지의 썸네일 사이즈 조정
+-------------------------------------------------------------------------------------
+        thumb1 = Tool.preview(upDir, file1saved, 250, 200); 
+-------------------------------------------------------------------------------------
+~~~
