@@ -7429,5 +7429,271 @@ insert 되는 순간 -> contentsno 전달
 <jsp:include page="../menu/bottom.jsp" flush='false' />
 </body>
 -------------------------------------------------------------------------------------
+~~~
 
+* **0422 : [45][Contents] 조회 기능의 제작, 상품 구입 화면**
+-------------------------------------------------------------------------------------
+★ 42 조회 기능의 procInter 부분까지 동일, 생성하지않아도 OK
+[01] 조회 기능의 제작, 상품 구입 화면
+
+1. MyBATIS ▷ /src/main/resources/contents.xml 
+- 글 수정, id="update"  - 패스워드 검사, id="passwd_check"
+-------------------------------------------------------------------------------------
+  <!--  [42, 45][Contents] 조회 기능의 제작
+    일반적인 조회 -->
+  <select id="read" resultType="dev.mvc.contents.ContentsVO" parameterType="int">
+    SELECT contentsno, adminno, cateno, title, content, recom, cnt, replycnt, rdate, 
+              file1, file1saved, thumb1, size1, price, dc, saleprice, point, salecnt
+    FROM contents
+    WHERE contentsno = #{contentsno }
+  </select>
+------------------------------------------------------------------------------------
+ 
+3. DAO interface ▷ /dev/mvc/contents/ContentsDAOInter.java 
+4. Process interface ▷ ContentsProcInter.java 
+-------------------------------------------------------------------------------------
+    
+  /**
+   * [42, 45][Contents] 조회 기능의 제작
+   * 조회
+   * @param contentsno
+   * @return
+   */
+  public ContentsVO read(int contentsno);  
+-------------------------------------------------------------------------------------
+
+5. Process class ▷ ContentsProcess.java
+ title, content 부분의 주석을 풀음
+-----------------------------------------------------------------------------------
+    /**
+     * [42, 45][Contents] 조회 기능의 제작 
+     */
+    @Override
+    public ContentsVO read(int contentsno) {
+      ContentsVO contentsVO = this.contentsDAO.read(contentsno);
+      
+      String title = contentsVO.getTitle();
+      String content = contentsVO.getContent();
+      
+      title = Tool.convertChar(title);  // 특수 문자 처리
+      content = Tool.convertChar(content); 
+      
+      contentsVO.setTitle(title);
+      contentsVO.setContent(content);  
+      
+      long size1 = contentsVO.getSize1();
+      contentsVO.setSize1_label(Tool.unit(size1));
+      
+      return contentsVO;
+    }
+-----------------------------------------------------------------------------------
+   
+6. Controller class ▷ ContentsCont.java
+-------------------------------------------------------------------------------------
+  // http://localhost:9091/contents/read.do
+  /**
+   * [45][Contents] 조회 기능의 제작, 상품 구입 화면
+   * 조회
+   * @return
+   */
+  @RequestMapping(value="/contents/read.do", method=RequestMethod.GET )
+  public ModelAndView read(int contentsno) {
+    ModelAndView mav = new ModelAndView();
+
+    ContentsVO contentsVO = this.contentsProc.read(contentsno);
+    mav.addObject("contentsVO", contentsVO); // request.setAttribute("contentsVO", contentsVO);
+
+    CateVO cateVO = this.cateProc.read(contentsVO.getCateno());
+    mav.addObject("cateVO", cateVO); 
+
+    CategrpVO categrpVO = this.categrpProc.read(cateVO.getCategrpno());
+    mav.addObject("categrpVO", categrpVO); 
+    
+    mav.setViewName("/contents/read"); // /WEB-INF/views/contents/read.jsp
+        
+    return mav;
+  }  
+-------------------------------------------------------------------------------------
+ 
+7. View: JSP 
+1) 조회 ▷ /webapp/contents/read.jsp 
+★★★★★/contents/create.jsp를 복붙
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<c:set var="title" value="${contentsVO.title }" />
+        
+<c:set var="price" value="${contentsVO.price }" />
+<c:set var="dc" value="${contentsVO.dc }" />
+<c:set var="saleprice" value="${contentsVO.saleprice }" />
+<c:set var="point" value="${contentsVO.point }" />
+<c:set var="salecnt" value="${contentsVO.salecnt }" />
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+ 
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<!-- Bootstrap -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    
+<script type="text/javascript">
+  $(function(){
+ 
+  });
+</script>
+ 
+</head> 
+ 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+<DIV class='title_line'>
+  <A href="../categrp/list.do" class='title_link'>카테고리 그룹</A> > 
+  <A href="../cate/list_by_categrpno.do?categrpno=${categrpVO.categrpno }" class='title_link'>${categrpVO.name }</A> >
+  <A href="./list_by_cateno_search_paging.do?cateno=${cateVO.cateno }" class='title_link'>${cateVO.name }</A>
+</DIV>
+
+<DIV class='content_body'>
+  <ASIDE class="aside_right">
+    <A href="./create.do?cateno=${cateVO.cateno }">등록</A>
+    <span class='menu_divide' >│</span>
+    <A href="javascript:location.reload();">새로고침</A>
+    <span class='menu_divide' >│</span>
+    <A href="./list_by_cateno_search_paging.do?cateno=${cateVO.cateno }">기본 목록형</A>    
+    <span class='menu_divide' >│</span>
+    <A href="./list_by_cateno_grid.do?cateno=${cateVO.cateno }">갤러리형</A>
+  </ASIDE> 
+  
+    <DIV style="text-align: right; clear: both;">  
+    <form name='frm' id='frm' method='get' action='./list_by_cateno_search.do'>
+      <input type='hidden' name='cateno' value='${cateVO.cateno }'>
+      <c:choose>
+        <c:when test="${param.word != '' }"> <%-- 검색하는 경우 --%>
+          <input type='text' name='word' id='word' value='${param.word }' style='width: 20%;'>
+        </c:when>
+        <c:otherwise> <%-- 검색하지 않는 경우 --%>
+          <input type='text' name='word' id='word' value='' style='width: 20%;'>
+        </c:otherwise>
+      </c:choose>
+      <button type='submit'>검색</button>
+      <c:if test="${param.word.length() > 0 }">
+        <button type='button' 
+                     onclick="location.href='./list_by_cateno_search.do?cateno=${cateVO.cateno}&word='">검색 취소</button>  
+      </c:if>    
+    </form>
+  </DIV>
+  
+  <DIV class='menu_line'></DIV>
+
+  <fieldset class="fieldset_basic">
+    <ul>
+      <li class="li_none">
+        <c:set var="file1saved" value="${contentsVO.file1saved.toLowerCase() }" />
+        <c:if test="${file1saved.endsWith('jpg') || file1saved.endsWith('png') || file1saved.endsWith('gif')}">
+          <DIV style="width: 50%; float: left; margin-right: 10px;">
+            <IMG src="/contents/storage/${contentsVO.file1saved }" style="width: 100%;">
+          </DIV>
+          <DIV style="width: 47%; height: 260px; float: left; margin-right: 10px;">
+            <span style="font-size: 1.5em; font-weight: bold;">${title }</span><br>
+            <span style="color: #FF0000; font-size: 2.0em;">${dc} %</span>
+            <span style="font-size: 1.5em; font-weight: bold;"><fmt:formatNumber value="${saleprice}" pattern="#,###" /> 원</span>
+            <del><fmt:formatNumber value="${price}" pattern="#,###" /> 원</del><br>
+            <span style="font-size: 1.2em;">포인트: <fmt:formatNumber value="${point}" pattern="#,###" /> 원</span><br>
+            <span style="font-size: 1.0em;">(보유수량: <fmt:formatNumber value="${salecnt}" pattern="#,###" /> 개)</span><br>
+            <span style="font-size: 1.0em;">수량</span><br>
+            <form>
+            <input type='number' name='ordercnt' value='1' required="required" 
+                       min="1" max="99999" step="1" class="form-control" style='width: 30%;'><br>
+            <button type='button' onclick="" class="btn btn-info">장바 구니</button>           
+            <button type='button' onclick="" class="btn btn-info">바로 구매</button>
+            <button type='button' onclick="" class="btn btn-info">관심 상품</button>
+            </form>
+          </DIV> 
+        </c:if> 
+        <DIV>${contentsVO.content }</DIV>
+      </li>
+      <li class="li_none">
+        <DIV style='text-decoration: none;'>
+          검색어(키워드): ${contentsVO.word }
+        </DIV>
+      </li>
+      <li class="li_none">
+        <DIV>
+          <c:if test="${contentsVO.file1.trim().length() > 0 }">
+            첨부 파일: <A href='/download?dir=/contents/storage&filename=${contentsVO.file1saved}&downname=${contentsVO.file1}'>${contentsVO.file1}</A> (${contentsVO.size1_label})  
+          </c:if>
+        </DIV>
+      </li>   
+    </ul>
+  </fieldset>
+
+</DIV>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+ 
+</html>
+-------------------------------------------------------------------------------------
+ 
+★수정) controller의 list_by_cateno_search_paging 부분 수정
+-------------------------------------------------------------------------------------
+  // [40] : paging 컨틀롤러 부분
+  @Override
+  public List<ContentsVO> list_by_cateno_search_paging(HashMap<String, Object> map) {
+    /* 
+    페이지에서 출력할 시작 레코드 번호 계산 기준값, nowPage는 1부터 시작
+    1 페이지 시작 rownum: now_page = 1, (1 - 1) * 10 --> 0 
+    2 페이지 시작 rownum: now_page = 2, (2 - 1) * 10 --> 10
+    3 페이지 시작 rownum: now_page = 3, (3 - 1) * 10 --> 20
+    */
+    int begin_of_page = ((Integer)map.get("now_page") - 1) * Contents.RECORD_PER_PAGE;
+   
+    // 시작 rownum 결정
+    // 1 페이지 = 0 + 1, 2 페이지 = 10 + 1, 3 페이지 = 20 + 1 
+    int start_num = begin_of_page + 1;
+    
+    //  종료 rownum
+    // 1 페이지 = 0 + 10, 2 페이지 = 0 + 20, 3 페이지 = 0 + 30
+    int end_num = begin_of_page + Contents.RECORD_PER_PAGE;   
+    /*
+    1 페이지: WHERE r >= 1 AND r <= 10
+    2 페이지: WHERE r >= 11 AND r <= 20
+    3 페이지: WHERE r >= 21 AND r <= 30
+    */
+    map.put("start_num", start_num);
+    map.put("end_num", end_num);
+   
+    List<ContentsVO> list = this.contentsDAO.list_by_cateno_search_paging(map);
+    
+    for (ContentsVO contentsVO : list) { // 내용이 160자 이상이면 160자만 선택
+      String content = contentsVO.getContent();
+      if (content.length() > 160) {
+        content = content.substring(0, 160) + "...";
+        contentsVO.setContent(content);
+      }
+      
+      String title = Tool.convertChar(contentsVO.getTitle());
+      contentsVO.setTitle(title);
+      
+      content = Tool.convertChar(content);
+      contentsVO.setContent(content);
+    }
+    
+    return list;
+  }
+-------------------------------------------------------------------------------------
+
+★★★★★ 수정) contents.xml의 Insert(등록)과 product_update 부분에 salecnt 컬럼 추가
+ <!-- [43][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속 입력) -->
+ <!--[43][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속입력)에 따른 등록  -->
 ~~~
