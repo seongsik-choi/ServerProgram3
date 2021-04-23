@@ -8167,6 +8167,7 @@ create.jsp 기반
 -------------------------------------------------------------------------------------
 
 ▷ ContentsCont.java
+[36] create 등록폼과 등록처리 폼 복사하여 활용
 -------------------------------------------------------------------------------------
   /**
    * [47] 파일 수정폼
@@ -8190,6 +8191,85 @@ create.jsp 기반
     mav.setViewName("/contents/update_file"); // /webapp/WEB-INF/views/categrp/update_file.jsp
     return mav; // forward
   }    
+
+  /**
+   * [47] 파일 수정처리
+   * [36][Contents] 등록 기능 제작(INSERT ~ INTO ~ VALUES ~) 기반
+   * http://localhost:9091/contents/update_file.do
+   * 
+   * @return
+   */
+  @RequestMapping(value = "/contents/update_file.do", method = RequestMethod.POST)
+  public ModelAndView update_file(HttpServletRequest request, ContentsVO contentsVO) {
+    
+    ModelAndView mav = new ModelAndView();
+    
+    // -------------------------------------------------------------------
+    // 파일 삭제 코드 시작
+    // -------------------------------------------------------------------
+    // 삭제할 파일 정보를 읽어옴.
+    ContentsVO vo = contentsProc.read(contentsVO.getContentsno());
+      //    System.out.println("contentsno: " + vo.getContentsno());
+      //    System.out.println("file1: " + vo.getFile1());
+    
+    String file1saved = vo.getFile1saved();
+    String thumb1 = vo.getThumb1();
+    long size1 = 0;
+    boolean sw = false;
+    
+    // 완성된 경로 F:/ai8/ws_frame/resort_v1sbm3a/src/main/resources/static/contents/storage
+    String upDir =  System.getProperty("user.dir") + "/src/main/resources/static/contents/storage/"; // 절대 경로
+
+    sw = Tool.deleteFile(upDir, file1saved);  // Folder에서 1건의 파일 삭제, delete는 tool.java의 method
+    sw = Tool.deleteFile(upDir, thumb1);    // Folder에서 1건의 파일 삭제
+    // System.out.println("sw: " + sw);
+    // -------------------------------------------------------------------
+    // 파일 삭제 종료 시작
+    // -------------------------------------------------------------------
+    
+    // -------------------------------------------------------------------
+    // 기존 코드
+    // 파일 전송 코드 시작
+    // -------------------------------------------------------------------
+    String file1 = "";     // 원본 파일명, image
+
+    // 완성된 경로 F:/ai6/ws_frame/resort_v1sbm3a/src/main/resources/static/contents/storage
+   //  String upDir =  user_dir + "/src/main/resources/static/contents/storage"; // 절대 경로
+    
+    // 전송 파일이 없어도 fnamesMF 객체가 생성됨.
+    // <input type='file' class="form-control" name='file1MF' id='file1MF' 
+    //           value='' placeholder="파일 선택">
+    MultipartFile mf = contentsVO.getFile1MF(); // VO에 추가된 파일저장 변수
+    
+    file1 = mf.getOriginalFilename(); // 원본 파일명
+    size1 = mf.getSize();  // 파일 크기
+    if (size1 > 0) { // 파일 크기 체크
+      
+      // 파일 저장 후 업로드된 파일명이 리턴됨, spring.jsp, spring_1.jpg...
+      file1saved = Upload.saveFileSpring(mf, upDir);  // 저장된 파일명
+      
+      if (Tool.isImage(file1saved)) { // 이미지인지 검사, Tool.java(Componet)의 메소드 사용.
+        // thumb 이미지 생성후 파일명 리턴됨, width: 200, height: 150
+        thumb1 = Tool.preview(upDir, file1saved, 250, 200); 
+      }
+    }    
+    contentsVO.setFile1(file1);
+    contentsVO.setFile1saved(file1saved);
+    contentsVO.setThumb1(thumb1);
+    contentsVO.setSize1(size1);
+    // -------------------------------------------------------------------
+    // 파일 전송 코드 종료
+    // -------------------------------------------------------------------
+      
+    // Call By Reference: 메모리 공유, Hashcode 전달
+    int cnt = this.contentsProc.update_file(contentsVO); 
+    
+    mav.addObject("contentsno", contentsVO.getContentsno());
+    
+    mav.setViewName("redirect:/contents/read.do"); 
+
+    return mav; // forward
+  }
 -------------------------------------------------------------------------------------
 
 ▷ /views/contents/update_file.jsp
