@@ -6642,6 +6642,34 @@ WHERE r >= 11 AND r <= 20;
  </select> 
 -------------------------------------------------------------------------------------
 
+★★★★Mariadb는 LIMIT를 활용한 페이징 기법
+-------------------------------------------------------------------------------------
+  <!-- [40][Contents] 페이징, SQL, DAO, Process, list_by_stuno_search_paging.jsp 
+  스터디별 검색 목록 + 페이징 + 메인 이미지 -->   
+  <select id="list_by_stuno_search_paging" 
+             resultType="dev.mvc.contents.ContentsVO" parameterType="HashMap">
+   SELECT contentsno, adminno, stuno, name, intro, certi, id, passwd, file1, file1saved, thumb1, size1
+   FROM contents
+   <choose>
+     <when test="intro == null or intro == ''"> <!-- 검색하지 않는 경우 -->
+       WHERE stuno=#{stuno}
+     </when>
+     <otherwise>
+     WHERE stuno=#{stuno} AND (name LIKE CONCAT('%', #{intro}, '%')
+                                             OR certi LIKE CONCAT('%', #{intro}, '%')
+                                             OR id LIKE CONCAT('%', #{intro}, '%')
+                                             OR intro LIKE CONCAT('%', #{intro}, '%'))
+     </otherwise>
+   </choose>
+   ORDER BY contentsno DESC
+   LIMIT #{offset}, #{page_size}
+     
+<!--  1 page: LIMIT 0, 10 
+        2 page: LIMIT 10, 10
+        3 page: LIMIT 20, 10 -->
+  </select>
+-------------------------------------------------------------------------------------
+
 3. 상수 선언 ▷ /dev/mvc/contents/Contents.java 
 - 
 -------------------------------------------------------------------------------------
@@ -6695,6 +6723,19 @@ public class Contents {
 
 6. Process class ▷ ContentsProc.java
 개인 프로젝트에서는 그대로 진행 : cateno와 같은 PK만 변경
+- 마리아DB와 차이
+★★★★Mariadb 참고) 이부분 대신에 offset에 값들 들어감 쪽 참고   
+-------------------------------------------------------------------------------------
+      // 시작 rownum 결정
+      // 1 페이지 = 0 + 1, 2 페이지 = 10 + 1, 3 페이지 = 20 + 1 
+      int offset = ((Integer)map.get("now_page") - 1) * Contents.RECORD_PER_PAGE;
+      System.out.println("-> offset: " + offset);
+      
+      map.put("offset", offset);
+      map.put("page_size", Contents.RECORD_PER_PAGE);
+      System.out.println("-> page_size: " + Contents.RECORD_PER_PAGE);
+-------------------------------------------------------------------------------------
+
 -------------------------------------------------------------------------------------
     /** 
      *  [40][Contents] 페이징, SQL, DAO, Process, list_by_cateno_search_paging.jsp 
@@ -6799,6 +6840,7 @@ public class Contents {
       */
       int begin_of_page = ((Integer)map.get("now_page") - 1) * Contents.RECORD_PER_PAGE;
      
+// ★★★★Mariadb는 이부분 대신에 offset에 대한 다른 값들 들어감   
       // 시작 rownum 결정
       // 1 페이지 = 0 + 1, 2 페이지 = 10 + 1, 3 페이지 = 20 + 1 
       int start_num = begin_of_page + 1;
@@ -6813,7 +6855,8 @@ public class Contents {
       */
       map.put("start_num", start_num);
       map.put("end_num", end_num);
-     
+// ★★★★Mariadb는 이부분 대신에 offset에 대한 다른 값들 들어감 (종료)
+
       List<ContentsVO> list = this.contentsDAO.list_by_cateno_search_paging(map);
       for(ContentsVO contentsVO : list) {       // content 컬럼(내용)이 200자 이상 시 ... 표시로 출력되게하기
         String content = contentsVO.getContent(); // 내용을 가져와서
