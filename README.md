@@ -7432,6 +7432,7 @@ insert 되는 순간 -> contentsno 전달
 ~~~
 
 * **0422 : [45][Contents] 조회 기능의 제작, 상품 구입 화면**
+~~~
 -------------------------------------------------------------------------------------
 ★ 42 조회 기능의 procInter 부분까지 동일, 생성하지않아도 OK
 [01] 조회 기능의 제작, 상품 구입 화면
@@ -7693,7 +7694,91 @@ insert 되는 순간 -> contentsno 전달
   }
 -------------------------------------------------------------------------------------
 
-★★★★★ 수정) contents.xml의 Insert(등록)과 product_update 부분에 salecnt 컬럼 추가
+★★★★★ 수정) contents.xml의 Insert(등록) salecnt 컬럼 추가
  <!-- [43][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속 입력) -->
- <!--[43][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속입력)에 따른 등록  -->
+~~~
+
+* **0423 : [46][Contents] 텍스트 관련 수정 기능의 제작, HashMap 전달, 패스워드 검사(향후 Ajax 적용 구현)**
+~~~
+★★★★★★ 패스워드 검사(향후 Ajax 적용 구현) ★★★★★★
+
+[01] 텍스트 관련 수정 기능의 제작, HashMap 전달
+ 1. SQL ▷ /webapp/WEB-INF/doc/dbms/contents_c.sql
+-------------------------------------------------------------------------------------
+-- [46][Contents] 텍스트 관련 수정 기능의 제작, HashMap 전달
+-- 1) 글(텍스트) 부분 수정 : 예외 컬럼(추천수, 조회수, 댓글수)
+UPDATE contents
+SET title='기차를 타고', content='계획없이 여행 출발',  word='나,기차,생각', 
+      price=10000, dc=5, saleprice=9500, point=500, salecnt=100
+WHERE contentsno = 46;
+
+-- ERROR
+UPDATE contents
+SET title='기차를 타고', content="계획없이 '여행' 출발",  word='나,기차,생각', 
+      price=10000, dc=5, saleprice=9500, point=500, salecnt=100
+WHERE contentsno = 46;
+
+-- ERROR
+UPDATE contents
+SET title='기차를 타고', content='계획없이 \'여행\' 출발',  word='나,기차,생각', 
+      price=10000, dc=5, saleprice=9500, point=500, salecnt=100
+WHERE contentsno = 46;
+
+-- ' ' 안에 "나 ' 찍는 방법 : 두번 표시
+-- SUCCESS
+UPDATE contents
+SET title='기차를 타고', content='계획없이 ''여행'' 출발',  word='나,기차,생각', 
+      price=10000, dc=5, saleprice=9500, point=500, salecnt=100
+WHERE contentsno = 46;
+-------------------------------------------------------------------------------------
+ 
+2. MyBATIS ▷ /src/main/resources/contents.xml 
+- 글 수정, id="update" - 패스워드 검사, id="passwd_check"(향후)
+-------------------------------------------------------------------------------------
+  <!-- [46][Contents] 텍스트 관련 수정 기능의 제작, HashMap 전달, 패스워드는 향후(AJAX 배운 후)
+  테스트 수정 -->
+  <update id="update_text" parameterType="dev.mvc.contents.ContentsVO">
+    UPDATE contents
+    SET title=#{title}, content=#{content}, word=#{word}, 
+          price=#{price}, dc=#{dc}, saleprice=#{saleprice}, point=#{point}, salecnt=#{salecnt}
+    WHERE contentsno = #{contentsno }
+  </update>
+-------------------------------------------------------------------------------------
+ 
+3. DAO interface ▷ /dev/mvc/contents/ContentsDAOInter.java 
+4. Process interfacen ▷ ContentsProcInter.java 
+-------------------------------------------------------------------------------------
+  /**
+   * [46] 텍스트 정보 수정
+   * @param contentsVO
+   * @return
+   */
+  public int update_text(ContentsVO contentsVO);
+-------------------------------------------------------------------------------------
+
+5. Process class ▷ ContentsProcess.java
+-----------------------------------------------------------------------------------
+     // [45] 텍스트 정보 수정
+    @Override
+    public int update_text(ContentsVO contentsVO) {
+      int cnt = this.contentsDAO.update_text(contentsVO);
+      return cnt;
+    }
+-------------------------------------------------------------------------------------
+ 
+6. Controller class ▷ ContentsCont.java
+-------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------
+
+7. View: JSP 1) 변경 화면  /webapp/contents/update.jsp
+-------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------
+
+2) 메시지 화면 - EL은 태그를 중첩하여 사용 가능 
+▷ /webapp/contents/update_msg.jsp
+-------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------
 ~~~
