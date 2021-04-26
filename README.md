@@ -7689,7 +7689,7 @@ insert 되는 순간 -> contentsno 전달
 </html>
 -------------------------------------------------------------------------------------
  
-★수정) controller의 list_by_cateno_search_paging 부분 수정
+★수정) proc의 list_by_cateno_search_paging 부분 수정
 -------------------------------------------------------------------------------------
   // [40] : paging 컨틀롤러 부분
   @Override
@@ -7938,7 +7938,7 @@ WHERE contentsno = 46;
    * [46] 텍스트 수정용 조회
    * ContentsDAOInter interface에 존재하지 않는 메소드 선언 -> 태그 출력 문제 해결
    */
-  ContentsVO read_update_text(int contentsno);
+  public ContentsVO read_update_text(int contentsno);
 -------------------------------------------------------------------------------------
 
 5. Process class ▷ ContentsProcess.java
@@ -8060,8 +8060,7 @@ create.jsp 기반
     <form name='frm' id='frm' method='get' action='./list_by_cateno_search.do'>
       <input type='hidden' name='cateno' value='${cateVO.cateno }'>
  
-      
-      
+
       <c:choose>
         <c:when test="${param.word != '' }"> <%-- 검색하는 경우 --%>
           <input type='text' name='word' id='word' value='${param.word }' style='width: 20%;'>
@@ -8081,8 +8080,8 @@ create.jsp 기반
   <DIV class='menu_line'></DIV>
   
   <FORM name='frm' method='POST' action='./update_text.do' class="form-horizontal">
-    <input type='hidden' name='contentsno' value='${contentsno }'>
-    <input type="hidden" name="cateno" value="${cateVO.cateno }">
+    <input type='hidden' name='contentsno' value='${contentsno }'> <%-- 수정 --%>
+    <input type="hidden" name="cateno" value="${cateVO.cateno }"> <%-- 수정 --%>
     <input type="hidden" name="adminno" value="1"> <%-- 관리자 개발후 변경 필요 --%>
     
     <div class="form-group">
@@ -8201,12 +8200,12 @@ create.jsp 기반
   public int update_file(ContentsVO contentsVO);  
 
 
-      // [46] 파일 정보 수정
-    @Override
-    public int update_file(ContentsVO contentsVO) {
-      int cnt = this.contentsDAO.update_file(contentsVO);
-      return cnt;
-    }    
+   // [47] 파일 정보 수정
+  @Override
+  public int update_file(ContentsVO contentsVO) {
+   int cnt = this.contentsDAO.update_file(contentsVO);
+   return cnt;
+  }  
 -------------------------------------------------------------------------------------
 
 ▷ ContentsCont.java
