@@ -8360,6 +8360,142 @@ create.jsp 기반
 
 </DIV>
 -------------------------------------------------------------------------------------
+~~~
+
+* **0426 : [48][Contents] 삭제 기능의 제작, 패스워드 검사(향후 Ajax 적용 구현)**  
+~~~
+[01] 삭제 기능 제작
+
+-- [48][Contents] 삭제 기능의 제작, 패스워드 검사(향후 Ajax 적용 구현) ▲
+DELETE FROM contents
+WHERE contentsno = 49;
+commit;
+
+▷ /src/main/resources/contents.xml  - id: delete
+-------------------------------------------------------------------------------------
+  <!-- [48][Contents] 삭제 기능의 제작, 패스워드 검사(향후 Ajax 적용 구현)
+  파일 수정 -->  
+  <delete id="delete" parameterType="int">
+    DELETE FROM contents
+    WHERE contentsno=#{contentsno}
+  </delete>
+-------------------------------------------------------------------------------------
+ 
+ 4. Process interface▷ ContentsProcInter.java 
+ 5. Process class ▷ ContentsProc.java
+-----------------------------------------------------------------------------------
+  /**
+   * [48] 삭제 기능 제작
+   * @param contentsno
+   * @return
+   */
+  public int delete(int contentsno);
+-----------------------------------------------------------------------------------
+
+5. Process class ▷ ContentsProc.java
+-----------------------------------------------------------------------------------
+    // [48] 삭제 기능 제작
+    @Override
+    public int delete(int contentsno) {
+      int cnt = this.contentsDAO.delete(contentsno);
+      return cnt;
+    }
+-----------------------------------------------------------------------------------
+
+6. Controller class ▷ ContentsCont.java
+★ 1) GET 메소드 먼저 구현(READ로 삭제할 정보 조회함)
+★ 2) update_file.do 부분을 복사하여 POST 구현 :
+ - redirect에서 list_by_cateno_search_paging로 이동을 선택(list_by_cateno_search_paging에서 선언한
+ 데이터들을 반드시 호출해줘야함(cateno, word, now_page) 
+ but -> defaultValue 설정 시 데이터 전달안해도 괜찮음
+-------------------------------------------------------------------------------------
+  // [48][Contents] 삭제 기능의 제작, 패스워드 검사(향후 Ajax 적용 구현)
+  @RequestMapping(value="/contents/delete.do", method=RequestMethod.GET )
+  public ModelAndView delete(int contentsno) { 
+    ModelAndView mav = new  ModelAndView();
+    
+    // 삭제할 정보를 조회하여 확인
+    ContentsVO contentsVO = this.contentsProc.read(contentsno);
+    mav.addObject("contentsVO", contentsVO);     
+    mav.setViewName("/contents/delete");  // contents/delete.jsp
+    
+    return mav; 
+  }  
+
+  /**
+   * [48][Contents] 삭제 기능의 제작, 패스워드 검사(향후 Ajax 적용 구현)
+   * [47] 파일 수정처리 기반 
+   * http://localhost:9091/contents/delete.do
+   * 
+   * @return
+   */
+  @RequestMapping(value = "/contents/delete.do", method = RequestMethod.POST)
+  public ModelAndView delete(HttpServletRequest request, int contentsno, int cateno) {
+    
+    ModelAndView mav = new ModelAndView();
+    
+    // -------------------------------------------------------------------
+    // 삭제 코드 시작
+    // -------------------------------------------------------------------
+    // 삭제할 정보를 읽어옴(form에서 보낸 ->contentsno)
+    ContentsVO vo = contentsProc.read(contentsno);
+      //    System.out.println("contentsno: " + vo.getContentsno());
+    
+    String file1saved = vo.getFile1saved();
+    String thumb1 = vo.getThumb1();
+    long size1 = 0;
+    boolean sw = false;
+    
+    // 완성된 경로 F:/ai8/ws_frame/resort_v1sbm3a/src/main/resources/static/contents/storage
+    String upDir =  System.getProperty("user.dir") + "/src/main/resources/static/contents/storage/"; // 절대 경로
+
+    sw = Tool.deleteFile(upDir, file1saved);  // Folder에서 1건의 파일 삭제, delete는 tool.java의 method
+    sw = Tool.deleteFile(upDir, thumb1);    // Folder에서 1건의 파일 삭제
+    // System.out.println("sw: " + sw);
+    // -------------------------------------------------------------------
+    //  삭제 종료 시작
+    // -------------------------------------------------------------------
+
+    int cnt = this.contentsProc.delete(contentsno);  // DMBS 삭제
+
+    mav.setViewName("redirect:/contents/list_by_cateno_search_paging.do"); 
+
+    return mav; // forward
+  }  
+-------------------------------------------------------------------------------------
+
+7. View: JSP / 삭제 화면▷ /webapp/contents/delete.jsp 
+/contents/update_file.jsp를 복사하여 만들기
+1) 두번 째 FORM 부분 대신에 해당 코드 붙여넣기
+-------------------------------------------------------------------------------------
+          <FORM name='frm' method='POST' action='./delete.do'>
+              <input type='hidden' name='contentsno' value='${param.contentsno}'>
+              
+              <DIV id='panel1' style="width: 40%; text-align: center; margin: 10px auto;"></DIV>
+                    
+              <div class="form-group">   
+                <div class="col-md-12" style='text-align: center; margin: 10px auto;'>
+                  삭제 되는글: ${contentsVO.title }<br><br>
+                  삭제하시겠습니까? 삭제하시면 복구 할 수 없습니다.<br><br>
+                          
+                  <button type = "submit" class="btn btn-info">삭제 진행</button>
+                  <button type = "button" onclick = "history.back()" class="btn btn-info">취소</button>
+                </div>
+              </div>   
+          </FORM>
+-------------------------------------------------------------------------------------
+
+★★★★ 추가) read.jsp
+-------------------------------------------------------------------------------------
+    <span class='menu_divide' >│</span>
+    <A href="./delete.do?contentsno=${contentsno }">삭제</A>
+-------------------------------------------------------------------------------------
+~~~
 
 
+* **[49][contents] 조회 삭제시 페이지의 유지, 삭제시 페이지의 자동 감소**
+~~~
+-------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------
 ~~~
