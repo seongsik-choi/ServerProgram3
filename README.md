@@ -8429,7 +8429,7 @@ commit;
    * @return
    */
   @RequestMapping(value = "/contents/delete.do", method = RequestMethod.POST)
-  public ModelAndView delete(HttpServletRequest request, int contentsno, int cateno) {
+  public ModelAndView delete(HttpServletRequest request, int contentsno) {
     
     ModelAndView mav = new ModelAndView();
     
@@ -8538,7 +8538,12 @@ read.do 2개 링크 뒤 param.now_page 부분★★★★★
 -------------------------------------------------------------------------------------
 ★★★★★read.jsp 수정 : read에서 -> 기본 목록형으로 돌아갈때 now_page 정보 갖고가기.  : 모든 링크 수정 필요
  - 1.5) read.jsp 수정
+      <span class='menu_divide' >│</span>
     <A href="./update_text.do?contentsno=${contentsno }&now_page=${param.now_page}">수정</A>
+    <span class='menu_divide' >│</span>
+    <A href="./update_file.do?contentsno=${contentsno }&now_page=${param.now_page}">파일수정</A>
+    <span class='menu_divide' >│</span>
+    <A href="./delete.do?contentsno=${contentsno }&now_page=${param.now_page}">삭제</A>
 -------------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------------
