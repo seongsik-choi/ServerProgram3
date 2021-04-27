@@ -8610,6 +8610,4 @@ public ModelAndView delete(HttpServletRequest request, int contentsno, int now_p
 ★★★★★추가) delete.do POST 메소드에 추가 : 3페이지 컨텐츠 삭제 시 3페이지도 삭제
              mav.addObject("cateno", cateno);
 -------------------------------------------------------------------------------------
-
-
 ~~~
