@@ -8492,9 +8492,124 @@ commit;
 ~~~
 
 
-* **[49][contents] 조회 삭제시 페이지의 유지, 삭제시 페이지의 자동 감소**
+* **0427 : [49][contents] 조회 삭제시 페이지의 유지, 삭제시 페이지의 자동 감소**
 ~~~
+★ redirect 시 : 관련 객체 정보는 전부 사라짐
+   - redirect시 Controller로 전송된 데이터가 모두 삭제됨으로 재전송 설정을해야한다.
+   mav.addObject("now_page", now_page);
+   mav.setViewName("redirect:/contents/list_by_cateno_search_paging.do"); 
+
+EL param 객체의 사용
+input.jsp --> Controller --> output.jsp
+                  forward         param 사용 가능
+
+●1. 조회시 페이지 유지
+-------------------------------------------------------------------------------------
+1) JSP 쪽에서 Page정보(now_page)를 알고있어야 함
+★★★★★수정) list_by_cateno_search_paging.jsp 
+read.do 2개 링크 뒤 param.now_page 부분★★★★★
+
+<a href="./read.do?contentsno=${contentsno}&now_page=${param.now_page}">  // 이부분 수정
+<IMG src="/contents/storage/${thumb1 }" style="width: 120px; height: 80px;"></a> 
+.......
+<a href="./read.do?contentsno=${contentsno}&now_page=${param.now_page}"><strong>${title}</strong> ${content}</a>  // 이부분 수정
 -------------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------------
+2) ★★★★★Controller의 read.do 메소드 이해(파라미터) : 수정은 아님
+  public ModelAndView read(int contentsno) {  // now_page는 자동 전달
+  public ModelAndView read(int contentsno, int now_page)  // int now_page 값 전달받은것 파라미터로 받음
+       System.out.println("-> now page : " +now_page); // Console로 찍어봄.
+-------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------
+3) ★★★★★read.jsp 수정 : read에서 -> 기본 목록형으로 돌아갈때 now_page 정보 갖고가기.
+    <A href="./list_by_cateno_search_paging.do?cateno=${cateVO.cateno }&now_page=${param.now_page}">기본 목록형</A>    
+-------------------------------------------------------------------------------------
+
+●2. 수정(text, file) + 삭제 시 페이지 유지
+-------------------------------------------------------------------------------------
+1) JSP 쪽에서 Page정보(now_page)를 알고있어야 함 : 모든 링크 수정 필요
+★★★★★수정) list_by_cateno_search_paging.jsp 
+	    <A href="./update_text.do?contentsno=${contentsno}&now_page=${param.now_page}"><span class="glyphicon glyphicon-pencil"></span></A>
+            <A href="./delete.do?contentsno=${contentsno}&now_page=${param.now_page}"><span class="glyphicon glyphicon-trash"></span></A>
+-------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------
+★★★★★read.jsp 수정 : read에서 -> 기본 목록형으로 돌아갈때 now_page 정보 갖고가기.  : 모든 링크 수정 필요
+ - 1.5) read.jsp 수정
+    <A href="./update_text.do?contentsno=${contentsno }&now_page=${param.now_page}">수정</A>
+-------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------
+2)
+- update_text.jsp 수정 85번 라인대에
+    <input type='hidden' name='now_page' value='${param.now_page }'>
+
+(file 수정시)
+- update_file.jsp 수정 100번 라인대에
+    <input type='hidden' name='now_page' value='${param.now_page }'>
+
+(file 삭제시)
+ - delete.jsp 100번대
+    <input type='hidden' name='now_page' value='${param.now_page }'>
+-------------------------------------------------------------------------------------
+
+3) update_text POST에서 now_page 파라미터 + addObject 추가  (update_file, delete POST 부분도 마찬가지)
+-------------------------------------------------------------------------------------
+  public ModelAndView update_text(ContentsVO contentsVO, int now_page) // 파라미터  추가
+    mav.addObject("now_page", now_page); // add.object로 리다이렉트 방지
+-------------------------------------------------------------------------------------
+
+●3. 삭제시 페이지의 자동 감소(delete 시에만)
+-------------------------------------------------------------------------------------
+★★★★★추가) delete  CONT POST 부분
+
+public ModelAndView delete(HttpServletRequest request, int contentsno, int now_page,
+                                             int cateno, String word) { // cateno와 word 추가
+
+이부분 밑으로 삭제시 페이지 감소 추가) int cnt = this.contentsProc.delete(contentsno); // DBMS 삭제
+
+    if (cnt == 1) {
+      // -------------------------------------------------------------------------------------
+      // 마지막 페이지의 레코드 삭제시의 페이지 번호 -1 처리
+      HashMap<String, Object> map = new HashMap<String, Object>();
+      map.put("cateno", cateno);
+      map.put("word", word);
+      // 10번째 레코드 삭제 후
+      // 하나의 페이지가 3개의 레코드로 구성되는 경우 현재 9개의 레코드가 남아 있으면
+      // 페이지 수를 4-> 3으로 감소 시켜야함.
+      if (contentsProc.search_count(map) % Contents.RECORD_PER_PAGE == 0) {
+        now_page = now_page - 1;
+        if (now_page < 1) {
+          now_page = 1; // 시작 페이지
+        }
+      }
+      // -------------------------------------------------------------------------------------
+    }//if end
+-------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------
+★★★★★추가) delete.do GET 메소드 (추가) cateno 정보를 받아와줘야(다른 cateno 값도 받을수있어야)
+// 자식과 부모 PK까지 전부 호출
+
+    CateVO cateVO = this.cateProc.read(contentsVO.getCateno());
+    mav.addObject("cateVO", cateVO); 
+
+    CategrpVO categrpVO = this.categrpProc.read(cateVO.getCategrpno());
+    mav.addObject("categrpVO", categrpVO); 
+-------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------
+★★★★★추가) delete.jsp에서 102번라인 cateno hidden 추가
+              <input type='hidden' name='cateno' value='${cateVO.cateno }'>
+
+-------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------
+★★★★★추가) delete.do POST 메소드에 추가 : 3페이지 컨텐츠 삭제 시 3페이지도 삭제
+             mav.addObject("cateno", cateno);
+-------------------------------------------------------------------------------------
+
+
 ~~~
