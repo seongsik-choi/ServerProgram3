@@ -8677,9 +8677,29 @@ public class ServletRegister {
             첨부 파일: <A href='/download?dir=/contents/storage&filename=${contentsVO.file1saved}&downname=${contentsVO.file1}'>${contentsVO.file1}</A> (${contentsVO.size1_label})  
           </c:if>
 -------------------------------------------------------------------------------------
+
+★★★★ + 1페이지 값 가져오기 ★★★★
+update_file, update_text CONT POST 부분 수정) 1페이지는 처음에 안나오는 문제
+-------------------------------------------------------------------------------------
+  @RequestMapping(value = "/contents/update_file.do", method = RequestMethod.POST)
+  public ModelAndView update_file(HttpServletRequest request, 
+                                                    ContentsVO contentsVO, 
+                                                    @RequestParam(value = "now_page", defaultValue = "1") int now_page)
+
+  @RequestMapping(value = "/contents/update_text.do", method = RequestMethod.POST)
+  public ModelAndView update_text(ContentsVO contentsVO,
+                  @RequestParam(value = "now_page", defaultValue = "1") int now_page) {
+-------------------------------------------------------------------------------------
+
+Update_file.jsp / update_text.jsp 추가1문장
+-------------------------------------------------------------------------------------
+    <form name='frm' id='frm' method='get' action='./list_by_cateno_search_paging.do'>
+      <input type='hidden' name='cateno' value='${cateVO.cateno }'>
+            <input type='hidden' name='now_page' value='${param.now_page }'> // 추가
+      -------------------------------------------------------------------------------------
 ~~~
 
-* **0428 : **
+* **0429 : **
 ~~~
 
 ~~~
