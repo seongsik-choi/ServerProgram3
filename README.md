@@ -8615,4 +8615,71 @@ public ModelAndView delete(HttpServletRequest request, int contentsno, int now_p
 ★★★★★추가) delete.do POST 메소드에 추가 : 3페이지 컨텐츠 삭제 시 3페이지도 삭제
              mav.addObject("cateno", cateno);
 -------------------------------------------------------------------------------------
+
+●4. 검색상태 유지 : 검색 -> read -> 기본목록형 시 -> 페이지 1로 가는 문제
+
+★수정) paing.jsp : img, title link에 param.word 추가
+-------------------------------------------------------------------------------------
+          <a href="./read.do?contentsno=${contentsno}&now_page=${param.now_page }&word=${param.word }">
+
+	  <td style='vertical-align: middle;'>
+            <a href="./read.do?contentsno=${contentsno}&now_page=${param.now_page }&word=${param.word }"><strong>${title}</strong> ${content}</a> 
+          </td> 
+-------------------------------------------------------------------------------------
+
+★수정) read.jsp  : 기본목록형에 param.word 추가
+-------------------------------------------------------------------------------------
+    <A href="./list_by_cateno_search_paging.do?cateno=${cateVO.cateno }&now_page=${param.now_page}&word=${param.word }">기본 목록형</A>  
+-------------------------------------------------------------------------------------
+~~~
+
+* **0428 : [50][contents] Download 서블릿을 이용한 다운로드**
+~~~
+[01] Download 서블릿을 이용한 다운로드
+1. 서블릿을 이용한 다운로드 ▷ Servlet: dev/mvc/tool/Download.java 
+-------------------------------------------------------------------------------------
+protected void doProcess{ .....
+   
+    // 실제 웹사이트 서버에 저장된 파일명(file1_saved -> filename)
+    String filename = request.getParameter("filename");
+
+    // 다운로드시 사용자의 컴퓨터에 저장되는 파일명(file1 -> downname)
+    String downname = request.getParameter("downname");
+-------------------------------------------------------------------------------------
+
+2. Spring Boot에 서블릿의 등록▷ dev.mvc.resort_v1sbm3a.ServletRegister.java (class 이름은 자유롭게 지정 가능)
+- default package(환경설정 패키지)에 저장
+-------------------------------------------------------------------------------------
+package dev.mvc.resort_v1sbm3a;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import dev.mvc.tool.Download;
+
+@Configuration
+public class ServletRegister {
+  @Bean
+  public ServletRegistrationBean getServletRegistrationBean()  {
+
+    // urlPatterns: /download?dir=/contents/storage&filename=winter_1.jpg&downname=winter.jpg
+    // urlPatterns: /download?dir=/attachfile/storage&filename=winter_1.jpg&downname=winter.jpg
+    ServletRegistrationBean registrationBean = new ServletRegistrationBean(new Download());
+    registrationBean.addUrlMappings("/download"); // 접근주소		
+    
+    return registrationBean;
+  }
+}
+-------------------------------------------------------------------------------------
+
+- read.jsp의 download link 부분: 수정No
+-------------------------------------------------------------------------------------
+          <c:if test="${contentsVO.file1.trim().length() > 0 }">
+            첨부 파일: <A href='/download?dir=/contents/storage&filename=${contentsVO.file1saved}&downname=${contentsVO.file1}'>${contentsVO.file1}</A> (${contentsVO.size1_label})  
+          </c:if>
+-------------------------------------------------------------------------------------
+~~~
+
+* **0428 : **
+~~~
+
 ~~~
