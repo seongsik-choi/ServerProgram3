@@ -7104,6 +7104,144 @@ public class Contents {
 -------------------------------------------------------------------------------------
 ~~~
 
+* **★★추가 : [41.5][Contents] Grid 이미지 기반 페이징(MariaDB 적용)**
+~~~
+xml
+-------------------------------------------------------------------------------------
+  <!--  [41 그리드 + paging 기능 추가 parameterType=map값을 받기 위해 HashMap Tpye  -->
+  <select id="list_by_stuno_grid_paging" parameterType="HashMap"  resultType="dev.mvc.contents.ContentsVO" >
+    SELECT contentsno,adminno, stuno, name, intro, certi, 
+                 id, passwd, file1, file1saved, thumb1, size1
+    FROM contents
+    WHERE stuno = #{stuno}
+   ORDER BY contentsno DESC
+   LIMIT #{offset}, #{page_size}
+  </select>  
+-------------------------------------------------------------------------------------
+
+DAOInter
+-------------------------------------------------------------------------------------
+  /**
+   * + [41.5]  그리드 페이징
+   * 특정 스터디의 등록된 글목록
+   * @return
+   */
+  public List<ContentsVO> list_by_stuno_grid_paging(HashMap<String, Object> map);
+-------------------------------------------------------------------------------------
+
+ProcInter
+-------------------------------------------------------------------------------------
+ /**
+  * + [41.5]  그리드 페이징
+  * 특정 스터디의 등록된 글목록
+  * @return
+  */
+ public List<ContentsVO> list_by_stuno_grid_paging(HashMap<String, Object> map);
+
++ PagingBox
+-------------------------------------------------------------------------------------
+
+Proc
+-------------------------------------------------------------------------------------
+ // [41.5] 그리드 페이징
+  @Override
+  public List<ContentsVO> list_by_stuno_grid_paging(HashMap<String, Object> map) {
+    /* 
+    페이지에서 출력할 시작 레코드 번호 계산 기준값, nowPage는 1부터 시작
+    1 페이지 시작 rownum: now_page = 1, (1 - 1) * 10 --> 0 
+    2 페이지 시작 rownum: now_page = 2, (2 - 1) * 10 --> 10
+    3 페이지 시작 rownum: now_page = 3, (3 - 1) * 10 --> 20
+    */
+    int begin_of_page = ((Integer)map.get("now_page") - 1) * Contents.RECORD_PER_PAGE;
+   
+//★★★★Mariadb는 이부분 대신에 offset에 대한 다른 값들 들어감   
+    // 시작 rownum 결정
+    // 1 페이지 = 0 + 1, 2 페이지 = 10 + 1, 3 페이지 = 20 + 1 
+    int offset = ((Integer)map.get("now_page") - 1) * Contents.RECORD_PER_PAGE;
+    System.out.println("-> offset: " + offset);
+    
+    map.put("offset", offset);
+    map.put("page_size", Contents.RECORD_PER_PAGE);
+    System.out.println("-> page_size: " + Contents.RECORD_PER_PAGE);
+//★★★★Mariadb는 이부분 대신에 offset에 대한 다른 값들 들어감 (종료)
+
+    List<ContentsVO> list = this.contentsDAO.list_by_stuno_grid_paging(map);
+    return list;
+  }  
+
++ PagingBox
+-------------------------------------------------------------------------------------
+
+Cont
+-------------------------------------------------------------------------------------
+   /**
+    * [41.5] 그리드 페이징 구현
+    * @param stuno
+    * @param intro
+    * @param now_page
+    * @return
+    */
+   @RequestMapping(value = "/contents/list_by_stuno_grid_paging.do", 
+                                        method = RequestMethod.GET)
+   public ModelAndView list_by_stuno_grid_paging(
+       @RequestParam(value="stuno", defaultValue="1") int stuno,
+       @RequestParam(value="intro", defaultValue="") String intro,
+       @RequestParam(value="now_page", defaultValue="1") int now_page
+       ) { 
+     System.out.println("--> now_page: " + now_page);
+     
+     ModelAndView mav = new ModelAndView();
+     
+     // 숫자와 문자열 타입을 저장해야함으로 Obejct 사용
+     HashMap<String, Object> map = new HashMap<String, Object>();
+     map.put("stuno", stuno); // #{stuno}
+     map.put("intro", intro);     // #{intro}
+     map.put("now_page", now_page);  // 페이지에 출력할 레코드의 범위를 산출하기위해 사용     
+     
+     // 검색 목록
+     List<ContentsVO> list = contentsProc.list_by_stuno_grid_paging(map);
+     mav.addObject("list", list);
+     
+     // 검색된 레코드 갯수
+     int search_count = contentsProc.search_count(map);
+     mav.addObject("search_count", search_count);
+   
+     StuVO stuVO = stuProc.read(stuno);
+     mav.addObject("stuVO", stuVO);
+     
+     StugrpVO stugrpVO = stugrpProc.read(stuVO.getStugrpno());
+     mav.addObject("stugrpVO", stugrpVO);
+
+     /*
+      * SPAN태그를 이용한 박스 모델의 지원, 1 페이지부터 시작 
+      * 현재 페이지: 11 / 22   [이전] 11 12 13 14 15 16 17 18 19 20 [다음] 
+      * 
+      * @param list_file 목록 파일명 
+      * @param stuno 카테고리번호 
+      * @param search_count 검색(전체) 레코드수 
+      * @param now_page     현재 페이지
+      * @param intro 검색어
+      * @return 페이징 생성 문자열
+      */ 
+     String paging = contentsProc.pagingBox("list_by_stuno_grid_paging.do", stuno, search_count, now_page, intro);
+     mav.addObject("paging", paging);
+   
+     mav.addObject("now_page", now_page);
+
+     // /contents/list_by_stuno_grid_paigng.jsp
+     mav.setViewName("/contents/list_by_stuno_grid_paging");   
+     
+     return mav;
+   }            
+-------------------------------------------------------------------------------------
+
+View : list_by_stuno_grid_paging.jsp에 paging만 추가해주기
+-------------------------------------------------------------------------------------
+  <DIV class='bottom_menu'>${paging }</DIV>
+</DIV> <!--content body end -->
+-------------------------------------------------------------------------------------
+~~~
+
 * **0421 : [42][Contents] 조회 기능의 제작(Proc까지만 제작)결합**
 ~~~
 ★ 조회기능이지만 Proc 까지만 생성 -> 연속 입력을 위함
