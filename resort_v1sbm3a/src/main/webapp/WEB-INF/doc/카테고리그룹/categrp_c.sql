@@ -56,6 +56,21 @@ WHERE categrpno=1;
 UPDATE categrp SET name='영화', seqno=1, visible='Y'
 WHERE categrpno=1;
 
+-- 출력 순서에따른 전체 목록
+SELECT categrpno, name, seqno, visible, rdate
+FROM categrp
+ORDER BY seqno ASC;
+ 
+-- 출력 순서 올림(상향), 10 ▷ 1
+UPDATE categrp
+SET seqno = seqno - 1
+WHERE categrpno=1;
+ 
+-- 출력순서 내림(하향), 1 ▷ 10
+UPDATE categrp
+SET seqno = seqno + 1
+WHERE categrpno=1;
+
 -- Delete, 삭제
 DELETE FROM categrp WHERE categrpno=3;
 
@@ -72,4 +87,38 @@ SELECT count(*) FROM categrp;
 -- count(*) 보완 : AS는 컬럼별명을 사용
 SELECT COUNT(*) AS cnt FROM categrp;
 
+-- 0408
+-- seqno 정렬
+SELECT * FROM categrp;
+
+SELECT categrpno, name, seqno, visible, rdate
+FROM categrp
+ORDER BY seqno ASC;
+
+ CATEGRPNO NAME SEQNO VISIBLE RDATE
+ --------- ---- ----- ------- ---------------------
+         1 영화       1 Y       2017-04-14 10:43:18.0
+         2 여행       2 Y       2017-04-14 10:43:19.0
+         3 캠핑       3 Y       2017-04-14 10:43:20.0
+
 commit;
+
+-- 출력 모드의 변경
+SELECT * FROM categrp;
+
+UPDATE categrp
+SET visible='Y'
+WHERE categrpno=1;
+
+UPDATE categrp
+SET visible='N'
+WHERE categrpno=1;
+
+commit;
+
+-- 0408
+-- 오류 보고 - ORA-02449: 외래 키에 의해 참조되는 고유/기본 키가 테이블에 있습니다.
+DROP TABLE categrp;
+
+-- CASCADE option을 이용한 자식 테이블을 무시한 테이블 삭제, 관련된 제약조건이 삭제됨.
+DROP TABLE categrp CASCADE CONSTRAINTS;
