@@ -15,8 +15,11 @@
     <NAV class='top_menu'>
       <span style='padding-left: 0.5%;'></span>
       <A class='menu_link'  href='/' >힐링 리조트</A><span class='top_menu_sep'> </span>
-      <A class='menu_link'  href='/categrp/create.do'>카테고리 그룹</A><span class='top_menu_sep'> </span>    
-            
+      <A class='menu_link'  href='/categrp/create.do'>카테고리 그룹 등록</A><span class='top_menu_sep'> </span>    
+      <A class='menu_link'  href='/categrp/list.do'>카테고리 그룹 목록</A><span class='top_menu_sep'> </span>
+      <!-- <A class='menu_link'  href='/cate/create.do?categrpno=1'>(FK)카테고리 등록</A><span class='top_menu_sep'> </span> -->
+      <A class='menu_link'  href='/cate/list_all.do'>카테고리 전체 목록</A><span class='top_menu_sep'> </span>  
+      <A class='menu_link'  href='/cate/list_all_join.do'>카테고리 전체 목록(JOIN)</A><span class='top_menu_sep'> </span>     
     </NAV>
   </DIV>
   
