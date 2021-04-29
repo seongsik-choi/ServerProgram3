@@ -1,6 +1,6 @@
 package interface_test;
 public class Test {
-
+  
   public static void main(String[] args) {
     InterfaceStudy is = new Study();  // 인터페이스name 객체 = new implementname(); 
  
@@ -9,5 +9,6 @@ public class Test {
    is.studyToeic();
    is.studyCook(); 
    is.studyCertificate();
+   
   }
 }

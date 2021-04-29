@@ -30,6 +30,15 @@ public class CategrpVO {
   public CategrpVO() {
   }
   
+  // Parameter Constructor
+  public CategrpVO(int categrpno, String name, int seqno, String visible, String rdate) {
+    this.categrpno = categrpno;
+    this.name = name;
+    this.seqno = seqno;
+    this.visible = visible;
+    this.rdate = rdate;
+  }
+
   // Getter, Setter 생성
   public int getCategrpno() {
     return categrpno;
@@ -61,5 +70,13 @@ public class CategrpVO {
   public void setRdate(String rdate) {
     this.rdate = rdate;
   }
+
+  // 구현하려는 클래스에 값을 확인해보기 위한 메소드 toString()호출만으로 출력
+  @Override
+  public String toString() {
+    return "[categrpno=" + categrpno + ", name=" + name + ", seqno=" + seqno + ", visible=" + visible
+        + ", rdate=" + rdate + "]";
+  }
  
+  
 }
