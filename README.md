@@ -8837,6 +8837,7 @@ Update_file.jsp / update_text.jsp 추가1문장
       -------------------------------------------------------------------------------------
 ~~~
 
+* ★★★★★★★Member(회원 테이블) 제작★★★★★★★
 * **0428~9 : [51][Member] 회원 DBMS 설계(권한을 이용한 관리자 결합 모델), 논리적/물리적 모델링, SQL 제작, member.sql**
 ~~~
 [01] 회원 DBMS 설계(권한을 이용한 관리자 결합 모델), 논리적/물리적 모델링, SQL 제작
@@ -8844,15 +8845,415 @@ Update_file.jsp / update_text.jsp 추가1문장
 - 관리자(admin)을 DB상의 존재하는 테이블로만 지정, but contents 테이블과 연결돼있기에, 테이블은 존재해야함
 - 회원 테이블과 관리자 테이블 둘다 만들기에는 오래걸림 -> 회원 테이블을 주로  개인 프로젝트에서 -> 등급 지정
 
-ERD 수정) 댓글 테이블 -> reference -> 회원
+ERD 수정) 댓글 테이블 -> reference -> 회원 테이블
 
--- 테이블 구조
+-- ★테이블 구조
 -- member 삭제전에 FK가 선언된 qna(질문답변), reply(댓글) 테이블 먼저 삭제
 -- reply(댓글) -----> memeberno -->  member(회원) <-- memeberno  <------ qna(질문답변)
+★ Q) 관리자 <- 질문답변 -> 회원 <- 댓글 : 같은 테이블 조인 시 구현해야 할 PK나 너무 많음
+         DB 입장에서 Column 하나 뿐이지만 Web 설계시 복잡
+★ A) 회원 테이블에 등급(grade)이 높은 회원 지정(일종의 관리자 : manme 지정)
+    mname(질문답변 관리자) / grade(1)
+
+/doc/회원/member.sql
+-------------------------------------------------------------------------------------
+-- 테이블 구조
+-- member 삭제전에 FK가 선언된 qna(질문답변), reply(댓글) 테이블 먼저 삭제
 DROP TABLE qna;
 DROP TABLE reply;
 DROP TABLE member;
 -- 제약 조건과 함께 삭제(제약 조건이 있어도 삭제됨, 권장하지 않음.)
 DROP TABLE member CASCADE CONSTRAINTS; 
+ 
+CREATE TABLE member (
+  memberno NUMBER(10) NOT NULL, -- 회원 번호, 레코드를 구분하는 컬럼 
+  id            VARCHAR(20)   NOT NULL UNIQUE, -- 아이디, 중복 안됨, 레코드를 구분, UNIQUE(PK 성질갖음 but PK는 아님) 
+  passwd     VARCHAR(60)   NOT NULL, -- 패스워드, 영숫자 조합
+  mname     VARCHAR(30)   NOT NULL, -- 성명, 한글 10자 저장 가능
+  tel           VARCHAR(14)   NOT NULL, -- 전화번호
+  zipcode    VARCHAR(5)        NULL, -- 우편번호, 12345
+  address1   VARCHAR(80)       NULL, -- 주소 1
+  address2   VARCHAR(50)       NULL, -- 주소 2
+  mdate      DATE             NOT NULL, -- 가입일    
+  grade       NUMBER(2)     NOT NULL, -- 등급(1 ~ 10: 관리자, 11~20: 회원, 비회원: 30~39, 정지 회원: 40~49)
+  PRIMARY KEY (memberno)                     -- 한번 등록된 값은 중복 안됨
+);
 
+COMMENT ON TABLE MEMBER is '회원';
+COMMENT ON COLUMN MEMBER.MEMBERNO is '회원 번호';
+COMMENT ON COLUMN MEMBER.ID is '아이디';
+COMMENT ON COLUMN MEMBER.PASSWD is '패스워드';
+COMMENT ON COLUMN MEMBER.MNAME is '성명';
+COMMENT ON COLUMN MEMBER.TEL is '전화번호';
+COMMENT ON COLUMN MEMBER.ZIPCODE is '우편번호';
+COMMENT ON COLUMN MEMBER.ADDRESS1 is '주소1';
+COMMENT ON COLUMN MEMBER.ADDRESS2 is '주소2';
+COMMENT ON COLUMN MEMBER.MDATE is '가입일';
+COMMENT ON COLUMN MEMBER.GRADE is '등급';
+
+DROP SEQUENCE member_seq;
+CREATE SEQUENCE member_seq
+  START WITH 1              -- 시작 번호
+  INCREMENT BY 1          -- 증가값
+  MAXVALUE 9999999999 -- 최대값: 9999999 --> NUMBER(7) 대응
+  CACHE 2                       -- 2번은 메모리에서만 계산
+  NOCYCLE;                     -- 다시 1부터 생성되는 것을 방지
+ 
+-- 1. 등록
+--1) id 중복 확인 : id가 null값을 갖고있으면 count에서 제외됨. 
+SELECT COUNT(id) as cnt
+FROM member
+WHERE id='user1';
+ 
+ cnt
+ ---
+   0   ← 중복 되지 않음.
+   
+-- 2) 등록
+-- 회원 관리용 계정, Q/A 용 계정 : mname과 grade(1~10)
+INSERT INTO member(memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade)
+VALUES (member_seq.nextval, 'qnaadmin', '1234', '질문답변관리자', '000-0000-0000', '12345', '서울시 종로구', '관철동', sysdate, 1);
+ 
+INSERT INTO member(memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade)
+VALUES (member_seq.nextval, 'crm', '1234', '댓글관리자', '000-0000-0000', '12345', '서울시 종로구', '관철동', sysdate, 1);
+ 
+-- 개인 회원 테스트 계정 : mname과 grade(11~20)
+INSERT INTO member(memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade)
+VALUES (member_seq.nextval, 'user1', '1234', '왕눈이', '000-0000-0000', '12345', '서울시 종로구', '관철동', sysdate, 15);
+ 
+INSERT INTO member(memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade)
+VALUES (member_seq.nextval, 'user2', '1234', '아로미', '000-0000-0000', '12345', '서울시 종로구', '관철동', sysdate, 15);
+ 
+INSERT INTO member(memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade)
+VALUES (member_seq.nextval, 'user3', '1234', '투투투', '000-0000-0000', '12345', '서울시 종로구', '관철동', sysdate, 15);
+ 
+-- 부서별(그룹별) 공유 회원 기준 : mname과 grade(11~20)
+INSERT INTO member(memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade)
+VALUES (member_seq.nextval, 'team1', '1234', '개발팀', '000-0000-0000', '12345', '서울시 종로구', '관철동', sysdate, 15);
+ 
+INSERT INTO member(memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade)
+VALUES (member_seq.nextval, 'team2', '1234', '웹퍼블리셔팀', '000-0000-0000', '12345', '서울시 종로구', '관철동', sysdate, 15);
+ 
+INSERT INTO member(memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade)
+VALUES (member_seq.nextval, 'team3', '1234', '디자인팀', '000-0000-0000', '12345', '서울시 종로구', '관철동', sysdate, 15);
+COMMIT;
+
+-- 2. 목록
+-- 검색을 하지 않는 경우, 전체 목록 출력
+SELECT memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade
+FROM member
+ORDER BY memberno ASC;
+ 
+ MEMBERNO ID       PASSWD MNAME  TEL           ZIPCODE ADDRESS1 ADDRESS2         MDATE         GRADE
+ --- -------- ------ ------ ------------- ------- -------- -------- ---------------------                        --------------------
+   1 qnaadmin 1234   QNA관리자 000-0000-0000 12345   서울시 종로구  관철동      2019-05-24 14:51:43.0    1
+   2 crm      1234   고객관리자  000-0000-0000 12345   서울시 종로구  관철동      2019-05-24 14:51:44.0      1
+  ....................		.....................		.....................		.....................		.....................		.....................	.....................
+   8 team3    1234   디자인팀   000-0000-0000 12345   서울시 종로구  관철동      2019-05-24 14:51:55.0       15
+ 
+--3. 조회
+--1) user1 사원 정보 보기
+SELECT memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade
+FROM member
+WHERE memberno = 1;
+ 
+SELECT memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade
+FROM member
+WHERE id = 'user1';
+ 
+
+-- 4. 수정
+UPDATE member 
+SET mname='아로미', tel='111-1111-1111', zipcode='00000',
+      address1='경기도', address2='파주시', grdae=14
+WHERE memberno=1;
+COMMIT;
+
+-- 5. 삭제
+-- 1) 모두 삭제
+DELETE FROM member;
+ 
+-- 2) 특정 회원 삭제
+DELETE FROM member
+WHERE memberno=15;
+COMMIT;
+
+-- 6. 패스워드 변경
+-- 1) 패스워드 검사
+SELECT COUNT(memberno) as cnt
+FROM member
+WHERE memberno=1 AND passwd='1234';
+ 
+-- 2) 패스워드 수정
+UPDATE member
+SET passwd='0000'
+WHERE memberno=1;
+COMMIT;
+ 
+-- 7. 로그인
+SELECT COUNT(memberno) as cnt
+FROM member
+WHERE id='user1' AND passwd='1234';
+
+-------------------------------------------------------------------------------------
+
+★ member.sql 테이블 생성 후 import 해주기 : import 하기전 erd에서 회원 테이블 삭제
+구조) 질문답변(T) ☞ 회원번호=회원번호 ☞회원(MEBMER)(T) ☜ 회원번호=회원번호 ☜ 댓글(T)
+- 질문답변, 댓글 테이블의 회원번호 중복된거 제거해주기!!!!
+~~~
+
+* **0429 : [52][Member] VO(DTO), package 설정**
+~~~
+1. DTO(VO) 생성
+
+▷ dev.mvc.member.MemberVO.java
+-------------------------------------------------------------------------------------
+package dev.mvc.member;
+public class MemberVO {
+  /*
+CREATE TABLE member (
+  memberno NUMBER(10) NOT NULL, -- 회원 번호, 레코드를 구분하는 컬럼 
+  id            VARCHAR(20)   NOT NULL UNIQUE, -- 아이디, 중복 안됨, 레코드를 구분, UNIQUE(PK 성질갖음 but PK는 아님) 
+  passwd     VARCHAR(60)   NOT NULL, -- 패스워드, 영숫자 조합
+  mname     VARCHAR(30)   NOT NULL, -- 성명, 한글 10자 저장 가능
+  tel           VARCHAR(14)   NOT NULL, -- 전화번호
+  zipcode    VARCHAR(5)        NULL, -- 우편번호, 12345
+  address1   VARCHAR(80)       NULL, -- 주소 1
+  address2   VARCHAR(50)       NULL, -- 주소 2
+  mdate      DATE             NOT NULL, -- 가입일    
+  grade       NUMBER(2)     NOT NULL, -- 등급(1 ~ 10: 관리자, 11~20: 회원, 비회원: 30~39, 정지 회원: 40~49)
+  PRIMARY KEY (memberno)                     -- 한번 등록된 값은 중복 안됨
+);
+  */
+ 
+  /** 관리자 번호 */
+  private int memberno;
+  /** 아이디 */
+  private String id = "";
+  /** 패스워드 */
+  private String passwd = "";
+  /** 관리자 성명 */
+  private String mname = "";
+  /** 전화 번호 */
+  private String tel = "";
+  /** 우편 번호 */
+  private String zipcode = "";
+  /** 주소 1 */
+  private String address1 = "";
+  /** 주소 2 */
+  private String address2 = "";
+  /** 가입일 */
+  private String mdate = "";
+  /** 등급 */
+  private int grade = 0;
+  
+  /** 등록된 패스워드 */
+  private String old_passwd = "";
+  /** id 저장 여부 */
+  private String id_save = "";
+  /** passwd 저장 여부 */
+  private String passwd_save = "";
+  /** 이동할 주소 저장 */
+  private String url_address = "";
+  
+  public int getMemberno() {
+    return memberno;
+  }
+  public void setMemberno(int memberno) {
+    this.memberno = memberno;
+  }
+  public String getId() {
+    return id;
+  }
+  public void setId(String id) {
+    this.id = id;
+  }
+  public String getPasswd() {
+    return passwd;
+  }
+  public void setPasswd(String passwd) {
+    this.passwd = passwd;
+  }
+  public String getMname() {
+    return mname;
+  }
+  public void setMname(String mname) {
+    this.mname = mname;
+  }
+  public String getTel() {
+    return tel;
+  }
+  public void setTel(String tel) {
+    this.tel = tel;
+  }
+  public String getZipcode() {
+    return zipcode;
+  }
+  public void setZipcode(String zipcode) {
+    this.zipcode = zipcode;
+  }
+  public String getAddress1() {
+    return address1;
+  }
+  public void setAddress1(String address1) {
+    this.address1 = address1;
+  }
+  public String getAddress2() {
+    return address2;
+  }
+  public void setAddress2(String address2) {
+    this.address2 = address2;
+  }
+  public String getMdate() {
+    return mdate;
+  }
+  public void setMdate(String mdate) {
+    this.mdate = mdate;
+  }
+  public int getGrade() {
+    return grade;
+  }
+  public void setGrade(int grade) {
+    this.grade = grade;
+  }
+  public String getOld_passwd() {
+    return old_passwd;
+  }
+  public void setOld_passwd(String old_passwd) {
+    this.old_passwd = old_passwd;
+  }
+  public String getId_save() {
+    return id_save;
+  }
+  public void setId_save(String id_save) {
+    this.id_save = id_save;
+  }
+  public String getPasswd_save() {
+    return passwd_save;
+  }
+  public void setPasswd_save(String passwd_save) {
+    this.passwd_save = passwd_save;
+  }
+  public String getUrl_address() {
+    return url_address;
+  }
+  public void setUrl_address(String url_address) {
+    this.url_address = url_address;
+  }
+}
+-------------------------------------------------------------------------------------
+
+[02] package 설정 : 설정 : 
+1. Application.java -> dev.mvc 상위 dic으로 항상 고정 됨
+2. MyBATIS DAO package 폴더 등록 : DatabaseConfiguration 설정
+@MapperScan(basePackages= {"dev.mvc.resort_v1sbm3a", "dev.mvc.categrp",
+                                                  "dev.mvc.cate", "dev.mvc.contents", "dev.mvc.member"})  
+~~~
+
+* **0429 : [53][Member] 중복 ID 체크(DAO interface, DAO class, Processs interface, Process class)**
+~~~
+1. SQL▷ /webapp/WEB-INF/doc/dbms/member.sql(Oracle)
+-------------------------------------------------------------------------------------
+1) id 중복 확인
+SELECT COUNT(id) as cnt
+FROM member
+WHERE id='user1';
+
+ cnt
+ ---
+   0   ← 중복 되지 않음.
+-------------------------------------------------------------------------------------
+ 
+2. MyBATIS - SQL문 맨뒤의 ';'은 삭제
+1) namespace의 정의
+   - <mapper namespace = "dev.mvc.member.MemberDAOInter">: namespace는 DAO interface하고 일치
+ 2) SELECT SQL
+   - <select id="checkId" resultType="int" parameterType="String">
+   - #{id}: JDBC SQL 선언에서 ?에 해당합니다.
+            VO(DTO, Data) 클래스의 값을 해당하는 변수에 자동으로 할당하는 기능
+   ① id="checkId": DAO method의 이름과 일치
+   ② resultType="int": DAO method의 리턴 타입
+   ③ parameterType="String": DAO method의 수신 데이터 인수 타입
+  
+▷ /src/main/resources/mybatis/member.xml  / id: checkID
+-------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace = "dev.mvc.member.MemberDAOInter">
+  
+  <!-- [53][Member] 중복 ID 체크(DAO interface, DAO class, Processs interface, Process class) -->
+  <select id="checkID" resultType="int" parameterType="String">
+    SELECT COUNT(id) as cnt
+    FROM member
+    WHERE id=#{id}
+  </select>
+
+</mapper> 
+-------------------------------------------------------------------------------------
+ 
+3. DAO interface  create() 메소드명은 id="create"와 대응
+- MemberVO vo 파라미터는 parameterType="MemberVO"과 대응
+ ▷ /dev/mvc/member/MemberDAOInter.java 
+ 4. Proc Interface ▷ dev.mvc.member.MemberProcInter.java
+-------------------------------------------------------------------------------------
+package dev.mvc.member;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public interface MemberDAOInter {
+  /**
+   * [53][Member] 중복 ID 체크(DAO interface, DAO class, Processs interface, Process class)
+   * 중복 아이디 검사
+   * @param id
+   * @return 중복 아이디 갯수
+   */
+  public int checkID(String id);
+  
+}
+-------------------------------------------------------------------------------------
+
+5. Process Class ▷ MemberProc.java
+-------------------------------------------------------------------------------------
+package dev.mvc.member;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+ 
+@Component("dev.mvc.member.MemberProc")
+public class MemberProc implements MemberProcInter {
+  @Autowired
+  private MemberDAOInter memberDAO;
+  
+  public MemberProc(){
+    System.out.println("-> MemberProc created.");
+  }
+
+  // [53][Member] 중복 ID 체크(DAO interface, DAO class, Processs interface, Process class)
+  @Override
+  public int checkID(String id) {
+    int cnt = this.memberDAO.checkID(id);
+    return cnt;
+  }
+
+}
+-------------------------------------------------------------------------------------
+
+★ Controller와 VIEW는 JavaScript로 기존 페이지에 구현
+★ JavaScript/Ajax/JSON/jQuery 기술 배움.
+★이동 : 서버 프로그램 Client 화면구현(Bootstrap/JavaScript/Ajax/JSON/jQuery)]
+[01][JS] 테스트를 위한 기초 소스(Template), Data Type, Variable, Operator(연산자), 제어문, Tern Eclipse plugin  
+
+6. View: JSP : AJAX 사용.
+-------------------------------------------------------------------------------------
+회원 가입 화면에 통합됨으로 독립 파일로 개발하지 않음.
+-------------------------------------------------------------------------------------
 ~~~
