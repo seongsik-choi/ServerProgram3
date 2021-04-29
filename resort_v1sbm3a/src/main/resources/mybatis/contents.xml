@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<!-- dev.mvc.categrp.CategrpDAOInter 패키지에 등록된 interface 명시,
+      패키지명과 인터페이스명은 실제로 존재해야함,
+      Spring이 내부적으로 자동으로 interface를 구현해줌. -->
+<mapper namespace="dev.mvc.contents.ContentsDAOInter">
+  <!-- 
+  insert: INSERT SQL 실행
+  id: Spring에서 호출시 사용
+  parameterType: 전달받는 데이터 객체
+  return: 등록한 레코드 갯수 리턴
+  SQL선언시 ';'은 삭제
+  #{}: 컬럼의 값
+  #{name}: public String getName(){...
+  -->
+  
+    <!--  비 연속 등록 : [36][Contents] 등록 기능 제작(INSERT ~ INTO ~ VALUES ~) -->
+  <!--
+  <insert id="create" parameterType="dev.mvc.contents.ContentsVO">
+    INSERT INTO contents(contentsno, adminno, cateno, title, content, passwd, word,
+                                     file1, file1saved, thumb1, size1, rdate)
+    VALUES(contents_seq.nextval, #{adminno}, #{cateno}, #{title}, #{content}, #{passwd}, #{word},
+                #{file1}, #{file1saved}, #{thumb1}, #{size1}, sysdate)
+   </insert> -->
+ 
+ <!-- [43][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속 입력) -->
+ <insert id="create" parameterType="dev.mvc.contents.ContentsVO">
+    <!--sql 생성 전 keyProperty= contentsno -> VO에 저장 -> VO는 INSERT 문 으로 전달-->
+    <selectKey keyProperty="contentsno" resultType="int" order="BEFORE"> 
+      SELECT contents_seq.nextval FROM dual
+    </selectKey> 
+  INSERT INTO contents(contentsno, adminno, cateno, title, content, passwd, word,
+                                   file1, file1saved, thumb1, size1, rdate, salecnt)
+  VALUES(#{contentsno}, #{adminno}, #{cateno}, #{title}, #{content}, #{passwd}, #{word},
+              #{file1}, #{file1saved}, #{thumb1}, #{size1}, sysdate, #{salecnt})
+ </insert>
+
+  <!--[43][Contents] 등록 기능 제작 응용 상품 정보의 등록(연속입력)에 따른 등록  -->
+  <update id="product_update" parameterType="dev.mvc.contents.ContentsVO">
+    UPDATE contents 
+    SET price=#{price}, dc=#{dc}, saleprice=#{saleprice}, point=#{point}
+    WHERE contentsno=#{contentsno}
+  </update>
+
+  <!--  [37][Contents] 테이블 이미지 기반 cateno별 목록 출력 변경(list_by_cateno.do 
+           [41][Contents] Grid 이미지 기반 cateno별 내용 요약 목록 출력 -->
+ <select id="list_by_cateno" parameterType="int"  resultType="dev.mvc.contents.ContentsVO" >
+  SELECT contentsno, adminno, cateno, title, content, word, recom, cnt, replycnt, rdate, 
+            file1, file1saved, thumb1, size1, price, dc, saleprice, point
+  FROM contents
+  WHERE cateno = #{cateno}
+  ORDER BY contentsno ASC
+ </select> 
+
+ <!-- [38][Contents] 검색 기능을 지원하는 목록
+ 카테고리별 검색 목록 -->
+ <select id="list_by_cateno_search" resultType="dev.mvc.contents.ContentsVO" parameterType="HashMap">
+   SELECT contentsno, adminno, cateno, title, content, recom, cnt, replycnt, rdate, 
+            file1, file1saved, thumb1, size1, price, dc, saleprice, point
+   FROM contents
+   <choose>
+     <when test="word == null or word == ''"> <!-- 검색하지 않는 경우, cateno가 hashmap에  key 값으로 지정 -->
+       WHERE cateno=#{cateno}
+     </when>
+     <otherwise> <!-- 검색하는 경우 -->
+     <!-- WHERE cateno=#{cateno} AND (title LIKE CONCAT('%', #{word}, '%') -->
+       WHERE cateno=#{cateno} AND (title LIKE '%' || #{word} || '%' 
+                                                    OR content LIKE '%' || #{word} || '%' 
+                                                    OR word LIKE '%' || #{word} || '%')
+     </otherwise>
+   </choose>
+   ORDER BY contentsno DESC   
+ </select>
+   
+   <!-- [38][Contents] 검색된 레코드의 갯수
+   카테고리별 검색 레코드 갯수 -->
+ <select id="search_count" resultType="int" parameterType="HashMap">
+   SELECT COUNT(*) as cnt
+   FROM contents
+   <choose>
+     <when test="word == null or word == ''"> <!-- 검색하지 않는 경우의 레코드 갯수 -->
+       WHERE cateno=#{cateno}
+     </when>
+     <otherwise> <!-- 검색하는 경우의 레코드 갯수 -->
+       WHERE cateno=#{cateno} AND (title LIKE '%' || #{word} || '%' 
+                                                      OR content LIKE '%' || #{word} || '%' 
+                                                      OR word LIKE '%' || #{word} || '%')
+     </otherwise>
+   </choose>
+ </select>    
+ 
+ <!-- [40][Contents] 페이징, SQL, DAO, Process, list_by_cateno_search_paging.jsp
+ 카테고리별 검색 목록 + 페이징 + 메인 이미지 -->   
+ <select id="list_by_cateno_search_paging" 
+            resultType="dev.mvc.contents.ContentsVO" parameterType="HashMap">
+  SELECT contentsno, adminno, cateno, title, content, recom, cnt, replycnt, rdate, 
+            file1, file1saved, thumb1, size1, price, dc, saleprice, point, r
+  FROM (
+             SELECT contentsno, adminno, cateno, title, content, recom, cnt, replycnt, rdate, 
+                       file1, file1saved, thumb1, size1, price, dc, saleprice, point, rownum as r
+             FROM (
+                       SELECT contentsno, adminno, cateno, title, content, recom, cnt, replycnt, rdate, 
+                                  file1, file1saved, thumb1, size1, price, dc, saleprice, point
+                       FROM contents
+                        <choose>
+                          <when test="word == null or word == ''"> <!-- 검색하지 않는 경우 -->
+                            WHERE cateno=#{cateno}
+                          </when>
+                          <otherwise>
+                            WHERE cateno=#{cateno} AND (title LIKE '%' || #{word} || '%'  <!-- ||: 결합, %첫눈% -->
+                                                             OR content LIKE '%' || #{word} || '%' 
+                                                             OR word LIKE '%' || #{word} || '%')
+                          </otherwise>
+                        </choose>
+                        ORDER BY contentsno DESC
+              )
+   )
+   WHERE <![CDATA[ r >= #{start_num} AND r <= #{end_num} ]]> <!-- XML에서 태그의 성질을 지울때 사용 -->
+     
+     <!-- 1 page: WHERE r >= 1 AND r <= 10; 
+      2 page: WHERE r >= 11 AND r <= 20;
+      3 page: WHERE r >= 21 AND r <= 30; -->
+ </select> 
+ 
+  <!--  [42, 45][Contents] 조회 기능의 제작
+    일반적인 조회 -->
+  <select id="read" resultType="dev.mvc.contents.ContentsVO" parameterType="int">
+    SELECT contentsno, adminno, cateno, title, content, word, recom, cnt, replycnt, rdate, 
+              file1, file1saved, thumb1, size1, price, dc, saleprice, point, salecnt
+    FROM contents
+    WHERE contentsno = #{contentsno }
+  </select>
+ 
+
+  <!-- [46][Contents] 텍스트 관련 수정 기능의 제작, HashMap 전달, 패스워드는 향후(AJAX 배운 후)
+  테스트 수정 -->
+  <update id="update_text" parameterType="dev.mvc.contents.ContentsVO">
+    UPDATE contents
+    SET title=#{title}, content=#{content}, word=#{word}, 
+          price=#{price}, dc=#{dc}, saleprice=#{saleprice}, point=#{point}, salecnt=#{salecnt}
+    WHERE contentsno = #{contentsno }
+  </update>
+  
+  <!-- [47][Contents] 파일 수정 기능의 제작, 패스워드 검사(향후 Ajax 적용 구현)
+  파일 수정 -->
+  <update id="update_file" parameterType="dev.mvc.contents.ContentsVO">
+    UPDATE contents
+    SET  file1=#{file1 }, file1saved=#{file1saved }, thumb1=#{thumb1 }, size1=#{size1 }
+    WHERE contentsno = #{contentsno }
+  </update>  
+
+  <!-- [48][Contents] 삭제 기능의 제작, 패스워드 검사(향후 Ajax 적용 구현)
+  파일 수정 -->  
+  <delete id="delete" parameterType="int">
+    DELETE FROM contents
+    WHERE contentsno=#{contentsno}
+  </delete>
+    
+    
+    
+    
+</mapper> 

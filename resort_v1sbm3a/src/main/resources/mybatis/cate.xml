@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<!-- dev.mvc.cate.CateDAOInter 패키지에 등록된 interface 명시,
+      패키지명과 인터페이스명은 실제로 존재해야함,
+      Spring이 내부적으로 자동으로 interface를 구현해줌. -->
+<mapper namespace="dev.mvc.cate.CateDAOInter">
+  <!-- 
+  insert: INSERT SQL 실행
+  id: Spring에서 호출시 사용
+  parameterType: 전달받는 데이터 객체의 타입
+  return: 등록한 레코드 갯수 리턴
+  SQL선언시 ';'은 삭제
+  #{}: ? 동일
+  #{name}: public String getName() 자동 호출 -> 값이 자동으로 들어감
+   --> 
+   
+   <!-- [26][Cate] Cate 등록 기능 제작(INSERT ~ INTO ~ VALUES ~)
+   CREATE : INSERT 부분-->
+  <insert id="create" parameterType="dev.mvc.cate.CateVO">
+    INSERT INTO cate(cateno, categrpno, name, rdate, cnt)
+    VALUES(cate_seq.nextval, #{categrpno}, #{name}, sysdate, 0)
+  </insert> 
+ 
+ 
+  <!-- 
+  [27][Cate] Categrp 전체목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~)
+  레코드 갯수 만큼 CateVO 객체를 만들어 ArrayList에 저장하여 리턴,
+  List<CateVO> list = new ArrayList<CateVO>(); 
+  LIST(결과 레코드가 여러개)이기 때문에 ArrayList가 return
+  -->
+  <select id="list_all" resultType="dev.mvc.cate.CateVO">
+    SELECT cateno, categrpno, name, rdate, cnt
+    FROM cate 
+    ORDER BY cateno ASC
+  </select>
+
+  <!-- 
+  [28][Cate] categrpno별 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~), 등록과 목록이 결합된 화면 제작
+  카테고리 그룹별 목록
+  정수를 전달받기에 result = int -> but VO를 return하기에 parameter 타입을 int로 설정
+  categrpno는 입력받기에 #{값} -->
+  <select id="list_by_categrpno" resultType="dev.mvc.cate.CateVO" parameterType="int">
+    SELECT cateno, categrpno, name, rdate, cnt
+    FROM cate
+    WHERE categrpno = #{categrpno}
+    ORDER BY cateno ASC
+  </select>
+  
+  <!-- 
+  [29][Cate] Categrp + Cate join 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~),  Categrp_CateVO.java 사용
+  Categrp + Cate join, 연결 목록 -->
+  <select id="list_all_join" resultType="dev.mvc.cate.Categrp_CateVO">
+    SELECT r.categrpno AS r_categrpno, r.name AS r_name,
+                c.cateno, c.categrpno, c.name, c.rdate, c.cnt
+    FROM categrp r, cate c
+    WHERE r.categrpno = c.categrpno
+    ORDER BY categrpno ASC, cateno ASC
+  </select>
+
+  <!-- [30][Cate] Cate 조회 + 수정폼, 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ )
+  조회, id: read, 입력: cateno, 리턴: CateVO -->
+  <select id="read" resultType="dev.mvc.cate.CateVO" parameterType="int">
+    SELECT cateno, categrpno, name, rdate, cnt
+    FROM cate
+    WHERE cateno=#{cateno}
+  </select>  
+  
+  <!-- [30][Cate] Cate 조회 + 수정폼, 수정 처리 기능의 제작(UPDATE ~ SET ~ WHERE ~ )
+  조회, id: read, 입력: cateno, 리턴: CateVO -->
+  <update id="update" parameterType="dev.mvc.cate.CateVO">
+    UPDATE cate
+    SET categrpno=#{categrpno}, name=#{name}, cnt=#{cnt}
+    WHERE cateno = #{cateno}
+  </update>  
+  
+    <!--[31][Cate] Cate 삭제 기능의 제작(DELETE ~ WHERE ~ ) 
+     삭제, return: int -->
+  <delete id="delete" parameterType="int">
+    DELETE FROM cate
+    WHERE cateno=#{cateno}
+  </delete>  
+  
+</mapper>

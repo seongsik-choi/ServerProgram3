@@ -25,11 +25,67 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  <!-- 
   레코드 갯수 만큼 CategrpVO 객체를 만들어 ArrayList에 저장하여 리턴,
   List<CategrpVO> list = new ArrayList<CategrpVO>(); 
+  LIST(결과 레코드가 여러개)이기 때문에 ArrayList가 return
   -->
  <select id="list_categrpno_asc" resultType="dev.mvc.categrp.CategrpVO">
     SELECT  categrpno, name, seqno, visible, rdate
     FROM categrp
     ORDER BY categrpno ASC
   </select>
-   
+
+  <!-- 
+  레코드 갯수 만큼 CategrpVO 객체를 만들어 ArrayList에 저장하여 리턴,
+  List<CategrpVO> list = new ArrayList<CategrpVO>(); 
+  -->
+ <select id="list_seqno_asc" resultType="dev.mvc.categrp.CategrpVO">
+    SELECT  categrpno, name, seqno, visible, rdate
+    FROM categrp
+    ORDER BY seqno ASC
+  </select>
+
+  <!-- 조회, id: read, 입력: categrpno, 리턴: CategrpVO
+    1) SELECT 사용 시 LIST(결과 레코드 여러개)인 경우 ArrayList Return
+    2) SELECT 사용 시 READ(결과 레코드 한개)인 경우 VO가 Return
+   -->
+  <select id="read" resultType="dev.mvc.categrp.CategrpVO" parameterType="int">
+    SELECT  categrpno, name, seqno, visible, rdate
+    FROM categrp
+    WHERE categrpno=#{categrpno}
+  </select>
+
+  <!-- 수정, id: update, 입력: CategrpVO, 리턴: int 
+     WHERE 조건엔 PK부분에 지정  -->
+  <update id="update" parameterType="dev.mvc.categrp.CategrpVO">
+    UPDATE categrp
+    SET name=#{name}, seqno=#{seqno}, visible=#{visible}
+    WHERE categrpno = #{categrpno}
+  </update>
+
+  <!-- 삭제 처리, id=delete, 입력: PK, 리턴: 삭제된 갯수 int -->
+  <delete id="delete" parameterType="int">
+    DELETE FROM categrp
+    WHERE categrpno=#{categrpno}
+  </delete>  
+  
+  <!-- 우선순위 상향 up 10 ▷ 1 -->
+  <update id="update_seqno_up" parameterType="int">
+    UPDATE categrp
+    SET seqno = seqno - 1
+    WHERE categrpno=#{categrpno}
+  </update>
+
+  <!-- 우선순위 하향 down 1 ▷ 10 --> 
+  <update id="update_seqno_down" parameterType="int">
+    UPDATE categrp
+    SET seqno = seqno + 1
+    WHERE categrpno=#{categrpno}
+  </update>  
+
+  <!-- Visible 수정, id: update_visible, 입력: CategrpVO, 리턴: int -->
+  <update id="update_visible" parameterType="dev.mvc.categrp.CategrpVO">
+    UPDATE categrp
+    SET visible=#{visible}
+    WHERE categrpno = #{categrpno}
+  </update>
+               
 </mapper> 
