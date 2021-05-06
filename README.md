@@ -6671,13 +6671,12 @@ WHERE r >= 11 AND r <= 20;
 -------------------------------------------------------------------------------------
 
 3. 상수 선언 ▷ /dev/mvc/contents/Contents.java 
-- 
 -------------------------------------------------------------------------------------
 package dev.mvc.contents;
  
 public class Contents {
   /** 페이지당 출력할 레코드 갯수 */
-  public static int RECORD_PER_PAGE = 10;
+  public static int RECORD_PER_PAGE = 4;
   
   /** 블럭당 페이지 수, 하나의 블럭은 1개 이상의 페이지로 구성됨 */
   public static int PAGE_PER_BLOCK = 10;
@@ -6967,7 +6966,7 @@ public class Contents {
 변경 없음
 -----------------------------------------------------------------------------------
 
-3. DAOP interface ▷ /dev/mvc/contents/ContentsDAOInter.java 
+3. DAO interface ▷ /dev/mvc/contents/ContentsDAOInter.java 
 -------------------------------------------------------------------------------------
 변경 없음
 -------------------------------------------------------------------------------------
