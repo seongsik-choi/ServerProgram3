@@ -9451,7 +9451,7 @@ public class MemberCont {
     var tag = $('#btn_close').attr('data-focus'); // 포커스를 적용할 태그 id 가져오기
     console.log('tag: ' +tag); //
     
-    $('#' + tag).focus(); // 포커스 지정
+    $('#' + tag).focus(); // data-focus 속성에 선언된 태그를 찾아서 포커스 이동 
   }
 
   function send() { // 회원 가입 처리
@@ -9670,6 +9670,790 @@ public class MemberCont {
 
 </html>
 -------------------------------------------------------------------------------------
+~~~
 
+* **0514 : [55][Member] 회원 가입 처리, create_msg.jsp, 메시지 처리 콘트롤러, msg.do 구현**
+~~~
+[01] 회원 가입 처리
+- Daum 우편주소 API 사용
+  http://postcode.map.daum.net/guide
+
+- 회원 가입 폼
+  http://localhost:9091/member/create.do
+
+1. SQL - Sequence 객체로 제작 가능. ▷ /webapp/WEB-INF/doc/dbms/member.sql
+-------------------------------------------------------------------------------------
+-- 회원 관리용 계정, Q/A 용 계정 : mname과 grade(1~10)
+INSERT INTO member(memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade)
+VALUES (member_seq.nextval, 'qnaadmin', '1234', '질문답변관리자', '000-0000-0000', '12345', '서울시 종로구', '관철동', sysdate, 1);
+
+-- 개인 회원 테스트 계정 : mname과 grade(11~20)
+INSERT INTO member(memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade)
+VALUES (member_seq.nextval, 'user1', '1234', '왕눈이', '000-0000-0000', '12345', '서울시 종로구', '관철동', sysdate, 11);
+
+-- 부서별(그룹별) 공유 회원 기준 : mname과 grade(11~20)
+INSERT INTO member(memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade)
+VALUES (member_seq.nextval, 'team1', '1234', '개발팀', '000-0000-0000', '12345', '서울시 종로구', '관철동', sysdate, 15);
+
+COMMIT;
+-------------------------------------------------------------------------------------
  
+2. MyBATIS
+   - <select>: SELECT SQL 실행
+   - id='checkId': 메소드명과 동일
+   - resultType='int': SELECT SQL 실행 결과와 대응
+   - parameterType='String': SQL로 전달되는 값 설정
+
+▷ /src/main/resources/mybatis/member.xml - id: create
+-------------------------------------------------------------------------------------
+  <!--  [55][Member] 회원 가입 처리, create_msg.jsp, 메시지 처리 콘트롤러, msg.do 구현-->
+  <insert id="create" parameterType="dev.mvc.member.MemberVO">
+    INSERT INTO member(memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade)
+    VALUES (member_seq.nextval, #{id}, #{passwd}, #{mname}, #{tel}, #{zipcode}, 
+                 #{address1}, #{address2}, sysdate, #{grade})
+  </insert>
+------------------------------------------------------------------------------------
+
+3. DAO interface▷ /dev/mvc/member/MemberDAOInter.java 
+4. Proc Interface ▷ dev.mvc.member.MemberProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * [55][Member] 회원 가입 처리, create_msg.jsp, 메시지 처리 콘트롤러, msg.do 구현
+   * 회원 가입
+   * @param memberVO
+   * @return
+   */
+  public int create(MemberVO memberVO);
+ -------------------------------------------------------------------------------------
+
+5. Process Class ▷ MemberProc.java
+-------------------------------------------------------------------------------------
+  /**
+   * [55][Member] 회원 가입 처리, create_msg.jsp, 메시지 처리 콘트롤러, msg.do 구현
+   * 회원 가입
+   * @param memberVO
+   * @return
+   */
+  public int create(MemberVO memberVO);
+-------------------------------------------------------------------------------------
+ 
+6. Controller class, 메시지 처리 콘트롤러
+1) 메시지 처리 콘트롤러
+- 메시지를 출력하는 전용 메소드를 제작하여 새로고침시 중복등록되는 문제의 해결
+  mav.setViewName("redirect:/member/msg.do");  ▷ MemberCont.java
+★★★ 등록폼은 54회꺼 그대로 사용
+★★★ 등록 처리시 등급(grade) 기본값 지정 : memberVO.setGrade(11); // 기본 회원 가입 등록 11 지정
+------------------------------------------------------------------------------------
+   /**
+   * 새로고침을 방지하는 메시지 출력
+   * @param memberno
+   * @return
+   */
+  @RequestMapping(value="/member/msg.do", method=RequestMethod.GET)
+  public ModelAndView msg(String url){
+    ModelAndView mav = new ModelAndView();
+    
+    // 등록 처리 메시지: create_msg --> /member/create_msg.jsp
+    // 수정 처리 메시지: update_msg --> /member/update_msg.jsp
+    // 삭제 처리 메시지: delete_msg --> /member/delete_msg.jsp
+    mav.setViewName("/member/" + url); // forward
+    
+    return mav; // forward
+  }
+
+  /**
+   * [55][Member] 회원 가입 처리, create_msg.jsp, 메시지 처리 콘트롤러, msg.do 구현
+   * 등록 처리
+   * @param memberVO
+   * @return
+   */
+  @RequestMapping(value="/member/create.do", method=RequestMethod.POST)
+  public ModelAndView create(MemberVO memberVO){
+    ModelAndView mav = new ModelAndView();
+    
+    // System.out.println("id: " + memberVO.getId());
+    memberVO.setGrade(11); // 기본 회원 가입 등록 11 지정
+
+    int cnt= memberProc.create(memberVO);
+    mav.addObject("cnt", cnt); // redirect parameter 적용
+    mav.addObject("url", "create_msg"); // create_msg.jsp, redirect parameter 적용
+    
+    mav.setViewName("redirect:/member/msg.do"); // 새로고침 방지
+    
+    return mav;
+  }
+-------------------------------------------------------------------------------------
+ 
+7. View: JSP
+1) 회원 가입 폼
+▷ /webapp/WEB-INF/views/member/create.jsp
+-------------------------------------------------------------------------------------
+기존 소스 변경 없음.
+-------------------------------------------------------------------------------------
+
+2) 메시지 창(dialog) 닫는 경우 focus의 이동
+    $('#btn_close').on('click', setFocus); // Dialog창을 닫은후의 focus 이동
+    ......
+    $('#btn_close').attr("data-focus", "id");
+    ......
+    function setFocus() {  // focus 이동
+      var tag = $('#btn_close').attr('data-focus'); // 포커스를 적용할 태그 id 가져오기
+      $('#' + tag).focus(); // 포커스 지정
+    }
+    ......
+          <button type="button" id="btn_close" data-focus="" 
+                      class="btn btn-default" data-dismiss="modal">Close</button>
+▷ /webapp/WEB-INF/views/member/create_msg.jsp 
+-------------------------------------------------------------------------------------
+<%-- 
+0514
+[55][Member] 회원 가입 처리, create_msg.jsp, 메시지 처리 콘트롤러, msg.do 구현
+--%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+<script type="text/JavaScript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+  <DIV class='title_line'>
+    회원
+  </DIV>
+
+  <ASIDE class="aside_right">
+    <A href="javascript:location.reload();">새로고침</A>
+    <span class='menu_divide' >│</span> 
+    <A href='./create.do'>회원 가입</A>
+    <span class='menu_divide' >│</span> 
+    <A href='./create.do'>목록</A>
+  </ASIDE> 
+
+  <div class='menu_line'></div>
+ 
+<DIV class='message'>
+  <fieldset class='fieldset_basic'>
+    <UL>
+      <c:choose>
+        <c:when test="${param.cnt == 1 }">
+          <LI class='li_none'>회원가입이 완료되었습니다.</LI>
+        </c:when>
+        <c:otherwise>
+          <LI class='li_none'>회원 가입에 실패했습니다.</LI>
+          <LI class='li_none'>다시한번 시도해주세요.</LI>
+          <LI class='li_none'>계속 실패시 ☏ 000-0000-0000 문의해주세요.</LI>
+        </c:otherwise>
+      </c:choose>
+      <LI class='li_none'>
+        <br>
+        <button type='button' onclick="location.href='./login.do'" class="btn btn-primary">로그인</button>
+        <button type='button' onclick="location.href='./create.do'" class="btn btn-primary">회원 등록</button>
+        <button type='button' onclick="location.href='./list.do'" class="btn btn-primary">목록</button>
+      </LI>
+     </UL>
+  </fieldset>
+ 
+</DIV>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+</html>
+-------------------------------------------------------------------------------------
+~~~
+
+* **0514 : [56][Member] 회원 목록 출력 기능 제작**
+~~~
+★관리자 전용
+
+[01] 목록 출력 기능 제작(SELECT ~ FROM ~ ORDER BY ~)
+1. SQL▷ /webapp/WEB-INF/doc/dbms/member_c.sql
+-------------------------------------------------------------------------------------
+-- 검색을 하지 않는 경우, 전체 목록 출력(56)
+SELECT memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade
+FROM member
+ORDER BY memberno ASC;
+-------------------------------------------------------------------------------------
+  
+2. MyBATIS ▷ /src/main/resources/mybatis/member.xml - id: list
+-------------------------------------------------------------------------------------
+  <!-- [56][Member] 회원 목록 출력 기능 제작, passwd는 출력 no-->
+  <select id="list" resultType="dev.mvc.member.MemberVO">
+    SELECT memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade
+    FROM member
+    ORDER BY memberno ASC
+  </select>  
+-------------------------------------------------------------------------------------
+ 
+3. DAO interface▷ /dev/mvc/member/MemberDAOInter.java 
+4. Proc Interface ▷ dev.mvc.member.MemberProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * 회원 전체 목록
+   * @return
+   */
+  public List<MemberVO> list();
+-------------------------------------------------------------------------------------
+
+5. Process Class ▷ MemberProc.java
+-------------------------------------------------------------------------------------
+  // [56][Member] 회원 목록 출력 기능 제작
+  @Override
+  public List<MemberVO> list() {
+    List<MemberVO> list = this.memberDAO.list();
+    return list;
+  }
+-------------------------------------------------------------------------------------
+ 
+6. Controller class
+  @RequestMapping(value="/member/list.do", method=RequestMethod.GET)
+  public ModelAndView list(){
+  .....
+▷ MemberCont.java
+-------------------------------------------------------------------------------------
+  /**
+  * [56][Member] 회원 목록 출력 기능 제작
+  * 목록 출력 가능
+  * @param session
+  * @return
+  */
+  @RequestMapping(value="/member/list.do", method=RequestMethod.GET)
+  public ModelAndView list(HttpSession session) {
+    ModelAndView mav = new ModelAndView();
+    
+    List<MemberVO> list = memberProc.list();
+    mav.addObject("list", list);
+
+    mav.setViewName("/member/list"); // /webapp/WEB-INF/views/member/list.jsp
+    
+    return mav;
+  }  
+-------------------------------------------------------------------------------------
+ 
+7. View: JSP 1) EL의 사용 ▷ /member/list.jsp 
+-------------------------------------------------------------------------------------
+<%-- 
+0514
+[56][Member] 회원 목록 출력 기능 제작 : 관리자 전용
+--%>
+
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+  <DIV class='title_line'>
+    회원(관리자 전용)
+  </DIV>
+
+  <DIV class='content_body'>
+
+    <ASIDE class="aside_right">
+      <A href="javascript:location.reload();">새로고침</A>
+      <span class='menu_divide' >│</span> 
+      <A href='./create.do'>회원 가입</A>
+      <span class='menu_divide' >│</span> 
+      <A href='./create.do'>목록</A>
+    </ASIDE> 
+   
+    <div class='menu_line'></div>
+    
+   
+    <table class="table table-striped" style='width: 100%;'>
+    <colgroup>
+      <col style='width: 5%;'/>
+      <col style='width: 10%;'/>
+      <col style='width: 15%;'/>
+      <col style='width: 15%;'/>
+      <col style='width: 30%;'/>
+      <col style='width: 15%;'/>
+      <col style='width: 10%;'/>
+    </colgroup>
+    <TR>
+      <TH class='th_bs'>번호</TH>
+      <TH class='th_bs'>ID</TH>
+      <TH class='th_bs'>성명</TH>
+      <TH class='th_bs'>전화번호</TH>
+      <TH class='th_bs'>주소</TH>
+      <TH class='th_bs'>등록일</TH>
+      <TH class='th_bs'>기타</TH>
+    </TR>
+   
+    <c:forEach var="memberVO" items="${list }">
+      <c:set var="memberno" value ="${memberVO.memberno}" />
+      <c:set var="id" value ="${memberVO.id}" />
+      <c:set var="mname" value ="${memberVO.mname}" />
+      <c:set var="tel" value ="${memberVO.tel}" />
+      <c:set var="address1" value ="${memberVO.address1}" />
+      <c:set var="mdate" value ="${memberVO.mdate}" />
+       
+    <TR>
+      <TD class=td_basic>${memberno}</TD>
+      <TD class='td_left'><A href="./read.do?memberno=${memberno}">${id}</A></TD>
+      <TD class='td_left'><A href="./read.do?memberno=${memberno}">${mname}</A></TD>
+      <TD class='td_basic'>${tel}</TD>
+      <TD class='td_left'>
+        <c:choose>
+          <c:when test="${address1.length() > 15 }"> <!-- 긴 주소 처리 -->
+            ${address1.substring(0, 15) }...
+          </c:when>
+          <c:otherwise>
+            ${address1}
+          </c:otherwise>
+        </c:choose>
+      </TD>
+      <TD class='td_basic'>${mdate.substring(0, 10)}</TD> <!-- 년월일 -->
+      <TD class='td_basic'>
+        <A href="./passwd_update.do?memberno=${memberno}"><IMG src='/member/images/passwd.png' title='패스워드 변경'></A>
+        <A href="./read.do?memberno=${memberno}"><IMG src='/member/images/update.png' title='수정'></A>
+        <A href="./delete.do?memberno=${memberno}"><IMG src='/member/images/delete.png' title='삭제'></A>
+      </TD>
+      
+    </TR>
+    </c:forEach>
+    
+  </TABLE>
+   
+  <DIV class='bottom_menu'>
+    <button type='button' onclick="location.href='./create.do'" class="btn btn-primary">등록</button>
+    <button type='button' onclick="location.reload();" class="btn btn-primary">새로 고침</button>
+  </DIV>
+</DIV>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+-------------------------------------------------------------------------------------
+
+- css 변경
+-------------------------------------------------------------------------------------
+  .top_menu_sep { 
+    background: url('/css/images/gray.jpg') center center no-repeat;
+    background-size: 1px;
+    width:1px;
+    margin-left: 10px;
+    margin-right: 5px;
+  }
+
+    .td_basic {
+    border-top: none;
+    border-right: none;
+    border-bottom: solid 1px #DDDDDD;
+    border-left: none;
+    text-align: center;
+  }
+    .td_left {
+    border-top: none;
+    border-right: none;
+    border-bottom: solid 1px #DDDDDD;
+    border-left: none;
+    text-align: left;
+  }
+-------------------------------------------------------------------------------------
+~~~
+
+* **0514 : [57][Member] 회원 조회(수정 폼) 기능 제작**
+~~~
+[01] 조회(수정 폼) 기능 제작(SELECT ~ FROM ~ WHERE ~) 
+1. SQL▷ /webapp/WEB-INF/doc/dbms/member.sql
+-------------------------------------------------------------------------------------
+1) memberno PK로 user1 사원 정보 보기
+SELECT memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade
+FROM member
+WHERE memberno = 1;
+
+2) id로 user1 사원 정보 보기
+SELECT memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade
+FROM member
+WHERE id = 'user1';
+-------------------------------------------------------------------------------------
+ 
+2. MyBATIS▷ /src/main/resources/mybatis/member.xml - id: read, readById
+-------------------------------------------------------------------------------------
+  <!-- [57][Member] 회원 조회(수정 폼) 기능 제작 - memberno로 회원 정보 조회 -->
+  <select id="read" resultType="dev.mvc.member.MemberVO" parameterType="int">
+    SELECT memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade
+    FROM member
+    WHERE memberno = #{memberno}
+  </select>  
+
+  <!-- [57][Member] 회원 조회(수정 폼) 기능 제작-  id로 회원 정보 조회 -->
+  <select id="readById" resultType="dev.mvc.member.MemberVO" parameterType="String">
+    SELECT memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade
+    FROM member
+    WHERE id = #{id}
+  </select>
+-------------------------------------------------------------------------------------
+
+3. DAO interface▷ /dev/mvc/member/MemberDAOInter.java 
+4. Proc Interface ▷ dev.mvc.member.MemberProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * [57][Member] 회원 조회(수정 폼) 기능 제작 -memberno로 회원 정보 조회
+   * @param memberno
+   * @return
+   */
+  public MemberVO read(int memberno);
+  
+  /**
+   * [57][Member] 회원 조회(수정 폼) 기능 제작- id로 회원 정보 조회
+   * @param id
+   * @return
+   */
+  public MemberVO readById(String id);  
+-------------------------------------------------------------------------------------
+
+5. Process Class▷ MemberProc.java
+-------------------------------------------------------------------------------------
+  // [57][Member] 회원 조회(수정 폼) 기능 제작 -memberno로 회원 정보 조회
+  @Override
+  public MemberVO read(int memberno) {
+    MemberVO memberVO = this.memberDAO.read(memberno);
+    return memberVO;
+  }
+
+  // [57][Member] 회원 조회(수정 폼) 기능 제작- id로 회원 정보 조회
+  @Override
+  public MemberVO readById(String id) {
+    MemberVO memberVO = this.memberDAO.readById(id);
+    return memberVO;
+  }
+-------------------------------------------------------------------------------------
+ 
+6. Controller class ▷ MemberCont.java
+-------------------------------------------------------------------------------------
+  /**
+   * [57][Member] 회원 조회(수정 폼) 기능 제작
+   * 회원 조회
+   * @param memberno
+   * @return
+   */
+  @RequestMapping(value="/member/read.do", method=RequestMethod.GET)
+  public ModelAndView read(int memberno){
+    ModelAndView mav = new ModelAndView();
+    
+    MemberVO memberVO = this.memberProc.read(memberno);
+    mav.addObject("memberVO", memberVO);
+    mav.setViewName("/member/read"); // webapp/WEB-INF/member/read.jsp
+    
+    return mav; // forward
+  }  
+-------------------------------------------------------------------------------------
+ 
+7. View: JSP ▷ /webapp/member/read.jsp 
+-------------------------------------------------------------------------------------
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+  <DIV class='title_line'>
+    회원 정보 조회 및 수정
+  </DIV>
+
+<DIV class='content_body'>    
+    <ASIDE class="aside_right">
+      <A href="javascript:location.reload();">새로고침</A>
+      <span class='menu_divide' >│</span> 
+      <A href='./create.do'>회원 가입</A>
+      <span class='menu_divide' >│</span> 
+      <A href='./create.do'>목록</A>
+    </ASIDE> 
+   
+    <div class='menu_line'></div>
+    <DIV id='main_panel'></DIV>
+   
+    <!-- Modal  start-->
+    <div class="modal fade" id="modal_panel" role="dialog">
+      <div class="modal-dialog">
+      
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">×</button>
+            <h4 class="modal-title" id='modal_title'></h4>
+          </div>
+          <div class="modal-body">
+            <p id='modal_content'></p> <!--  내용 -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div> <!-- Modal END -->
+      
+    <FORM name='frm' id='frm' method='POST' action='./update.do' 
+                onsubmit="return send();" class="form-horizontal">
+      <input type='hidden' name='memberno' id='memberno' value='${memberVO.memberno }'>          
+   
+      <div class="form-group">
+        <label class="col-md-2 control-label" style='font-size: 0.9em;'>아이디</label>    
+        <div class="col-md-10">
+          ${memberVO.id } (변경 불가능합니다.)
+        </div>
+      </div>   
+                  
+      <div class="form-group">
+        <label class="col-md-2 control-label" style='font-size: 0.9em;'>성명</label>    
+        <div class="col-md-10">
+          <input type='text' class="form-control" name='mname' id='mname' 
+                     value='${memberVO.mname }' required="required" style='width: 30%;' placeholder="성명" autofocus="autofocus">
+        </div>
+      </div>   
+   
+      <div class="form-group">
+        <label class="col-md-2 control-label" style='font-size: 0.9em;'>전화번호</label>    
+        <div class="col-md-10">
+          <input type='text' class="form-control" name='tel' id='tel' 
+                     value='${memberVO.tel }' required="required" style='width: 30%;' placeholder="전화번호"> 예) 010-0000-0000
+        </div>
+      </div>   
+   
+      <div class="form-group">
+        <label class="col-md-2 control-label" style='font-size: 0.9em;'>우편번호</label>    
+        <div class="col-md-10">
+          <input type='text' class="form-control" name='zipcode' id='zipcode' 
+                     value='${memberVO.zipcode }' required="required" style='width: 30%;' placeholder="우편번호">
+          <input type="button" onclick="DaumPostcode()" value="우편번호 찾기" class="btn btn-info btn-md">
+        </div>
+      </div>  
+   
+      <div class="form-group">
+        <label class="col-md-2 control-label" style='font-size: 0.9em;'>주소</label>    
+        <div class="col-md-10">
+          <input type='text' class="form-control" name='address1' id='address1' 
+                     value='${memberVO.address1 }' required="required" style='width: 80%;' placeholder="주소">
+        </div>
+      </div>   
+   
+      <div class="form-group">
+        <label class="col-md-2 control-label" style='font-size: 0.9em;'>상세 주소</label>    
+        <div class="col-md-10">
+          <input type='text' class="form-control" name='address2' id='address2' 
+                     value='${memberVO.address2 }' required="required" style='width: 80%;' placeholder="상세 주소">
+        </div>
+      </div>   
+   
+      <div class="form-group">
+        <div class="col-md-12">
+   
+  <!-- ----- DAUM 우편번호 API 시작 ----- -->
+  <div id="wrap" style="display:none;border:1px solid;width:500px;height:300px;margin:5px 110px;position:relative">
+    <img src="//i1.daumcdn.net/localimg/localimages/07/postcode/320/close.png" id="btnFoldWrap" style="cursor:pointer;position:absolute;right:0px;top:-1px;z-index:1" onclick="foldDaumPostcode()" alt="접기 버튼">
+  </div>
+   
+  <script src="http://dmaps.daum.net/map_js_init/postcode.v2.js"></script>
+  <script>
+      // 우편번호 찾기 화면을 넣을 element
+      var element_wrap = document.getElementById('wrap');
+   
+      function foldDaumPostcode() {
+          // iframe을 넣은 element를 안보이게 한다.
+          element_wrap.style.display = 'none';
+      }
+   
+      function DaumPostcode() {
+          // 현재 scroll 위치를 저장해놓는다.
+          var currentScroll = Math.max(document.body.scrollTop, document.documentElement.scrollTop);
+          new daum.Postcode({
+              oncomplete: function(data) {
+                  // 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
+   
+                  // 각 주소의 노출 규칙에 따라 주소를 조합한다.
+                  // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
+                  var fullAddr = data.address; // 최종 주소 변수
+                  var extraAddr = ''; // 조합형 주소 변수
+   
+                  // 기본 주소가 도로명 타입일때 조합한다.
+                  if(data.addressType === 'R'){
+                      //법정동명이 있을 경우 추가한다.
+                      if(data.bname !== ''){
+                          extraAddr += data.bname;
+                      }
+                      // 건물명이 있을 경우 추가한다.
+                      if(data.buildingName !== ''){
+                          extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                      }
+                      // 조합형주소의 유무에 따라 양쪽에 괄호를 추가하여 최종 주소를 만든다.
+                      fullAddr += (extraAddr !== '' ? ' ('+ extraAddr +')' : '');
+                  }
+   
+                  // 우편번호와 주소 정보를 해당 필드에 넣는다.
+                  document.getElementById('zipcode').value = data.zonecode; //5자리 새우편번호 사용
+                  document.getElementById('address1').value = fullAddr;
+   
+                  // iframe을 넣은 element를 안보이게 한다.
+                  // (autoClose:false 기능을 이용한다면, 아래 코드를 제거해야 화면에서 사라지지 않는다.)
+                  element_wrap.style.display = 'none';
+   
+                  // 우편번호 찾기 화면이 보이기 이전으로 scroll 위치를 되돌린다.
+                  document.body.scrollTop = currentScroll;
+                  
+                  $('#address2').focus();
+              },
+              // 우편번호 찾기 화면 크기가 조정되었을때 실행할 코드를 작성하는 부분. iframe을 넣은 element의 높이값을 조정한다.
+              onresize : function(size) {
+                  element_wrap.style.height = size.height+'px';
+              },
+              width : '100%',
+              height : '100%'
+          }).embed(element_wrap);
+   
+          // iframe을 넣은 element를 보이게 한다.
+          element_wrap.style.display = 'block';
+      }
+  </script>
+  <!-- ----- DAUM 우편번호 API 종료----- -->
+   
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+          <button type="submit" class="btn btn-primary btn-md">저장</button>
+          <button type="button" onclick="history.go(-1);" class="btn btn-primary btn-md">취소</button>
+   
+        </div>
+      </div>   
+    </FORM>
+</DIV>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+-------------------------------------------------------------------------------------
+~~~
+
+* **0514 : [58][Member] 회원 수정 처리**
+~~~
+[01] 수정 처리
+1. SQL ▷ /webapp/WEB-INF/doc/dbms/member.sql
+-------------------------------------------------------------------------------------
+1) 변경
+UPDATE member 
+SET mname='아로미', tel='111-1111-1111', zipcode='00000',
+      address1='경기도', address2='파주시'
+WHERE memberno=7;
+-------------------------------------------------------------------------------------
+
+2. MyBATIS▷ /src/main/resources/mybatis/member.xml - id: update
+-------------------------------------------------------------------------------------
+  <!--  [58][Member] 회원 수정 처리 -->
+  <update id="update" parameterType="dev.mvc.member.MemberVO">
+    UPDATE member 
+    SET mname=#{mname}, tel=#{tel}, zipcode=#{zipcode},
+          address1=#{address1}, address2=#{address2}
+    WHERE memberno=#{memberno}
+  </update>   
+-------------------------------------------------------------------------------------
+
+3. DAO interface▷ /dev/mvc/member/MemberDAOInter.java 
+4. Proc Interface ▷ dev.mvc.member.MemberProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * [58][Member] 회원 수정 처리
+   * 수정 처리
+   * @param memberVO
+   * @return
+   */
+  public int update(MemberVO memberVO);
+-------------------------------------------------------------------------------------
+
+5. Process Class ▷ MemberProc.java
+-------------------------------------------------------------------------------------
+  // [58][Member] 회원 수정 처리
+  @Override
+  public int update(MemberVO memberVO) {
+    int cnt = 0;
+    cnt = this.memberDAO.update(memberVO);
+    return cnt;
+  }
+-------------------------------------------------------------------------------------
+ 
+6. Controller class ▷ MemberCon.java
+-------------------------------------------------------------------------------------
+  /**
+   * [58][Member] 회원 수정 처리
+   * 회원 정보 수정 처리
+   * @param memberVO
+   * @return
+   */
+  @RequestMapping(value="/member/update.do", method=RequestMethod.POST)
+  public ModelAndView update(MemberVO memberVO){
+    ModelAndView mav = new ModelAndView();
+    
+    // System.out.println("id: " + memberVO.getId());
+    
+    int cnt= memberProc.update(memberVO);
+    mav.addObject("cnt", cnt); // redirect parameter 적용
+    mav.addObject("memberno", memberVO.getMemberno()); // redirect parameter 적용
+    mav.addObject("url", "update_msg"); // update_msg.jsp, redirect parameter 적용
+
+    mav.setViewName("redirect:/member/msg.do");
+    
+    return mav;
+  }
+-------------------------------------------------------------------------------------
+ 
+7. View: JSP▷ /member/update_msg.jsp 
+-------------------------------------------------------------------------------------
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+  <DIV class='title_line'>가입 정보 수정</DIV>
+
+  <DIV class='content_body'>
+  <ASIDE class="aside_right">
+    <A href="javascript:location.reload();">새로고침</A>
+    <span class='menu_divide' >│</span> 
+    <A href='./create.do'>회원 가입</A>
+    <span class='menu_divide' >│</span> 
+    <A href='./create.do'>목록</A>
+  </ASIDE> 
+
+  <div class='menu_line'></div>
+ 
+<DIV class='message'>
+  <fieldset class='fieldset_basic'>
+    <UL>
+      <c:choose>
+        <c:when test="${param.cnt == 1 }">
+          <LI class='li_none'>
+            <span class='span_success'>회원 정보를 수정했습니다.</span>
+          </LI>
+          <LI class='li_none'>
+            <button type='button' 
+                        onclick="location.href='./read.do?memberno=${param.memberno}'"
+                        class="btn btn-info">변경 확인</button>
+            <button type='button' 
+                        onclick="location.href='./list.do'"
+                        class="btn btn-info">목록</button>                        
+          </LI>
+        </c:when>
+        <c:otherwise>
+          <LI class='li_none'>
+            <span class='span_fail'>회원정보 수정에 실패했습니다.</span>
+          </LI>
+          <LI class='li_none'>
+            <button type='button' 
+                        onclick="history.back();"
+                        class="btn btn-info">재시도</button>
+            <button type='button' 
+                        onclick="location.href='./list.do'"
+                        class="btn btn-info">목록</button>                        
+          </LI>
+        </c:otherwise>
+      </c:choose>
+     </UL>
+  </fieldset>
+ 
+</DIV>
+</DIV>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+------------------------------------------------------------------------------------
+[과제] 회원 등급을 변경하는 기능을 추가 할 것.
 ~~~
