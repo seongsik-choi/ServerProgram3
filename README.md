@@ -8874,7 +8874,7 @@ CREATE TABLE member (
   address1   VARCHAR(80)       NULL, -- 주소 1
   address2   VARCHAR(50)       NULL, -- 주소 2
   mdate      DATE             NOT NULL, -- 가입일    
-  grade       NUMBER(2)     NOT NULL, -- 등급(1 ~ 10: 관리자, 11~20: 회원, 비회원: 30~39, 정지 회원: 40~49)
+  grade       NUMBER(2)     NOT NULL, -- 등급(1 ~ 10: 관리자, 11~20: 회원, 비회원: 30~39, 정지 회원: 40~49, 탈퇴회원 : 99)
   PRIMARY KEY (memberno)                     -- 한번 등록된 값은 중복 안됨
 );
 
@@ -10326,8 +10326,11 @@ WHERE id = 'user1';
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0514 : [58][Member] 회원 수정 처리**
+* **0517 : [58][Member] 회원 수정 처리**
 ~~~
+★수정 : list.jsp와 read.jsp의 title_line 위쪽 목록 create.do -> list.do로 수정
+★수정 : create.jsp의 하단 '취소' 버튼 링크 onclick="history.back()" 로 수정
+
 [01] 수정 처리
 1. SQL ▷ /webapp/WEB-INF/doc/dbms/member.sql
 -------------------------------------------------------------------------------------
@@ -10410,7 +10413,7 @@ WHERE memberno=7;
     <span class='menu_divide' >│</span> 
     <A href='./create.do'>회원 가입</A>
     <span class='menu_divide' >│</span> 
-    <A href='./create.do'>목록</A>
+    <A href='./list.do'>목록</A>
   </ASIDE> 
 
   <div class='menu_line'></div>
@@ -10456,4 +10459,567 @@ WHERE memberno=7;
 </body>
 ------------------------------------------------------------------------------------
 [과제] 회원 등급을 변경하는 기능을 추가 할 것.
+~~~
+
+* **0517 : [59][Member] 회원 삭제 기능의 제작, Contents 테이블에서 참조되는 레코드는 삭제 안됨**
+~~~
+[01] 관리자측 회원 삭제 기능의 제작
+- Contents 테이블에서 참조되는 레코드는 삭제 안됨.
+ 1. SQL
+- 일반적으로 데이터 관리 문제로 회원 탈퇴가 발생해도 회원 레코드를 삭제no
+  삭제회원으로 권한을 변경하거나 민감한 개인 정보만 삭제하며 일반적으로 5년 정도 
+ 2. MyBATIS- <delete>: DELETE SQL 실행 태그, 처리된 레코드의 갯수를 리턴
+▷ /src/main/resources/mybatis/member.xml - id: delete
+-------------------------------------------------------------------------------------
+  <!--  [59][Member] 회원 삭제 기능의 제작 -->
+  <delete id="delete" parameterType="int">
+    DELETE FROM member
+    WHERE memberno=#{memberno}
+  </delete>
+-------------------------------------------------------------------------------------
+ 
+3. DAO interface ▷ /dev/mvc/member/MemberDAOInter.java 
+4. Proc Interface ▷ dev.mvc.member.MemberProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * [59][Member] 회원 삭제 기능의 제작
+   * @param memberno
+   * @return
+   */
+  public int delete(int memberno);
+------------------------------------------------------------------------------------- 
+
+5. Process Class▷ dev.mvc.member.MemberProc.java
+-------------------------------------------------------------------------------------
+  // [59][Member] 회원 삭제 기능의 제작
+  @Override
+  public int delete(int memberno) {
+    int cnt = this.memberDAO.delete(memberno);
+    return cnt;
+  }
+-------------------------------------------------------------------------------------
+ 
+6. Controller class▷ dev.mvc.member.MemberCont.java
+------------------------------------------------------------------------------------
+  /**
+   * [59] 회원 삭제
+   * @param memberno
+   * @return
+   */
+  @RequestMapping(value="/member/delete.do", method=RequestMethod.GET)
+  public ModelAndView delete(int memberno){
+    ModelAndView mav = new ModelAndView();
+    
+    MemberVO memberVO = this.memberProc.read(memberno);
+    mav.addObject("memberVO", memberVO);
+    mav.setViewName("/member/delete"); // /member/delete.jsp
+    
+    return mav; // forward
+  }
+ 
+  /**
+   * [59] 회원 삭제 처리
+   * @param memberVO
+   * @return
+   */
+  @RequestMapping(value="/member/delete.do", method=RequestMethod.POST)
+  public ModelAndView delete_proc(int memberno){
+    ModelAndView mav = new ModelAndView();
+    
+    // System.out.println("id: " + memberVO.getId());
+    MemberVO memberVO = this.memberProc.read(memberno);
+    
+    int cnt= memberProc.delete(memberno);
+    mav.addObject("cnt", cnt); // redirect parameter 적용
+    mav.addObject("mname", memberVO.getMname()); // redirect parameter 적용
+    mav.addObject("url", "delete_msg"); // delete_msg.jsp, redirect parameter 적용
+    
+    mav.setViewName("redirect:/member/msg.do");
+    
+    return mav;
+  }
+-------------------------------------------------------------------------------------
+ 
+7. View:  JSP) 삭제 폼 ▷ /webapp/member/delete.jsp 
+-------------------------------------------------------------------------------------
+<%-- 
+0517
+[59] 삭제 폼
+--%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+ 
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+  <DIV class='title_line'>
+    회원 삭제
+  </DIV>
+  
+ <DIV class='content_body'>
+  
+    <ASIDE class="aside_right">
+      <A href="javascript:location.reload();">새로고침</A>
+      <span class='menu_divide' >│</span> 
+      <A href='./create.do'>회원 가입</A>
+      <span class='menu_divide' >│</span> 
+      <A href='./list.do'>목록</A>
+    </ASIDE> 
+   
+    <div class='menu_line'></div>
+   
+    <DIV class='message'>
+      <FORM name='frm' method='POST' action='./delete.do'>
+       <STRONG>'${memberVO.mname }(${memberVO.id })'</STRONG> 회원을 삭제하면 복구 할 수 없습니다.<br><br>
+        정말로 삭제하시겠습니까?<br><br>         
+        <input type='hidden' name='memberno' value='${memberVO.memberno}'>     
+            
+        <button type="submit" class="btn btn-primary btn-md">삭제</button>
+        <button type="button" onclick="location.href='./list.do'" class="btn btn-primary btn-md">취소(목록)</button>
+     
+      </FORM>
+    </DIV>
+ </DIV> <%-- content_body end --%>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+</html>
+-------------------------------------------------------------------------------------
+
+2) 삭제 처리 메시지 출력 ▷ /webapp/member/delete_msg.jsp 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    
+<script type="text/javascript">
+  $(function(){ 
+  
+  });
+</script>
+ 
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+  <DIV class='title_line'>
+    회원 삭제
+  </DIV>
+ <DIV class='content_body'>
+ 
+    <ASIDE class="aside_right">
+      <A href="javascript:location.reload();">새로고침</A>
+      <span class='menu_divide' >│</span> 
+      <A href='./create.do'>회원 가입</A>
+      <span class='menu_divide' >│</span> 
+      <A href='./list.do'>목록</A>
+    </ASIDE> 
+   
+    <div class='menu_line'></div>
+   
+    <DIV class='message'>
+      <fieldset class='fieldset_basic'>
+        <ul>
+          <c:choose>
+            <c:when test="${param.cnt == 0}">
+              <li class='li_none'>[${param.mname}] 회원 정보 삭제에 실패했습니다.</li>
+            </c:when>
+            <c:otherwise>
+              <li class='li_none'>[${param.mname}] 회원 정보 삭제에 성공했습니다.</li>
+            </c:otherwise>
+          </c:choose>
+       
+          <li class='li_none'>
+            <button type='button'  onclick="location.href='./list.do'" class="btn btn-primary">목록</button>  
+          </li>
+          
+        </ul>
+      </fieldset>    
+    </DIV>
+  </DIV> <%-- content_body end --%>
+  
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+</html>
+-------------------------------------------------------------------------------------
+~~~
+
+* **0517 : [60][Member] 회원 패스워드 변경 기능의 제작, Layer, HashMap 전달**
+~~~
+[01] 패스워드 변경 기능의 제작(UPDATE ~ SET ~ WHERE ~ )
+ 1. SQL ▷ /webapp/WEB-INF/doc/dbms/member_c.sql
+-------------------------------------------------------------------------------------
+1) 패스워드 검사
+SELECT COUNT(memberno) as cnt
+FROM member
+WHERE memberno=1 AND passwd='1234';
+ 
+2) 패스워드 수정
+UPDATE member
+SET passwd='0000'
+WHERE memberno=1;
+-------------------------------------------------------------------------------------
+  
+2. MyBATIS - <update>: UPDATE SQL 실행 태그, 처리된 레코드의 갯수를 리턴
+ 1) Map Interface 의 전달
+    Map<String, Object> map = new HashMap<String, Object>();
+    map.put("memberno", memberno);
+    map.put("passwd", passwd);
+    return mybatis.selectOne("member.passwdCheck", map);
+        ↑↓
+    <select id="passwdCheck" resultType="int" parameterType="Map">
+ 
+ 2) HashMap class의 전달
+    HashMap<String, Object>map = new HashMap<String, Object>();
+    map.put("memberno", memberno);
+    map.put("passwd", passwd);
+    return mybatis.selectOne("member.passwdCheck", map);
+        ↑↓
+    <select id="passwdCheck" resultType="int" parameterType="HashMap">
+ 
+▷ /src/main/resources/mybatis/member.xml  - id: passwd_check, passwd_update
+-------------------------------------------------------------------------------------
+  <!--  [60][Member] 회원 패스워드 변경 기능의 제작, Layer, HashMap 전달 
+           현재 패스워드 검사 -->
+  <select id="passwd_check" parameterType="HashMap" resultType="int">
+    SELECT COUNT(memberno) as cnt
+    FROM member
+    WHERE memberno=#{memberno} AND passwd=#{passwd}
+  </select>
+  
+  <!-- [60][Member] 회원 패스워드 변경 기능의 제작, Layer, HashMap 전달
+         패스워드 변경 -->
+  <update id="passwd_update" parameterType="HashMap">
+    UPDATE member
+    SET passwd=#{passwd}
+    WHERE memberno=#{memberno}
+  </update>  
+-------------------------------------------------------------------------------------
+
+3. DAO interface ▷ /dev/mvc/member/MemberDAOInter.java 
+4. Proc Interface  ▷ dev.mvc.member.MemberProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * [60] 현재 패스워드 검사
+   * @param map
+   * @return 0: 일치하지 않음, 1: 일치함
+   */
+  public int passwd_check(HashMap<Object, Object> map);
+  
+  /**
+   * [60] 패스워드 변경
+   * @param map
+   * @return 변경된 패스워드 갯수
+   */
+  public int passwd_update(HashMap<Object, Object> map);  
+------------------------------------------------------------------------------------
+ 
+5. Process Class ▷ MemberProc.java
+-------------------------------------------------------------------------------------
+  // [60] 현재 패스워드 검사
+  @Override
+  public int passwd_check(HashMap<Object, Object> map) {
+    int cnt = this.memberDAO.passwd_check(map);
+    return cnt;
+  }
+
+  // [60] 패스워드 변경
+  @Override
+  public int passwd_update(HashMap<Object, Object> map) {
+    int cnt = this.memberDAO.passwd_update(map);
+    return cnt;
+  }  
+-------------------------------------------------------------------------------------
+ 
+6. Controller class▷ MemberCont.java
+-------------------------------------------------------------------------------------
+  /**
+   * [60] 패스워드를 변경 검사
+   * @param memberno
+   * @return
+   */
+  @RequestMapping(value="/member/passwd_update.do", method=RequestMethod.GET)
+  public ModelAndView passwd_update(int memberno){
+    ModelAndView mav = new ModelAndView();
+    mav.setViewName("/member/passwd_update");
+    
+    return mav;
+  }
+  
+  /**
+   * [60] 패스워드를 변경 처리
+   * @param memberno 회원 번호
+   * @param current_passwd 현재 패스워드
+   * @param new_passwd 새로운 패스워드
+   * @return
+   */
+  @RequestMapping(value="/member/passwd_update.do", method=RequestMethod.POST)
+  public ModelAndView passwd_update(int memberno, String current_passwd, String new_passwd){
+    ModelAndView mav = new ModelAndView();
+    
+    // 현재 패스워드 검사
+    HashMap<Object, Object> map = new HashMap<Object, Object>();
+    map.put("memberno", memberno);
+    map.put("passwd", current_passwd);
+    
+    int cnt = memberProc.passwd_check(map);
+    int update_cnt = 0; // 변경된 패스워드 수
+    
+    if (cnt == 1) { // 현재 패스워드가 일치하는 경우
+      map.put("passwd", new_passwd); // 새로운 패스워드를 저장
+      update_cnt = memberProc.passwd_update(map); // 패스워드 변경 처리
+      mav.addObject("update_cnt", update_cnt);  // 변경된 패스워드의 갯수    
+    }
+
+    mav.addObject("cnt", cnt); // 패스워드 일치 여부
+    mav.addObject("url", "passwd_update_msg");
+    
+    mav.setViewName("redirect:/member/msg.do");
+    
+    return mav;
+  }    
+-------------------------------------------------------------------------------------
+ 
+7. View: JSP 1) 패스워드 변경 폼
+▷ /webapp/WEB-INF/views/member/passwd_update.jsp 
+-------------------------------------------------------------------------------------
+<%-- 
+0517_[60] : 패스워드 변경 폼 
+--%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+  $(function() { // 자동 실행
+    $('#btn_send').on('click', send); 
+    $('#btn_close').on('click', setFocus); // Dialog창을 닫은후의 focus 이동
+  });
+
+  function send() {
+    if ($('#new_passwd').val() != $('#new_passwd2').val()) {
+      msg = '입력된 패스워드가 일치하지 않습니다.<br>';
+      msg += "패스워드를 다시 입력해주세요.<br>"; 
+      
+      $('#modal_content').attr('class', 'alert alert-danger'); // CSS 변경
+      $('#modal_title').html('패스워드 일치 여부  확인'); // 제목 
+      $('#modal_content').html(msg);  // 내용
+      $('#modal_panel').modal();         // 다이얼로그 출력
+      
+      $('#btn_close').attr("data-focus", "new_passwd");
+      
+      return false; // submit 중지
+    }
+
+    $('#frm').submit();
+  }
+  
+  function setFocus() {  // focus 이동
+    var tag = $('#btn_close').attr('data-focus'); // 포커스를 적용할 태그 id 가져오기
+    $('#' + tag).focus(); // 포커스 지정
+  }
+  
+</script>
+</head> 
+ 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+  <!-- Modal -->
+  <div class="modal fade" id="modal_panel" role="dialog">
+    <div class="modal-dialog">
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">×</button>
+          <h4 class="modal-title" id='modal_title'></h4>
+        </div>
+        <div class="modal-body">
+          <p id='modal_content'></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="btn_close" data-focus=""
+                     class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div> <!-- Modal END -->
+ 
+  <DIV class='title_line'>
+    회원 패스워드 변경
+  </DIV>
+
+  <DIV class='content_body'>
+    <ASIDE class="aside_right">
+      <A href="javascript:location.reload();">새로고침</A>
+      <span class='menu_divide' >│</span> 
+      <A href='./create.do'>회원 가입</A>
+      <span class='menu_divide' >│</span> 
+      <A href='./list.do'>목록</A>
+    </ASIDE> 
+   
+    <div class='menu_line'></div>
+      
+    <FORM name='frm' id='frm' method='POST' action='./passwd_update.do' 
+                class="form-horizontal">
+      <input type='hidden' name='memberno' id='memberno' value='${param.memberno }'>       
+  
+      <div class="form-group">
+        <label class="col-md-5 control-label" style="font-size: 0.9em;">현재 패스워드</label>    
+        <div class="col-md-7">
+          <input type='password' class="form-control" name='current_passwd' 
+                    id='current_passwd' value='' required="required" 
+                    style='width: 30%;' placeholder="패스워드">
+        </div>
+      </div>   
+                      
+      <div class="form-group">
+        <label class="col-md-5 control-label" style="font-size: 0.9em;">새로운 패스워드</label>    
+        <div class="col-md-7">
+          <input type='password' class="form-control" name='new_passwd' 
+                    id='new_passwd' value='' required="required" 
+                    style='width: 30%;' placeholder="패스워드">
+        </div>
+      </div>   
+   
+      <div class="form-group">
+        <label class="col-md-5 control-label" style="font-size: 0.9em;">새로운 패스워드 확인</label>    
+        <div class="col-md-7">
+          <input type='password' class="form-control" name='new_passwd2' 
+                    id='new_passwd2' value='' required="required" 
+                    style='width: 30%;' placeholder="패스워드">
+        </div>
+      </div>   
+      
+      <div class="form-group">
+        <div class="col-md-offset-5 col-md-7">
+          <button type="button" id='btn_send' class="btn btn-primary btn-md">변경</button>
+          <button type="button" onclick="location.href='./list.do'" class="btn btn-primary btn-md">취소</button>
+   
+        </div>
+      </div>   
+  </FORM>
+</DIV> <%--  <DIV class='content_body'> END --%>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+ 
+</html>
+-------------------------------------------------------------------------------------
+ 
+2) 처리 결과 출력 ▷ /webapp/WEB-INF/views/member/passwd_update_msg.jsp 
+-------------------------------------------------------------------------------------
+<%-- 
+0517_[60] : 패스워드 처리 결과 출력
+--%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+ 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+ 
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+  <DIV class='title_line'>
+    패스워드 수정
+  </DIV>
+
+ <DIV class='content_body'>
+    <ASIDE class="aside_right">
+      <A href="javascript:location.reload();">새로고침</A>
+      <span class='menu_divide' >│</span> 
+      <A href='./create.do'>회원 가입</A>
+      <span class='menu_divide' >│</span> 
+      <A href='./create.do'>목록</A>
+    </ASIDE> 
+  
+    <div class='menu_line'></div>
+   
+  <DIV class='message'>
+    <fieldset class='fieldset_basic'>
+      <UL>
+        <c:choose>
+          <c:when test="${param.cnt == 0 }">
+            <LI class='li_none'>
+              <span class='span_fail'>입력된 패스워드가 일치하지 않습니다.</span>
+            </LI>
+            <LI class='li_none'>
+              <button type='button' onclick="history.back();" class="btn btn-info">변경 재시도</button>
+              <button type='button' onclick="location.href='./list.do'" class="btn btn-info">목록</button>                        
+            </LI>
+          </c:when>
+          <c:otherwise>
+            <LI class='li_none'>
+              <span class='span_success'>패스워드를 변경했습니다.</span>
+            </LI>
+            <LI class='li_none'>
+              <button type='button' onclick="location.href='/'" class="btn btn-primary">확인</button>
+              <button type='button' onclick="location.href='./list.do'" class="btn btn-primary">목록</button>                        
+            </LI>
+          </c:otherwise>
+        </c:choose>
+       </UL>
+    </fieldset>
+   
+  </DIV>
+</DIV> <%--  <DIV class='content_body'> END --%>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+ 
+</html>
+-------------------------------------------------------------------------------------
 ~~~
