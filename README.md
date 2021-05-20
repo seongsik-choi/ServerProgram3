@@ -11184,7 +11184,7 @@ public String checkNull(Object str) {
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title></title>
+<title>http://localhost:9091/session/send.jsp</title>
 <link href="../css/style.css" rel='Stylesheet' type='text/css'>
 </head>
 <body>
@@ -11213,35 +11213,17 @@ public String checkNull(Object str) {
 ~~~
 [01] 시작 페이지의 제작
 1) EL을 이용한 Session의 사용
-      <c:choose>
-        <c:when test="${sessionScope.id == null}">
-          <A class='menu_link'  href='${root}/member/login.do' >Login</A> <span class='top_menu1'> | </span>
-        </c:when>
-        <c:otherwise>
-          ${sessionScope.id } <A class='menu_link'  href='${root}/member/logout.do' >Logout</A> <span class='top_menu1'> | </span>
-        </c:otherwise>
-      </c:choose>
+   <c:choose>
+     <c:when test="${sessionScope.id == null}">
+       <A href='${root}/member/login.do' >Login</A>
+     </c:when>
+     <c:otherwise>
+       ${sessionScope.id } <A href='${root}/member/logout.do' >Logout</A>
+     </c:otherwise>
+   </c:choose>
 
-1. Controller class ▷ HomeController.java
--------------------------------------------------------------------------------------
-package dev.mvc.resort;
-
-import java.util.Locale;
-
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-
-@Controller
-public class HomeController {
-
-  @RequestMapping(value = {"/", "/index.do"}, method = RequestMethod.GET)
-    public String home(Locale locale, Model model) {
-
-        return "index";  // /resort/index.jsp
-    }   
-}
+1. Controller class ▷ HomeCont.java : 그대로
+------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
  
 [02] 로그인/로그 아웃 기능의 제작, request, response, session, Cookie, redirect 사용 
@@ -11266,52 +11248,61 @@ public class HomeController {
 
 1. SQL ▷ /webapp/WEB-INF/doc/dbms/member.sql
 -------------------------------------------------------------------------------------
--- 로그인
+-- [61] 로그인
 SELECT COUNT(*) as cnt
 FROM member
 WHERE id='user1' AND passwd='1234';
- 
  cnt
  ---
    1
-
--- id를 이용한 회원 정보 조회
-SELECT memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate
+-- [61] id를 이용한 회원 정보 조회
+SELECT memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade
 FROM member
 WHERE id = 'user1';
- 
- MEMBERNO ID    PASSWD MNAME TEL           ZIPCODE ADDRESS1 ADDRESS2 MDATE
- --- ----- ------ ----- ------------- ------- -------- -------- ---------------------
-   3 user1 1234   왕눈이   000-0000-0000 12345   서울시 종로구  관철동      2019-05-24 14:51:48.0
--------------------------------------------------------------------------------------
+
+★★★★★ readById는 57회에서 구현★★★★★★
 
 2. MyBATIS ▷ /src/main/resources/mybatis/member.xml - id: login, readById
 -------------------------------------------------------------------------------------
- 
+  <!--[62][Member] index.do, home.do 제작, 로그인/로그아웃 기능의 제작, session, EL session 접근  -->
+  <select id="login" resultType="int" parameterType="Map">
+    SELECT COUNT(memberno) as cnt
+    FROM member
+    WHERE id=#{id} AND passwd=#{passwd}
+  </select>
+
+  <!-- 57회에서 구현 -->
+  <select id="readById" resultType="dev.mvc.member.MemberVO" parameterType="String">
+    SELECT memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate, grade
+    FROM member
+    WHERE id = #{id}
+  </select>   
 -------------------------------------------------------------------------------------
  
 3. DAO interface ▷ /dev/mvc/member/MemberDAOInter.java 
 -------------------------------------------------------------------------------------
   /**
-   * 로그인 
-   * @param map
-   * @return
+   * [62] 로그인 처리
    */
+  public int login(Map<String, Object> map);
 -------------------------------------------------------------------------------------
 
 4. Proc Interface ▷ dev.mvc.member.MemberProcInter.java
 -------------------------------------------------------------------------------------
   /**
-   * 로그인 처리
-   * @param id
-   * @param passwd
-   * @return
+   * [62] 로그인 처리
    */
+  public int login(Map<String, Object> map);
 -------------------------------------------------------------------------------------
  
 5. Process Class ▷ MemberProc.java
 -------------------------------------------------------------------------------------
- 
+   // [62] 로그인 처리
+  @Override
+  public int login(Map<String, Object> map) {
+    int cnt = this.memberDAO.login(map);
+    return cnt;
+  }  
 -------------------------------------------------------------------------------------
 
 6. Controller class
@@ -11323,143 +11314,148 @@ WHERE id = 'user1';
 ▷ MemberCont.java
 -------------------------------------------------------------------------------------
   /**
-   * 로그인 폼
+   * [62] 로그인 폼
    * @return
    */
-  // http://localhost:9090/resort/member/login.do 
-  @RequestMapping(value = "/member/login.do", 
-                             method = RequestMethod.GET)
+  // http://localhost:9091/member/login.do 
+  @RequestMapping(value = "/member/login.do", method = RequestMethod.GET)
   public ModelAndView login() {
     ModelAndView mav = new ModelAndView();
-  
     mav.setViewName("/member/login_form");
     return mav;
   }
 
   /**
-   * 로그인 처리
+   * [62] 로그인 처리
    * @return
    */
-  // http://localhost:9090/resort/member/login.do 
-  @RequestMapping(value = "/member/login.do", 
-                             method = RequestMethod.POST)
-  public ModelAndView login_proc(HttpSession session,
-                                            String id, 
-                                            String passwd) {
+  // http://localhost:9091/member/login.do 
+  @RequestMapping(value = "/member/login.do", method = RequestMethod.POST)
+  public ModelAndView login_proc(HttpSession session, String id, String passwd) {
+   
     ModelAndView mav = new ModelAndView();
     Map<String, Object> map = new HashMap<String, Object>();
     map.put("id", id);
     map.put("passwd", passwd);
     
-    int count = memberProc.login(map);
+    int count = memberProc.login(map); // mybatis 까지 전달(id, passwd 일처 여부 확인)
     if (count == 1) { // 로그인 성공
       // System.out.println(id + " 로그인 성공");
-      MemberVO memberVO = memberProc.readById(id);
+      MemberVO memberVO = memberProc.readById(id); // id 기반 회원정보 받아옴.
       session.setAttribute("memberno", memberVO.getMemberno());
       session.setAttribute("id", id);
       session.setAttribute("mname", memberVO.getMname());
       
-      mav.setViewName("redirect:/index.do");  
+      mav.setViewName("redirect:/index.do"); // 시작 페이지로 이동  
     } else {
-      mav.setViewName("redirect:/member/login_fail_msg.jsp");
+      mav.addObject("url", "login_fail_msg"); // login_fail_msg.jsp, redirect parameter 적용
+      mav.setViewName("redirect:/member/msg.do"); // 새로고침 방지
     }
         
     return mav;
   }
   
   /**
-   * 로그아웃 처리
+   * [62]  로그아웃 처리
    * @param session
    * @return
    */
-  @RequestMapping(value="/member/logout.do", 
-                             method=RequestMethod.GET)
+  @RequestMapping(value="/member/logout.do", method=RequestMethod.GET)
   public ModelAndView logout(HttpSession session){
     ModelAndView mav = new ModelAndView();
     session.invalidate(); // 모든 session 변수 삭제
     
-    mav.setViewName("redirect:/member/logout_msg.jsp");
+    mav.addObject("url", "logout_msg"); // logout_msg.jsp, redirect parameter 적용
+    mav.setViewName("redirect:/member/msg.do"); // 새로고침 방지
     
     return mav;
-  }
-
+  }  
 -------------------------------------------------------------------------------------
  
+★★★★ 수정) create_msg :  <DIV class='content_body'> 추가해주기
+
 7. View: JSP 1) 로그인 폼 ▷ /webapp/WEB-INF/views/member/login_form.jsp 
 -------------------------------------------------------------------------------------
+<%-- 
+0520_1) 로그인 폼
+--%>
 <%@ page contentType="text/html; charset=UTF-8" %>
- 
 <!DOCTYPE html> 
 <html lang="ko"> 
 <head> 
 <meta charset="UTF-8"> 
 <meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
 <title>Resort world</title>
- 
-<link href="../css/style.css" rel="Stylesheet" type="text/css">
- 
-<script type="text/JavaScript"
-          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
- 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+<script type="text/JavaScript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
 <script type="text/javascript">
-  function loadDefault() {
+  $(function() { // 자동 실행
+    $('#btn_create').on('click', create);
+    $('#btn_loadDefault').on('click', loadDefault);
+  });
+  
+  function create() { // 회원가입
+    location.href="./create.do";
+  }
+
+  function loadDefault() { // 테스트용 회원가입 기본값 로딩
     $('#id').val('user1');
     $('#passwd').val('1234');
-  }  
+  }    
 </script> 
 
 </head> 
- 
 <body>
-<jsp:include page="/menu/top.jsp" flush='false' />
- 
+<jsp:include page="../menu/top.jsp" flush='false' />
 <DIV class='title_line'>로그인</DIV>
  
-<DIV style='width: 80%; margin: 0px auto;'>
-  <FORM name='frm' method='POST' action='./login.do' class="form-horizontal">
-  
-    <div class="form-group">
-      <label class="col-md-4 control-label" style='font-size: 0.8em;'>아이디</label>    
-      <div class="col-md-8">
-        <input type='text' class="form-control" name='id' id='id' 
-                   value='' required="required" 
-                   style='width: 30%;' placeholder="아이디" autofocus="autofocus">
-      </div>
- 
-    </div>   
- 
-    <div class="form-group">
-      <label class="col-md-4 control-label" style='font-size: 0.8em;'>패스워드</label>    
-      <div class="col-md-8">
-        <input type='password' class="form-control" name='passwd' id='passwd' 
-                  value='' required="required" style='width: 30%;' placeholder="패스워드">
+  <DIV class='content_body'> 
+   
+    <DIV style='width: 80%; margin: 0px auto;'>
+      <FORM name='frm' method='POST' action='./login.do' class="form-horizontal">
+      
+        <div class="form-group">
+          <label class="col-md-4 control-label" style='font-size: 0.8em;'>아이디</label>    
+          <div class="col-md-8">
+            <input type='text' class="form-control" name='id' id='id' 
+                       value='' required="required" 
+                       style='width: 30%;' placeholder="아이디" autofocus="autofocus">
+          </div>
+        </div>   
+     
+        <div class="form-group">
+          <label class="col-md-4 control-label" style='font-size: 0.8em;'>패스워드</label>    
+          <div class="col-md-8">
+            <input type='password' class="form-control" name='passwd' id='passwd' 
+                      value='' required="required" style='width: 30%;' placeholder="패스워드">
+          </div>
+        </div>   
+     
+        <div class="form-group">
+          <div class="col-md-offset-4 col-md-8">
+            <button type="submit" class="btn btn-primary btn-md">로그인</button>
+            <button type='button' id='btn_create' class="btn btn-primary btn-md">회원가입</button>
+            <button type='button' id='btn_loadDefault' class="btn btn-primary btn-md">테스트 계정</button>
+          </div>
+        </div>   
+        
+      </FORM>
+    </DIV>
+</DIV> <%-- content_body end --%>
 
-      </div>
-    </div>   
- 
-    <div class="form-group">
-      <div class="col-md-offset-4 col-md-8">
-        <button type="submit" class="btn btn-primary btn-md">로그인</button>
-        <button type='button' onclick="location.href='./create.do'" class="btn btn-primary btn-md">회원가입</button>
-        <button type='button' onclick="loadDefault();" class="btn btn-primary btn-md">테스트 계정</button>
-      </div>
-    </div>   
-    
-  </FORM>
-</DIV>
- 
-<jsp:include page="/menu/bottom.jsp" flush='false' />
+<jsp:include page="../menu/bottom.jsp" flush='false' />
 </body>
- 
 </html>
 -------------------------------------------------------------------------------------
  
 2) 로그인 실패 ▷ /webapp/WEB-INF/views/member/login_fail_msg.jsp 
 -------------------------------------------------------------------------------------
+<%-- 
+0520_2) 로그인 실패
+--%>
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
@@ -11469,17 +11465,11 @@ WHERE id = 'user1';
 <meta charset="UTF-8"> 
 <meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
 <title>Resort world</title>
- 
-<link href="../css/style.css" rel="Stylesheet" type="text/css">
- 
-<script type="text/JavaScript"
-          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
- 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+<script type="text/JavaScript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <!-- Bootstrap -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-    
     
 <script type="text/javascript">
   $(function(){ 
@@ -11488,38 +11478,44 @@ WHERE id = 'user1';
     });
 
     $('#btn_home').on('click', function() { 
-      location.href="${pageContext.request.contextPath}/index.do"
+      location.href="/index.do"
     });    
   });
 </script>
  
 </head> 
 <body>
-<jsp:include page="/menu/top.jsp" flush='false' />
+<jsp:include page="../menu/top.jsp" flush='false' />
  
 <DIV class='title_line'>알림</DIV>
-  <DIV class='message'>
-    <fieldset class='fieldset_basic'>
-      <ul>
-        <li class='li_none'>회원 로그인에 실패했습니다.</li>
-        <li class='li_none'>ID 또는 패스워드가 일치하지 않습니다.</li>
-        <li class='li_none'>
-          <button type="button" id="btn_retry" class="btn btn-primary btn-md">로그인 다시 시도</button>
-          <button type="button" id="btn_home" class="btn btn-primary btn-md">확인</button>
-        </li>
-        
-      </ul>
-    </fieldset>    
-  </DIV>
+
+  <DIV class='content_body'> 
+    <DIV class='message'>
+      <fieldset class='fieldset_basic'>
+        <ul>
+          <li class='li_none'>。회원 로그인에 실패했습니다.</li>
+          <li class='li_none'>。ID 또는 패스워드가 일치하지 않습니다.</li>
+          <li class='li_none'>
+            <button type="button" id="btn_retry" class="btn btn-primary btn-md">로그인 다시 시도</button>
+            <button type="button" id="btn_home" class="btn btn-primary btn-md">확인</button>
+          </li>
+          
+        </ul>
+      </fieldset>    
+    </DIV>
+  </DIV>  <%-- content_body end --%> 
  
-<jsp:include page="/menu/bottom.jsp" flush='false' />
+<jsp:include page="../menu/bottom.jsp" flush='false' />
 </body>
- 
 </html>
+ 
 -------------------------------------------------------------------------------------
 
 3) 로그 아웃 ▷ /webapp/WEB-INF/views/member/logout_msg.jsp 
 -------------------------------------------------------------------------------------
+<%-- 
+0520_3) 로그 아웃
+--%>
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
  
@@ -11530,42 +11526,38 @@ WHERE id = 'user1';
 <meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
 <title>Resort world</title>
  
-<link href="../css/style.css" rel="Stylesheet" type="text/css">
- 
-<script type="text/JavaScript"
-          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
- 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+<script type="text/JavaScript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <!-- Bootstrap -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     
 <script type="text/javascript">
   $(function(){ 
     $('#btn_home').on('click', function() {
-      location.href="${pageContext.request.contextPath}/index.do";
+      location.href="/index.do";
     });
   });
 </script>
  
 </head> 
 <body>
-<jsp:include page="/menu/top.jsp" flush='false' />
- 
-<DIV class='title_line'>알림</DIV>
-  <DIV class='message'>
-    <fieldset class='fieldset_basic'>
-      <ul>
-        <li class='li_none'>이용해 주셔서감사합니다.</li>
-        <li class='li_none'>
-          <button type="button" id="btn_home" class="btn btn-primary btn-md">확인</button>
-        </li>
-        
-      </ul>
-    </fieldset>    
-  </DIV>
- 
-<jsp:include page="/menu/bottom.jsp" flush='false' />
+<jsp:include page="../menu/top.jsp" flush='false' />
+  <DIV class='content_body'>  
+    <DIV class='title_line'>알림</DIV>
+      <DIV class='message'>
+        <fieldset class='fieldset_basic'>
+          <ul>
+            <li class='li_none'>이용해 주셔서감사합니다.</li>
+            <li class='li_none'>
+              <button type="button" id="btn_home" class="btn btn-primary btn-md">확인</button>
+            </li>
+            
+          </ul>
+        </fieldset>    
+      </DIV>
+  </DIV><%-- content body end --%>
+<jsp:include page="../menu/bottom.jsp" flush='false' />
 </body>
  
 </html>
@@ -11592,20 +11584,21 @@ WHERE id = 'user1';
 -------------------------------------------------------------------------------------
       <A class='top_menu_link'  href='${pageContext.request.contextPath}' >리조트</A><span class='top_menu_sep'> </span>
       
+      <!-- 이부분 추가-->
       <c:choose>
         <c:when test="${sessionScope.id == null}">
-          <A class='top_menu_link'  href='${root}/member/login.do' >Login</A><span class='top_menu_sep'> </span>
+          <A class='menu_link'  href='/member/login.do' >Login</A><span class='top_menu_sep'> </span>
         </c:when>
         <c:otherwise>
-          ${sessionScope.id } <A class='top_menu_link'  href='${root}/member/logout.do' >Logout</A><span class='top_menu_sep'> </span>
+          ${sessionScope.id } <A class='menu_link'  href='/member/logout.do' >Logout</A><span class='top_menu_sep'> </span>
         </c:otherwise>
-      </c:choose>      
+      </c:choose>         
       
       <A class='top_menu_link'  href='${pageContext.request.contextPath}/categrp/list.do'>카테고리 그룹</A><span class='top_menu_sep'> </span>
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0520 : [63][Cookie] 쿠키(Cookie)의 사용**
+* **0521 : [63][Cookie] 쿠키(Cookie)의 사용**
 ~~~
 [01] Cookie 객체의 사용 
 1. Cookie 개요 
