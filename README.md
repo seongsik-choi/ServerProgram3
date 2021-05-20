@@ -9728,13 +9728,13 @@ COMMIT;
 
 5. Process Class ▷ MemberProc.java
 -------------------------------------------------------------------------------------
-  /**
-   * [55][Member] 회원 가입 처리, create_msg.jsp, 메시지 처리 콘트롤러, msg.do 구현
-   * 회원 가입
-   * @param memberVO
-   * @return
-   */
-  public int create(MemberVO memberVO);
+
+  // [55][Member] 회원 가입 처리, create_msg.jsp, 메시지 처리 콘트롤러, msg.do 구현
+  @Override
+  public int create(MemberVO memberVO) {
+    int cnt = this.memberDAO.create(memberVO);
+    return cnt;
+  }
 -------------------------------------------------------------------------------------
  
 6. Controller class, 메시지 처리 콘트롤러
@@ -9897,7 +9897,7 @@ ORDER BY memberno ASC;
 4. Proc Interface ▷ dev.mvc.member.MemberProcInter.java
 -------------------------------------------------------------------------------------
   /**
-   * 회원 전체 목록
+   * [56]-회원 전체 목록
    * @return
    */
   public List<MemberVO> list();
@@ -11022,4 +11022,780 @@ WHERE memberno=1;
  
 </html>
 -------------------------------------------------------------------------------------
+~~~
+
+* **0520 : [61][Session] Session을 이용한 로그인 상태 유지 및 해제(session 내부 객체)**
+~~~
+★ Session : 클라이언트와 서버의 연결 상태, 톰캣 서버에 접속한 사용자에게 할당된 개별의 메모리
+[01] Session 내부 객체
+  - session: Tomcat(WAS: Web Application Server) 서버에서 접속한 사용자마다 고유하게 할당되는 메모리, 
+    Tomcat 서버에서 관리하며 다른 사용자의 메모리는 보안상 접근을 할 수 없음, 기본적으로 서버 차원에서
+    보안 설정을 함으로 해킹이 매우 어려움.
+ 1. session 내부 객체의 사용 
+ 1) javax.servlet.http.HttpSession Interface의 구현 객체, Server 제공자인 Apache Tomcat에서 기능을 구현함, 개발자는 이용만 함. 
+ 2) 서버의 메모리상에 저장되는 정보로 보안성이 높으며, 접속한 사용자 별로 세션 메모리가 할당되며, 모든 페이지에서 session 객체를 사용
+      사용자가 서버에 접속하면 할당되고 브러우저를 닫거나 로그아웃하면 session 정보가 저장된 메모리가 자동으로 해제. 
+ 비교: request는 폼에서 보낸 데이터를 순간만 저장하는 메모리, 
+         JSP 페이지 마다 삭제되고 새로 생성됨. <FORM> ---> request 객체 읽음.
+ 3) 사용자가 로그인하면 웹사이트 전체에서 계속적으로 유지되는 ID와 패스워드등은 
+      session 메모리 변수로 처리
+ 4) 보안성이 높으나 서버의 메모리(RAM)를 사용함으로 비용이 많이 발생되어 필요한 곳에만 사용 해야함.  
+ 5) 서버상에서 세션의 유지시간(수명)은 초단위로 <% session.setMaxInactiveInterval(600); %>로 지정
+      만약 사용자가 JSP페이지를 열어놓고 링크(<A>)를 클릭하지 않으면, 메모리 관리 차원에서 session 메모리는 삭제.  
+      예) 톰캣 서버: 30분, 국민은행은 5분, 신한은행 10분후 자동 로그아웃, 세션 연장은 링크를 클릭하는 역활을 수행함. 
+ 6) 서버에 설정된 session timeout 시간(초단위) 출력: <%= session.getMaxInactiveInterval() %> 
+ 7) 서버상에 있는 사용자와 관련된 모든 세션 변수의 값을 삭제하려면 session.invalidate();를 이용하며 이는 로그아웃시 사용
+ 8) Session ID라는 특별한 세션변수는 개발자가 생성할 수 없고,  서블릿컨테이너(톰캣등)가 부여하는 것으로 접속자의 상태를 파악해서,
+      일정 시간이 흐르면, session을 삭제하고 로그아웃 처리를 진행할 것인지를 결정
+      개발자는 Session ID값을 만들어 낼 수 없고 서블릿 컨테이너(서버)가 생성
+      브러우저에서 Tomcat 서버의 주소를 입력하고 접속하면 자동으로 Session ID가 생성됨. 
+  예) 값의 확인 : <%= session.getId() %> ---> 1C500B233D44DD85ABA45D8F11290D78 
+       서버의 session ID 값은 브러우저의 Cookie 영역에 저장되고 서버로 JSP 요청시 다시 전송하여 같은 사용자임을 증명하는데 사용.
+ 9) 시스템에서 자동 생성되는 Session ID 외에, 개발자는 필요한 만큼 Session 변수를 만들어 사용(★★★) 
+예) session 변수를 생성하는 경우, 저장 기능 
+      grade = "passed"; 
+      session.setAttribute("grade", grade);  // 키, 값
+  session 변수의 값을 가져오는 경우 :String s_grade = (String)session.getAttribute("grade"); 
+  특정 s_grade session변수만 삭제 : session.removeAttribute("s_grade"); 
+  모든 세션 변수 삭제, 로그아웃 : session.invalidate(); 
+
+10) Controller or JSP 코드상에서의 Timeout 시간 지정(세션 변수가 메모리에서 삭제되는 시간, 초단위) 
+    // 60초 * 10 = 10분, session의 유지 시간 
+    // Session session = new Session(): session 객체는 자동으로 생성됨 
+    session.setMaxInactiveInterval(600);  
+
+ 11) session 객체의 사용
+      public ModelAndView login_cookie_proc(
+              HttpServletRequest request,
+              HttpServletResponse response,
+              HttpSession session,
+               String id, String passwd,
+               @RequestParam(value="id_save", defaultValue="") String id_save,
+               @RequestParam(value="passwd_save", defaultValue="") String passwd_save) {...
+       
+1. JSP 실습 - sb_basic 프로젝트 계속 사용 1) 시작 페이지 ▷ /webapp/session/session.jsp
+-------------------------------------------------------------------------------------
+<%-- 
+0520
+[61][Session] Session을 이용한 로그인 상태 유지 및 해제(session 내부 객체)
+--%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ page import="java.util.Date" %>
+<%!
+// NULL이 출력되지 않기 위한 함수
+public String checkNull(Object str) { // Object는 모든 문자열을 변수로 받음
+  if (str == null) {
+    str = ""; // null이 아닌 문자열
+  } 
+  return (String)str; // 문자열로 바꿔서 return
+}
+%> 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<title>http://localhost:9091/session/session.jsp</title> 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+</head> 
+<body>
+<DIV class='title'>SESSION 테스트</DIV>
+ 
+  <ul>
+    <li>
+      Tomcat이 자동 생성한 session 변수<br>
+      고유한 세션 ID: <%=session.getId() %><br>
+      session의 수명: <%= session.getMaxInactiveInterval() %> 초
+    </li>
+    
+    <li>
+      <hr>
+    </li>
+    
+    <li class='li_none'>
+      <button type='button' onclick="location.href='./create.jsp'">세션 생성</button>
+      <button type='button' onclick="location.href='./delete.jsp'">세션 삭제</button>
+      <button type='button' onclick="location.href='./send.jsp'">send.jsp 갔다오기</button>
+    </li>
+    
+    <li>
+     개발자가 생성한 session 변수<br>
+      ID: <%=checkNull(session.getAttribute("id")) %> <br> 
+      PASSWORD: <%=checkNull(session.getAttribute("passwd")) %><br>
+      로그인 날짜:
+      <%
+      Object obj = session.getAttribute("date");
+      if (obj != null) {
+        Date date = (Date)obj;
+        out.println(date.toLocaleString());
+      }
+      %>
+    </li>
+  </ul>
+</body>
+</html>
+-------------------------------------------------------------------------------------
+
+2) 세션 생성 페이지 ▷ /webapp/session/create.jsp
+-------------------------------------------------------------------------------------
+<%-- 
+0520_2) 세션 생성 페이지   
+--%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ page import="java.util.Date" %>
+
+<%
+// session create
+session.setAttribute("id", "user1@mail.com");
+session.setAttribute("passwd", "123");
+session.setAttribute("date", new Date());
+
+response.sendRedirect("./session.jsp");
+%>
+-------------------------------------------------------------------------------------
+
+3) 세션 삭제 페이지   ▷ /webapp/session/delete.jsp
+-------------------------------------------------------------------------------------
+<%-- 
+0520_3) 세션 삭제 페이지   
+--%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%
+// session.removeAttribute("id"); // id session 변수만 삭제
+session.invalidate();
+response.sendRedirect("./session.jsp");
+%>
+-------------------------------------------------------------------------------------
+
+4) 페이지 이동 ▷ /webapp/session/send.jsp
+-------------------------------------------------------------------------------------
+<%-- 
+0520_4) 페이지 이동 
+--%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%!
+public String checkNull(Object str) {
+  if (str == null) {
+    str = "";
+  } 
+  return (String)str;
+}
+%>  
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title></title>
+<link href="../css/style.css" rel='Stylesheet' type='text/css'>
+</head>
+<body>
+  <br>
+  다른 페이지로 이동해도 session은 살아있음.
+  <br>
+  request.getParameter("id") 같은 코드가 필요 없음.
+  <br>
+  특정 시간동안 메모리상에 계속 유지됨
+ 
+  <ul>
+    <li>
+      ID: <%=checkNull(session.getAttribute("id")) %> <br> 
+      PASSWORD: <%=checkNull(session.getAttribute("passwd")) %><br>
+    </li>
+  </ul> 
+  <br>
+  [<A href='./session.jsp'>session.jsp 페이지로 이동</A>]
+  <br><br>
+</body>
+</html>
+-------------------------------------------------------------------------------------
+~~~
+
+* **0520 : [62][Member] index.do, home.do 제작, 로그인/로그아웃 기능의 제작, session, EL session 접근**
+~~~
+[01] 시작 페이지의 제작
+1) EL을 이용한 Session의 사용
+      <c:choose>
+        <c:when test="${sessionScope.id == null}">
+          <A class='menu_link'  href='${root}/member/login.do' >Login</A> <span class='top_menu1'> | </span>
+        </c:when>
+        <c:otherwise>
+          ${sessionScope.id } <A class='menu_link'  href='${root}/member/logout.do' >Logout</A> <span class='top_menu1'> | </span>
+        </c:otherwise>
+      </c:choose>
+
+1. Controller class ▷ HomeController.java
+-------------------------------------------------------------------------------------
+package dev.mvc.resort;
+
+import java.util.Locale;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+@Controller
+public class HomeController {
+
+  @RequestMapping(value = {"/", "/index.do"}, method = RequestMethod.GET)
+    public String home(Locale locale, Model model) {
+
+        return "index";  // /resort/index.jsp
+    }   
+}
+-------------------------------------------------------------------------------------
+ 
+[02] 로그인/로그 아웃 기능의 제작, request, response, session, Cookie, redirect 사용 
+1) DI(Depency Injection): 의존 주입, 필요한 클래스를 Spring Container가
+   자동으로 생성하여 할당함.
+    - DI는 다형성을 원활히 지원하기 위한 기술입니다.
+    - 개발자는 코드상에서 객체를 생성할 필요가 없습니다.
+ 
+  public ModelAndView login(MemberVO memberVO, 
+                                       HttpSession session, 
+                                       HttpServletRequest request,
+                                       HttpServletResponse response) {
+
+2) Map의 전달
+   - 특정 조건의 변수의 값을 전달할 경우 Map을 사용하면 편리합니다.
+     Map<String. Object> map = new HashMap<String. Object>();
+     map.put("id", id);
+     map.put("passwd", passwd);
+     return mybatis.selectOne("member.passwdCheck", map);
+        ↑↓
+     <select id="passwdCheck" resultType="int" parameterType="Map">
+
+1. SQL ▷ /webapp/WEB-INF/doc/dbms/member.sql
+-------------------------------------------------------------------------------------
+-- 로그인
+SELECT COUNT(*) as cnt
+FROM member
+WHERE id='user1' AND passwd='1234';
+ 
+ cnt
+ ---
+   1
+
+-- id를 이용한 회원 정보 조회
+SELECT memberno, id, passwd, mname, tel, zipcode, address1, address2, mdate
+FROM member
+WHERE id = 'user1';
+ 
+ MEMBERNO ID    PASSWD MNAME TEL           ZIPCODE ADDRESS1 ADDRESS2 MDATE
+ --- ----- ------ ----- ------------- ------- -------- -------- ---------------------
+   3 user1 1234   왕눈이   000-0000-0000 12345   서울시 종로구  관철동      2019-05-24 14:51:48.0
+-------------------------------------------------------------------------------------
+
+2. MyBATIS ▷ /src/main/resources/mybatis/member.xml - id: login, readById
+-------------------------------------------------------------------------------------
+ 
+-------------------------------------------------------------------------------------
+ 
+3. DAO interface ▷ /dev/mvc/member/MemberDAOInter.java 
+-------------------------------------------------------------------------------------
+  /**
+   * 로그인 
+   * @param map
+   * @return
+   */
+-------------------------------------------------------------------------------------
+
+4. Proc Interface ▷ dev.mvc.member.MemberProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * 로그인 처리
+   * @param id
+   * @param passwd
+   * @return
+   */
+-------------------------------------------------------------------------------------
+ 
+5. Process Class ▷ MemberProc.java
+-------------------------------------------------------------------------------------
+ 
+-------------------------------------------------------------------------------------
+
+6. Controller class
+  - Spring은 주소 이동시 기본적으로 forward 방식을 이용합니다.
+    하지만 값을 전달하지 않는 단순 주소 이동이나 다른 도메인으로의 
+    이동은 redirect 방법을 사용합니다.
+    예) mav.setViewName("redirect:/index.do"); // 확장자 명시
+         mav.setViewName("redirect:/index.jsp"); // 확장자 명시
+▷ MemberCont.java
+-------------------------------------------------------------------------------------
+  /**
+   * 로그인 폼
+   * @return
+   */
+  // http://localhost:9090/resort/member/login.do 
+  @RequestMapping(value = "/member/login.do", 
+                             method = RequestMethod.GET)
+  public ModelAndView login() {
+    ModelAndView mav = new ModelAndView();
+  
+    mav.setViewName("/member/login_form");
+    return mav;
+  }
+
+  /**
+   * 로그인 처리
+   * @return
+   */
+  // http://localhost:9090/resort/member/login.do 
+  @RequestMapping(value = "/member/login.do", 
+                             method = RequestMethod.POST)
+  public ModelAndView login_proc(HttpSession session,
+                                            String id, 
+                                            String passwd) {
+    ModelAndView mav = new ModelAndView();
+    Map<String, Object> map = new HashMap<String, Object>();
+    map.put("id", id);
+    map.put("passwd", passwd);
+    
+    int count = memberProc.login(map);
+    if (count == 1) { // 로그인 성공
+      // System.out.println(id + " 로그인 성공");
+      MemberVO memberVO = memberProc.readById(id);
+      session.setAttribute("memberno", memberVO.getMemberno());
+      session.setAttribute("id", id);
+      session.setAttribute("mname", memberVO.getMname());
+      
+      mav.setViewName("redirect:/index.do");  
+    } else {
+      mav.setViewName("redirect:/member/login_fail_msg.jsp");
+    }
+        
+    return mav;
+  }
+  
+  /**
+   * 로그아웃 처리
+   * @param session
+   * @return
+   */
+  @RequestMapping(value="/member/logout.do", 
+                             method=RequestMethod.GET)
+  public ModelAndView logout(HttpSession session){
+    ModelAndView mav = new ModelAndView();
+    session.invalidate(); // 모든 session 변수 삭제
+    
+    mav.setViewName("redirect:/member/logout_msg.jsp");
+    
+    return mav;
+  }
+
+-------------------------------------------------------------------------------------
+ 
+7. View: JSP 1) 로그인 폼 ▷ /webapp/WEB-INF/views/member/login_form.jsp 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+<script type="text/javascript">
+  function loadDefault() {
+    $('#id').val('user1');
+    $('#passwd').val('1234');
+  }  
+</script> 
+
+</head> 
+ 
+<body>
+<jsp:include page="/menu/top.jsp" flush='false' />
+ 
+<DIV class='title_line'>로그인</DIV>
+ 
+<DIV style='width: 80%; margin: 0px auto;'>
+  <FORM name='frm' method='POST' action='./login.do' class="form-horizontal">
+  
+    <div class="form-group">
+      <label class="col-md-4 control-label" style='font-size: 0.8em;'>아이디</label>    
+      <div class="col-md-8">
+        <input type='text' class="form-control" name='id' id='id' 
+                   value='' required="required" 
+                   style='width: 30%;' placeholder="아이디" autofocus="autofocus">
+      </div>
+ 
+    </div>   
+ 
+    <div class="form-group">
+      <label class="col-md-4 control-label" style='font-size: 0.8em;'>패스워드</label>    
+      <div class="col-md-8">
+        <input type='password' class="form-control" name='passwd' id='passwd' 
+                  value='' required="required" style='width: 30%;' placeholder="패스워드">
+
+      </div>
+    </div>   
+ 
+    <div class="form-group">
+      <div class="col-md-offset-4 col-md-8">
+        <button type="submit" class="btn btn-primary btn-md">로그인</button>
+        <button type='button' onclick="location.href='./create.do'" class="btn btn-primary btn-md">회원가입</button>
+        <button type='button' onclick="loadDefault();" class="btn btn-primary btn-md">테스트 계정</button>
+      </div>
+    </div>   
+    
+  </FORM>
+</DIV>
+ 
+<jsp:include page="/menu/bottom.jsp" flush='false' />
+</body>
+ 
+</html>
+-------------------------------------------------------------------------------------
+ 
+2) 로그인 실패 ▷ /webapp/WEB-INF/views/member/login_fail_msg.jsp 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<!-- Bootstrap -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    
+    
+<script type="text/javascript">
+  $(function(){ 
+    $('#btn_retry').on('click', function() { 
+      location.href="./login.do"
+    });
+
+    $('#btn_home').on('click', function() { 
+      location.href="${pageContext.request.contextPath}/index.do"
+    });    
+  });
+</script>
+ 
+</head> 
+<body>
+<jsp:include page="/menu/top.jsp" flush='false' />
+ 
+<DIV class='title_line'>알림</DIV>
+  <DIV class='message'>
+    <fieldset class='fieldset_basic'>
+      <ul>
+        <li class='li_none'>회원 로그인에 실패했습니다.</li>
+        <li class='li_none'>ID 또는 패스워드가 일치하지 않습니다.</li>
+        <li class='li_none'>
+          <button type="button" id="btn_retry" class="btn btn-primary btn-md">로그인 다시 시도</button>
+          <button type="button" id="btn_home" class="btn btn-primary btn-md">확인</button>
+        </li>
+        
+      </ul>
+    </fieldset>    
+  </DIV>
+ 
+<jsp:include page="/menu/bottom.jsp" flush='false' />
+</body>
+ 
+</html>
+-------------------------------------------------------------------------------------
+
+3) 로그 아웃 ▷ /webapp/WEB-INF/views/member/logout_msg.jsp 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<!-- Bootstrap -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    
+<script type="text/javascript">
+  $(function(){ 
+    $('#btn_home').on('click', function() {
+      location.href="${pageContext.request.contextPath}/index.do";
+    });
+  });
+</script>
+ 
+</head> 
+<body>
+<jsp:include page="/menu/top.jsp" flush='false' />
+ 
+<DIV class='title_line'>알림</DIV>
+  <DIV class='message'>
+    <fieldset class='fieldset_basic'>
+      <ul>
+        <li class='li_none'>이용해 주셔서감사합니다.</li>
+        <li class='li_none'>
+          <button type="button" id="btn_home" class="btn btn-primary btn-md">확인</button>
+        </li>
+        
+      </ul>
+    </fieldset>    
+  </DIV>
+ 
+<jsp:include page="/menu/bottom.jsp" flush='false' />
+</body>
+ 
+</html>
+-------------------------------------------------------------------------------------
+
+4) 로그인 여부의 판별
+    - id나 등급을 session 객체에 저장후 비교
+    - 하나의 페이지를 사용자와 관리자 페이지로 분할하면 보안에 실수가 발생 할 수 있음으로
+      사용자와 관리자 프로젝트를 분리하여 제작함 예) 사용자: resort, 관리자: resorta
+      <c:if test="${sessionScope.id != null}">
+          로그인한 경우의 코드
+      </c:if>    
+
+      <c:choose>
+        <c:when test="${sessionScope.id == null}">
+          로그인 하지 않은 경우의 코드
+        </c:when>
+        <c:otherwise>
+          로그인한 경우의 코드
+        </c:otherwise>
+      </c:choose>    
+
+5) 메뉴 변경 ▷ /webapp/WEB-INF/views/menu/top.jsp 
+-------------------------------------------------------------------------------------
+      <A class='top_menu_link'  href='${pageContext.request.contextPath}' >리조트</A><span class='top_menu_sep'> </span>
+      
+      <c:choose>
+        <c:when test="${sessionScope.id == null}">
+          <A class='top_menu_link'  href='${root}/member/login.do' >Login</A><span class='top_menu_sep'> </span>
+        </c:when>
+        <c:otherwise>
+          ${sessionScope.id } <A class='top_menu_link'  href='${root}/member/logout.do' >Logout</A><span class='top_menu_sep'> </span>
+        </c:otherwise>
+      </c:choose>      
+      
+      <A class='top_menu_link'  href='${pageContext.request.contextPath}/categrp/list.do'>카테고리 그룹</A><span class='top_menu_sep'> </span>
+-------------------------------------------------------------------------------------
+~~~
+
+* **0520 : [63][Cookie] 쿠키(Cookie)의 사용**
+~~~
+[01] Cookie 객체의 사용 
+1. Cookie 개요 
+   - javax.servlet.http.Cookie 클래스를 이용합니다. 
+   - Tomcat 서버가 접속자의 컴퓨터에 저장하는 문자열로 된 정보. 
+   - 쿠키는 브러우저 마다 다른 저장소를 가지고 있음. 
+   - 보안성이 없음으로 계정과 패스워드를 동시에 쿠키에 저장하면,  
+     쿠키의 내용을 전부 편집기로 열어 볼 수 있음으로 보안에 문제가 될 수 있습니다. 
+     예) 최근에 쿠키는 브러우저 내부에 있는 DB에 저장되어 잠겨져 있어
+          볼 수 없음, IE도 파일이 잠겨있음.  
+     예) 저장된 쿠기의 내용 
+         c_count  <-- 변수명
+         11        <-- 값
+         localhost/jsp_test/cookie/ <-- 쿠키를 사용하는 주소 
+         1536 
+         1110161408 
+         30152127 
+         512501408 
+         30152127 
+         *    <-- 쿠키 변수 구분자
+         c_point 
+         33 
+         localhost/jsp_test/cookie/ 
+         1536 
+         1110161408 
+         30152127 
+         512501408 
+         30152127 
+
+   - 4KB까지 저장할 수 있다. 일반적으로 5개 내외의 변수를 저장함. 
+   - 쿠키는 웹페이지 접속시 서버로 자동으로 전송되고 서버에 
+     의해서 클라이언트에 쓰여지므로 쿠키를 사용하지 않는 옵션을 브러우저에서 지정가능. 
+   - 사용예: 하루동안 이벤트창 오픈하기, 
+               ID/PASSWORD 자동으로 저장기능, 
+               로그인 상태 유지등 입력된 값의 자동 출력,
+               사용자의 접속 통계 
+   - setMaxAge() : 쿠키의 생존 기간 초 단위 지정, 12시간의 경우 12*60*60,  
+     브러우저는 시간이 지난 쿠키는 서버로 전송하지 않고 자동으로 
+     삭제하며 사용자가 직접 삭제도 가능, 
+     저장된 쿠키는 브러우저가 삭제가 가능한 데이터임. 
+   - 쿠키 객체 생성
+      Cookie ck_name = new Cookie("name", "Java"); // (쿠키 변수명, 값) 
+
+2. 쿠키의 생성 
+    Cookie cookie = new Cookie("id", id); 
+    cookie.setMaxAge(1200);     // 초단위, 20 분만 기록 유지 
+    response.addCookie(cookie); // 쿠키 출력 --> 접속자의 컴퓨터에 기록됨. 
+
+3. 쿠키의 읽기 
+   Cookie[] cookies = request.getCookies(); // 쿠키를 배열로 추출, 순서값 0~
+   String ck_id = "";        // 아이디 
+   String ck_passwd = ""; // 패스워드 
+
+   if (cookies != null){  // 쿠키가 존재한다면  
+     for(int i=0; i<cookies.length; i++){ // 쿠키의 갯수만큼 순환 
+        Cookie item = cookies[i];          // 쿠키를 하나씩 추출  
+        if (item.getName().equals("id") == true){ // 찾으려는 변수가 있는지 검사  
+            ck_id = item.getValue();     // 찾아진 쿠키의 값 추출      
+        }else if (item.getName().equals("passwd") == true){ // 찾으려는 변수가 있는지 검사  
+            ck_passwd = item.getValue();  // 찾아진 쿠키의 값 추출      
+        } 
+     } 
+   } 
+
+4. 쿠키의 삭제 
+   Cookie cookie = new Cookie("id", ""); 
+   cookie.setMaxAge(0);     // 수명을 0초로 지정 
+   response.addCookie(id);  // 쿠키 전송 
+   시간이 지난 쿠키는 브러우저에 의해 자동으로 삭제됨. 
+
+5. <jsp:include> 태그가 사용되는 곳의 쿠키 기록 위치
+   - 아래처럼 선언된경우 top.jsp에서 쿠키를 기록해도 index.jsp 파일이 있는
+     폴더 기준으로 쿠키가 저장됩니다. 최종 출력 파일이 있는 곳을 기준으로 합니다.
+     보안상 쿠키가 저장된, 같은 폴더안에 있는 JSP에서만 접근 가능합니다 ★.
+
+     아래와 같은 경우는 '/WebContent/index.jsp'의 파일있는 폴더를 기준으로 쿠키가 기록됩니다.
+       <!-- ----------------------------------------------- -->
+       <body leftmargin="0" topmargin="0">
+       <jsp:include page="/menu/top.jsp" flush='false' />
+       <!-- ----------------------------------------------- -->
+
+   - /webapp/product 폴에서 쿠키를 기록하면 /webapp/product 폴더에서만 접근 가능
+
+[03] Cookie의 실습  - jsp_test 프로젝트 계속 사용
+1. 쿠키 기록 ▷ /jsp_test/WebContent/cookie/write.jsp, 시작 파일 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<title></title> 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+</head> 
+ 
+<body>
+ 
+<DIV class='title_line'>쿠키 기록</DIV>
+<%
+Cookie ck_email = new Cookie("email", "user1@gmail.com");
+ck_email.setMaxAge(30); // 30초
+response.addCookie(ck_email); 
+%>
+쿠키를 기록 했습니다. <br><br>
+【<A href='./read.jsp'>쿠키 읽기</A> 】
+  
+</body>
+ 
+</html>
+-------------------------------------------------------------------------------------
+
+2. 쿠키 읽기 ▷ /jsp_test/WebContent/cookie/read.jsp 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+ 
+<% 
+request.setCharacterEncoding("utf-8"); 
+String root = request.getContextPath();
+%>
+ 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title></title>
+<link href="<%=root%>/css/style.css" rel="Stylesheet" type="text/css">
+</head>
+<body>
+
+<DIV class='title_line'>쿠키 읽기</DIV>
+
+<%
+Cookie[] cookies = request.getCookies();
+Cookie cookie = null;
+String email = "";
+
+if (cookies != null) { 
+  for (int index=0; index < cookies.length; index++) {
+    cookie = cookies[index];  // 쿠키 목록에서 쿠키 추출
+    if (cookie.getName().equals("email")) { // 이름 비교
+      email = cookie.getValue();  // 쿠키 값
+    }
+  }
+}
+out.println("Email: " + email);
+%>
+
+<br><br>
+【<A href='./write.jsp'>쿠키 기록</A> 】
+【<A href='./read.jsp'>쿠키 읽기</A> 】
+【<A href='./delete.jsp'>쿠키 삭제</A> 】  
+ 
+</body>
+</html>
+-------------------------------------------------------------------------------------
+
+3. 쿠키 삭제 - 수명이 0초이고 값이 없는 Cookie 객체를 만들어 다시 기록함.
+▷ /jsp_test/WebContent/cookie/delete.jsp 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<title></title> 
+ 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+ 
+</head> 
+<body>
+ <DIV class='title_line'>쿠키 삭제</DIV>
+<%
+Cookie ck_email = new Cookie("email", "");
+ck_email.setMaxAge(0);   // 수명을 0초로 지정
+response.addCookie(ck_email); // 쿠키 전송 
+%>
+<br><br>
+【<A href='./write.jsp'>쿠키 기록</A> 】
+【<A href='./read.jsp'>쿠키 읽기</A> 】
+【<A href='./delete.jsp'>쿠키 삭제</A> 】  
+  
+</body>
+ 
+</html> 
+-------------------------------------------------------------------------------------
+~~~
+
+* **0518 : [64][Cookie] 쿠키를 이용한 window.open()  **
+~~~
+
 ~~~
