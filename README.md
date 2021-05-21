@@ -11602,101 +11602,89 @@ WHERE id = 'user1';
 ~~~
 [01] Cookie 객체의 사용 
 1. Cookie 개요 
-   - javax.servlet.http.Cookie 클래스를 이용합니다. 
+   - javax.servlet.http.Cookie 클래스를 이용
    - Tomcat 서버가 접속자의 컴퓨터에 저장하는 문자열로 된 정보. 
    - 쿠키는 브러우저 마다 다른 저장소를 가지고 있음. 
-   - 보안성이 없음으로 계정과 패스워드를 동시에 쿠키에 저장하면,  
-     쿠키의 내용을 전부 편집기로 열어 볼 수 있음으로 보안에 문제가 될 수 있습니다. 
-     예) 최근에 쿠키는 브러우저 내부에 있는 DB에 저장되어 잠겨져 있어
-          볼 수 없음, IE도 파일이 잠겨있음.  
-     예) 저장된 쿠기의 내용 
+   - 보안성이 없음으로 계정과 패스워드를 동시에 쿠키에 저장하면, 쿠키의 내용을 전부 편집기로 열어 볼 수 있음으로 보안에 문제
+     예) 최근에 쿠키는 브러우저 내부에 있는 DB에 저장되어 잠겨져 있어 볼 수 없음.
+     예) 저장된 쿠기의 내용 : ★공개되어도 크게 영향이 없는 내용을 Cookie로 사용★
          c_count  <-- 변수명
          11        <-- 값
          localhost/jsp_test/cookie/ <-- 쿠키를 사용하는 주소 
          1536 
-         1110161408 
-         30152127 
-         512501408 
          30152127 
          *    <-- 쿠키 변수 구분자
          c_point 
          33 
          localhost/jsp_test/cookie/ 
          1536 
-         1110161408 
-         30152127 
-         512501408 
          30152127 
 
    - 4KB까지 저장할 수 있다. 일반적으로 5개 내외의 변수를 저장함. 
-   - 쿠키는 웹페이지 접속시 서버로 자동으로 전송되고 서버에 
-     의해서 클라이언트에 쓰여지므로 쿠키를 사용하지 않는 옵션을 브러우저에서 지정가능. 
+   - 쿠키는 웹페이지 접속시 서버로 자동으로 전송, 서버에 의해서 클라이언트에 쓰여지므로 쿠키를 사용하지 않는 옵션을 브러우저에서 지정가능. 
    - 사용예: 하루동안 이벤트창 오픈하기, 
                ID/PASSWORD 자동으로 저장기능, 
                로그인 상태 유지등 입력된 값의 자동 출력,
                사용자의 접속 통계 
-   - setMaxAge() : 쿠키의 생존 기간 초 단위 지정, 12시간의 경우 12*60*60,  
-     브러우저는 시간이 지난 쿠키는 서버로 전송하지 않고 자동으로 
-     삭제하며 사용자가 직접 삭제도 가능, 
-     저장된 쿠키는 브러우저가 삭제가 가능한 데이터임. 
-   - 쿠키 객체 생성
-      Cookie ck_name = new Cookie("name", "Java"); // (쿠키 변수명, 값) 
 
 2. 쿠키의 생성 
+   - setMaxAge() : 쿠키의 생존 기간 초 단위 지정, 12시간의 경우 12*60*60,  
+     브러우저는 시간이 지난 쿠키는 서버로 전송하지 않고 자동으로 삭제하며 사용자가 직접 삭제도 가능, 
+     저장된 쿠키는 브러우저가 삭제가 가능한 데이터
     Cookie cookie = new Cookie("id", id); 
     cookie.setMaxAge(1200);     // 초단위, 20 분만 기록 유지 
     response.addCookie(cookie); // 쿠키 출력 --> 접속자의 컴퓨터에 기록됨. 
 
-3. 쿠키의 읽기 
+★3. 쿠키의 읽기 : ★★★request 객체로 부터 Cookie를 읽음.★★★
    Cookie[] cookies = request.getCookies(); // 쿠키를 배열로 추출, 순서값 0~
    String ck_id = "";        // 아이디 
    String ck_passwd = ""; // 패스워드 
 
    if (cookies != null){  // 쿠키가 존재한다면  
-     for(int i=0; i<cookies.length; i++){ // 쿠키의 갯수만큼 순환 
-        Cookie item = cookies[i];          // 쿠키를 하나씩 추출  
-        if (item.getName().equals("id") == true){ // 찾으려는 변수가 있는지 검사  
-            ck_id = item.getValue();     // 찾아진 쿠키의 값 추출      
+     for(int i=0; i<cookies.length; i++){                          // 쿠키의 갯수만큼 순환 
+        Cookie item = cookies[i];                                  // 쿠키를 하나씩 추출  
+        if (item.getName().equals("id") == true){               // 찾으려는 변수가 있는지 검사  
+            ck_id = item.getValue();                                // 찾아진 쿠키의 값 추출      
         }else if (item.getName().equals("passwd") == true){ // 찾으려는 변수가 있는지 검사  
-            ck_passwd = item.getValue();  // 찾아진 쿠키의 값 추출      
+            ck_passwd = item.getValue();                         // 찾아진 쿠키의 값 추출      
         } 
      } 
    } 
 
-4. 쿠키의 삭제 
+★4. 쿠키의 삭제 : ★★★response 객체에 Cookie를 기록.★★★
    Cookie cookie = new Cookie("id", ""); 
    cookie.setMaxAge(0);     // 수명을 0초로 지정 
-   response.addCookie(id);  // 쿠키 전송 
+   response.addCookie(id);  // 쿠키 전송
    시간이 지난 쿠키는 브러우저에 의해 자동으로 삭제됨. 
 
 5. <jsp:include> 태그가 사용되는 곳의 쿠키 기록 위치
-   - 아래처럼 선언된경우 top.jsp에서 쿠키를 기록해도 index.jsp 파일이 있는
-     폴더 기준으로 쿠키가 저장됩니다. 최종 출력 파일이 있는 곳을 기준으로 합니다.
-     보안상 쿠키가 저장된, 같은 폴더안에 있는 JSP에서만 접근 가능합니다 ★.
+   - 아래처럼 선언된경우 top.jsp에서 쿠키를 기록해도 index.jsp 파일이 있는 폴더 기준으로 쿠키가 저장. 최종 출력 파일이 있는 곳을 기준
+     보안상 쿠키가 저장된, 같은 폴더안에 있는 JSP에서만 접근 가능 ★.
 
-     아래와 같은 경우는 '/WebContent/index.jsp'의 파일있는 폴더를 기준으로 쿠키가 기록됩니다.
+     아래와 같은 경우는 '/webapp/index.jsp'의 파일있는 폴더를 기준으로 '/webapp' 폴더에 쿠키가 기록됨
        <!-- ----------------------------------------------- -->
        <body leftmargin="0" topmargin="0">
        <jsp:include page="/menu/top.jsp" flush='false' />
        <!-- ----------------------------------------------- -->
 
-   - /webapp/product 폴에서 쿠키를 기록하면 /webapp/product 폴더에서만 접근 가능
+ ★★- /webapp/product 폴에서 쿠키를 기록하면 /webapp/product 폴더에서만 접근 가능★★
 
-[03] Cookie의 실습  - jsp_test 프로젝트 계속 사용
-1. 쿠키 기록 ▷ /jsp_test/WebContent/cookie/write.jsp, 시작 파일 
+[03] Cookie의 실습  - sb_basic 프로젝트 계속 사용
+1. 쿠키 기록 ▷ /sb_basic/webapp/cookie/write.jsp, 시작 파일 
 -------------------------------------------------------------------------------------
+<%-- 
+0521_[63][Cookie] 쿠키(Cookie)의 사용
+--%>
 <%@ page contentType="text/html; charset=UTF-8" %>
- 
 <!DOCTYPE html> 
 <html lang="ko"> 
 <head> 
 <meta charset="UTF-8"> 
-<title></title> 
-<link href="../css/style.css" rel="Stylesheet" type="text/css">
+<title>http://localhost:9091/cookie/write.jsp</title> 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
 </head> 
- 
+
 <body>
- 
 <DIV class='title_line'>쿠키 기록</DIV>
 <%
 Cookie ck_email = new Cookie("email", "user1@gmail.com");
@@ -11707,30 +11695,25 @@ response.addCookie(ck_email);
 【<A href='./read.jsp'>쿠키 읽기</A> 】
   
 </body>
- 
 </html>
 -------------------------------------------------------------------------------------
 
-2. 쿠키 읽기 ▷ /jsp_test/WebContent/cookie/read.jsp 
+2. 쿠키 읽기 ▷ /sb_basic/webapp/cookie/read.jsp 
 -------------------------------------------------------------------------------------
+<%-- 
+0521_[63][Cookie] 쿠키(Cookie)의 사용
+--%>
 <%@ page contentType="text/html; charset=UTF-8" %>
- 
-<% 
-request.setCharacterEncoding("utf-8"); 
-String root = request.getContextPath();
-%>
- 
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <title></title>
-<link href="<%=root%>/css/style.css" rel="Stylesheet" type="text/css">
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
 </head>
+
 <body>
-
 <DIV class='title_line'>쿠키 읽기</DIV>
-
 <%
 Cookie[] cookies = request.getCookies();
 Cookie cookie = null;
@@ -11746,30 +11729,30 @@ if (cookies != null) {
 }
 out.println("Email: " + email);
 %>
-
 <br><br>
 【<A href='./write.jsp'>쿠키 기록</A> 】
 【<A href='./read.jsp'>쿠키 읽기</A> 】
 【<A href='./delete.jsp'>쿠키 삭제</A> 】  
- 
+
 </body>
 </html>
 -------------------------------------------------------------------------------------
 
 3. 쿠키 삭제 - 수명이 0초이고 값이 없는 Cookie 객체를 만들어 다시 기록함.
-▷ /jsp_test/WebContent/cookie/delete.jsp 
+▷ /sb_basic/webapp/cookie/delete.jsp 
 -------------------------------------------------------------------------------------
+<%-- 
+0521_[63][Cookie] 쿠키(Cookie)의 사용
+--%>
 <%@ page contentType="text/html; charset=UTF-8" %>
- 
 <!DOCTYPE html> 
 <html lang="ko"> 
 <head> 
 <meta charset="UTF-8"> 
 <title></title> 
- 
-<link href="../css/style.css" rel="Stylesheet" type="text/css">
- 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
 </head> 
+
 <body>
  <DIV class='title_line'>쿠키 삭제</DIV>
 <%
@@ -11781,14 +11764,584 @@ response.addCookie(ck_email); // 쿠키 전송
 【<A href='./write.jsp'>쿠키 기록</A> 】
 【<A href='./read.jsp'>쿠키 읽기</A> 】
 【<A href='./delete.jsp'>쿠키 삭제</A> 】  
-  
 </body>
- 
-</html> 
+
+</html>  
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0518 : [64][Cookie] 쿠키를 이용한 window.open()  **
+* **0521 : [64][Cookie] 쿠키를 이용한 window.open()**
+~~~
+[01] Cookie 지원 window.open() 사용
+- sb_basic 프로젝트 계속 사용
+1. JSP 1) 메인 페이지 ▷ /webapp/cookie/main.jsp
+-------------------------------------------------------------------------------------
+<%-- 
+0521_[64][Cookie] 쿠키를 이용한 window.open()
+1) 메인 페이지  
+--%>
+<%@ page contentType="text/html; charset=UTF-8" %> 
+<%
+String windowOpen = "open"; // 이벤트등 공지사항 출력 여부를 결정
+Cookie[] cookies = request.getCookies(); // 브러우저에 저장된 Cookie를 가져옴
+Cookie cookie = null;
+
+if (cookies != null) { // 쿠키가 존재 한다면
+  for (int index=0; index < cookies.length; index++) { // 쿠키 갯수만큼 순환
+    cookie = cookies[index];  // 쿠키 목록에서 쿠키 추출
+    if (cookie.getName().equals("windowOpen")) { // 이름 비교
+      windowOpen = cookie.getValue();  // 쿠키 값
+    }
+  }
+}
+%>
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<title></title> 
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script type="text/javascript">
+window.onload = function() {
+  if ('<%=windowOpen %>' == 'open') {
+    openNotice();  // 창 열기 
+  }  
+}
+
+function openNotice(){
+  var url = './notice.jsp';
+  var win = window.open(url, '공지 사항', 'width=380px, height=400px');
+  
+  var x = (screen.width - 380) / 2;
+  var y = (screen.height - 400) / 2;
+  
+  win.moveTo(x, y); // 화면 중앙으로 이동
+}
+
+</script>
+</head> 
+ 
+ 
+<body>
+ 
+  2021년 자격증 취득 안내<br><br>
+  2021년 새해를 맞아 자격증 취득을 추천합니다.<br><br>
+  【<A href='javascript: openNotice();'>자격증 정보 조회</A>】
+ 
+</body>
+</html>
+-------------------------------------------------------------------------------------
+
+2) 공지사항 페이지    ▷ /webapp/cookie/notice.jsp
+-------------------------------------------------------------------------------------
+<%-- 
+0521_[64][Cookie] 쿠키를 이용한 window.open()
+2) 공지사항 페이지
+--%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<title></title> 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+</head> 
+<body>
+<DIV class='title' style='margin: 10px auto; width: 50%; font-weight: bold; text-decoration: underline;'>자격증 안내</DIV>
+  <DIV style='margin: 0px auto; width: 80%;'> 
+    <UL>
+      <LI>빅데이터분석 기사</LI>       <!-- 2020 국가기술 예정 -->  
+      <LI>정보처리 관련 자격</LI>      <!-- 국가기술 -->
+      <LI>SQL 개발자</LI>                <!-- 국가공인 -->
+      <LI>데이터분석 준전문가</LI>     <!-- 국가공인 -->
+      <LI>리눅스 마스터</LI>             <!-- 국가공인 -->
+    </UL>
+  </DIV>
+  <br>
+  <DIV style='text-align: right; padding-right: 10px;'>
+    <form name='frm' method='post' action='./notice_cookie.jsp'>
+      <label>
+        <input type='checkbox' name='windowOpenCheck' onclick="this.form.submit()">
+        30초간 창 열지 않기
+      </label>
+    </form>
+  </DIV>
+</body>
+ 
+</html>  
+-------------------------------------------------------------------------------------
+
+3) 공지사항 쿠키 저장 페이지    ▷ /webapp/cookie/notice_cookie.jsp
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+ 
+<%
+Cookie cookie = new Cookie("windowOpen", "close"); // 이름, 값
+cookie.setMaxAge(30); // 30초
+response.addCookie(cookie);
+%>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<title></title> 
+</head> 
+<body>
+
+<script type="text/javascript">
+  window.close(); // 현재 윈도우 닫기
+</script>
+ 
+</body>
+ 
+</html>
+-------------------------------------------------------------------------------------
 ~~~
 
+* **0521 : [65][Member] Session, Cookie 기반 로그인, 로그아웃 기능의 제작**
+~~~
+[01] Session, Cookie 기반 로그인, 로그아웃 기능의 제작
+1. SQL ▷ /webapp/WEB-INF/doc/dbms/member.sql
+-------------------------------------------------------------------------------------
+변경 없음
+-------------------------------------------------------------------------------------
+ 
+2. MyBATIS ▷ /src/main/resources/mybatis/member.xml - id: login
+-------------------------------------------------------------------------------------
+변경 없음
+-------------------------------------------------------------------------------------
+ 
+3. DAO interface ▷ /dev/mvc/member/MemberDAOInter.java 
+-------------------------------------------------------------------------------------
+변경 없음
+-------------------------------------------------------------------------------------
+
+4. Proc Interface ▷ dev.mvc.member.MemberProcInter.java
+-------------------------------------------------------------------------------------
+변경 없음
+-------------------------------------------------------------------------------------
+ 
+5. Process Class ▷ MemberProc.java
+-------------------------------------------------------------------------------------
+변경 없음
+-------------------------------------------------------------------------------------
+ 
+6. Controller class
+  - Spring은 주소 이동시 기본적으로 forward 방식을 이용합니다.
+    하지만 값을 전달하지 않는 단순 주소 이동이나 다른 도메인으로의 
+    이동은 redirect 방법을 사용합니다.
+    예) mav.setViewName("redirect:/index.do"); // 확장자 명시
+         mav.setViewName("redirect:/index.jsp"); // 확장자 명시
+
+1) Cookie의 기록
+      // -------------------------------------------------------------------
+      // id 관련 쿠기 저장
+      // -------------------------------------------------------------------
+      if (id_save.equals("Y")) { // id를 저장할 경우
+        Cookie ck_id = new Cookie("ck_id", id);
+        ck_id.setMaxAge(60 * 60 * 72 * 10); // 30 day, 초단위
+        response.addCookie(ck_id);
+      } else { // N, id를 저장하지 않는 경우
+        Cookie ck_id = new Cookie("ck_id", "");
+        ck_id.setMaxAge(0);
+        response.addCookie(ck_id);
+      }
+      // id를 저장할지 선택하는  CheckBox 체크 여부
+      Cookie ck_id_save = new Cookie("ck_id_save", id_save);
+      ck_id_save.setMaxAge(60 * 60 * 72 * 10); // 30 day
+      response.addCookie(ck_id_save);
+      // -------------------------------------------------------------------
+
+      // -------------------------------------------------------------------
+      // Password 관련 쿠기 저장
+      // -------------------------------------------------------------------
+      if (passwd_save.equals("Y")) { // 패스워드 저장할 경우
+        Cookie ck_passwd = new Cookie("ck_passwd", passwd);
+        ck_passwd.setMaxAge(60 * 60 * 72 * 10); // 30 day
+        response.addCookie(ck_passwd);
+      } else { // N, 패스워드를 저장하지 않을 경우
+        Cookie ck_passwd = new Cookie("ck_passwd", "");
+        ck_passwd.setMaxAge(0);
+        response.addCookie(ck_passwd);
+      }
+      // passwd를 저장할지 선택하는  CheckBox 체크 여부
+      Cookie ck_passwd_save = new Cookie("ck_passwd_save", passwd_save);
+      ck_passwd_save.setMaxAge(60 * 60 * 72 * 10); // 30 day
+      response.addCookie(ck_passwd_save);
+      // -------------------------------------------------------------------
+
+2) Cookie 읽기
+    Cookie[] cookies = request.getCookies();
+    Cookie cookie = null;
+
+    String ck_id = ""; // id 저장 변수
+    String ck_id_save = ""; // id 저장 여부를 체크하는 변수
+    String ck_passwd = ""; // passwd 저장 변수
+    String ck_passwd_save = ""; // passwd 저장 여부를 체크하는 변수
+
+    if (cookies != null) {
+      for (int i=0; i < cookies.length; i++){
+        cookie = cookies[i]; // 쿠키 객체 추출
+        
+        if (cookie.getName().equals("ck_id")){
+          ck_id = cookie.getValue(); 
+        }else if(cookie.getName().equals("ck_id_save")){
+          ck_id_save = cookie.getValue();  // Y, N
+        }else if (cookie.getName().equals("ck_passwd")){
+          ck_passwd = cookie.getValue();         // 1234
+        }else if(cookie.getName().equals("ck_passwd_save")){
+          ck_passwd_save = cookie.getValue();  // Y, N
+        }
+      }
+    }
+    
+    mav.addObject("ck_id", ck_id);
+    mav.addObject("ck_id_save", ck_id_save);
+    mav.addObject("ck_passwd", ck_passwd);
+    mav.addObject("ck_passwd_save", ck_passwd_save);
+
+3) CheckBox등 null값의 처리
+   @RequestParam(value="id_save", defaultValue="") String id_save
+   - value: form input 태그의 name 속성 값
+    
+▷ MemberCont.java
+-------------------------------------------------------------------------------------
+  /**
+   * 로그인 폼
+   * @return
+   */
+  // http://localhost:9091/member/login.do 
+  @RequestMapping(value = "/member/login.do", 
+                             method = RequestMethod.GET)
+  public ModelAndView login_cookie(HttpServletRequest request) {
+    ModelAndView mav = new ModelAndView();
+    
+    Cookie[] cookies = request.getCookies();
+    Cookie cookie = null;
+
+    String ck_id = ""; // id 저장
+    String ck_id_save = ""; // id 저장 여부를 체크
+    String ck_passwd = ""; // passwd 저장
+    String ck_passwd_save = ""; // passwd 저장 여부를 체크
+
+    if (cookies != null) {
+      for (int i=0; i < cookies.length; i++){
+        cookie = cookies[i]; // 쿠키 객체 추출
+        
+        if (cookie.getName().equals("ck_id")){
+          ck_id = cookie.getValue(); 
+        }else if(cookie.getName().equals("ck_id_save")){
+          ck_id_save = cookie.getValue();  // Y, N
+        }else if (cookie.getName().equals("ck_passwd")){
+          ck_passwd = cookie.getValue();         // 1234
+        }else if(cookie.getName().equals("ck_passwd_save")){
+          ck_passwd_save = cookie.getValue();  // Y, N
+        }
+      }
+    }
+    
+    mav.addObject("ck_id", ck_id); 
+    mav.addObject("ck_id_save", ck_id_save);
+    mav.addObject("ck_passwd", ck_passwd);
+    mav.addObject("ck_passwd_save", ck_passwd_save);
+    
+    mav.setViewName("/member/login_ck_form");
+    return mav;
+  }
+  
+  /**
+   * 로그인 처리
+   * @param request Cookie를 읽기위해 필요
+   * @param response Cookie를 쓰기위해 필요
+   * @param session 로그인 정보를 메모리에 기록
+   * @param id  회원 아이디
+   * @param passwd 회원 패스워드
+   * @param id_save 회원 아이디 Cookie에 저장 여부
+   * @param passwd_save 패스워드 Cookie에 저장 여부
+   * @return
+   */
+  // http://localhost:9091/member/login.do 
+  @RequestMapping(value = "/member/login.do", 
+                             method = RequestMethod.POST)
+  public ModelAndView login_cookie_proc(
+                             HttpServletRequest request,
+                             HttpServletResponse response,
+                             HttpSession session,
+                             String id, String passwd,
+                             @RequestParam(value="id_save", defaultValue="") String id_save,
+                             @RequestParam(value="passwd_save", defaultValue="") String passwd_save) {
+    ModelAndView mav = new ModelAndView();
+    Map<String, Object> map = new HashMap<String, Object>();
+    map.put("id", id);
+    map.put("passwd", passwd);
+    
+    int count = memberProc.login(map);
+    if (count == 1) { // 로그인 성공
+      // System.out.println(id + " 로그인 성공");
+      MemberVO memberVO = memberProc.readById(id);
+      session.setAttribute("memberno", memberVO.getMemberno());
+      session.setAttribute("id", id);
+      session.setAttribute("mname", memberVO.getMname());
+      
+      // -------------------------------------------------------------------
+      // id 관련 쿠기 저장
+      // -------------------------------------------------------------------
+      if (id_save.equals("Y")) { // id를 저장할 경우, Checkbox를 체크한 경우
+        Cookie ck_id = new Cookie("ck_id", id);
+        ck_id.setMaxAge(60 * 60 * 72 * 10); // 30 day, 초단위
+        response.addCookie(ck_id); // id 저장
+      } else { // N, id를 저장하지 않는 경우, Checkbox를 체크 해제한 경우
+        Cookie ck_id = new Cookie("ck_id", "");
+        ck_id.setMaxAge(0);
+        response.addCookie(ck_id); // id 저장
+      }
+      // id를 저장할지 선택하는  CheckBox 체크 여부
+      Cookie ck_id_save = new Cookie("ck_id_save", id_save);
+      ck_id_save.setMaxAge(60 * 60 * 72 * 10); // 30 day
+      response.addCookie(ck_id_save);
+      // -------------------------------------------------------------------
+
+      // -------------------------------------------------------------------
+      // Password 관련 쿠기 저장
+      // -------------------------------------------------------------------
+      if (passwd_save.equals("Y")) { // 패스워드 저장할 경우
+        Cookie ck_passwd = new Cookie("ck_passwd", passwd);
+        ck_passwd.setMaxAge(60 * 60 * 72 * 10); // 30 day
+        response.addCookie(ck_passwd);
+      } else { // N, 패스워드를 저장하지 않을 경우
+        Cookie ck_passwd = new Cookie("ck_passwd", "");
+        ck_passwd.setMaxAge(0);
+        response.addCookie(ck_passwd);
+      }
+      // passwd를 저장할지 선택하는  CheckBox 체크 여부
+      Cookie ck_passwd_save = new Cookie("ck_passwd_save", passwd_save);
+      ck_passwd_save.setMaxAge(60 * 60 * 72 * 10); // 30 day
+      response.addCookie(ck_passwd_save);
+      // -------------------------------------------------------------------
+      
+      mav.setViewName("redirect:/index.do");  
+    } else {
+      mav.addObject("url", "login_fail_msg");
+      mav.setViewName("redirect:/member/msg.do"); 
+    }
+        
+    return mav;
+  }
+  
+  /**
+   * 로그아웃 처리
+   * @param session
+   * @return
+   */
+  @RequestMapping(value="/member/logout.do", 
+                             method=RequestMethod.GET)
+  public ModelAndView logout(HttpSession session){
+    ModelAndView mav = new ModelAndView();
+    session.invalidate(); // 모든 session 변수 삭제
+    
+    mav.addObject("url", "logout_msg");
+    mav.setViewName("redirect:/member/msg.do"); 
+    
+    return mav;
+  }
+-------------------------------------------------------------------------------------
+ 
+ 7. View: JSP 1) 로그인 폼 ▷ /member/login_ck_form.jsp 
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+<script type="text/javascript">
+  function loadDefault() {
+    $('#id').val('user1');
+    $('#passwd').val('1234');
+  }  
+</script> 
+
+</head> 
+ 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+<DIV class='title_line'>로그인</DIV>
+ 
+<DIV style='width: 80%; margin: 0px auto;'>
+  <FORM name='frm' method='POST' action='./login.do' class="form-horizontal">
+  
+    <div class="form-group">
+      <label class="col-md-4 control-label" style='font-size: 0.8em;'>아이디</label>    
+      <div class="col-md-8">
+        <input type='text' class="form-control" name='id' id='id' 
+                   value='${ck_id }' required="required" 
+                   style='width: 30%;' placeholder="아이디" autofocus="autofocus">
+        <Label>   
+          <input type='checkbox' name='id_save' value='Y' 
+                    ${ck_id_save == 'Y' ? "checked='checked'" : "" }> 저장
+        </Label>                   
+      </div>
+ 
+    </div>   
+ 
+    <div class="form-group">
+      <label class="col-md-4 control-label" style='font-size: 0.8em;'>패스워드</label>    
+      <div class="col-md-8">
+        <input type='password' class="form-control" name='passwd' id='passwd' 
+                  value='${ck_passwd }' required="required" style='width: 30%;' placeholder="패스워드">
+        <Label>
+          <input type='checkbox' name='passwd_save' value='Y' 
+                    ${ck_passwd_save == 'Y' ? "checked='checked'" : "" }> 저장
+        </Label>
+      </div>
+    </div>   
+ 
+    <div class="form-group">
+      <div class="col-md-offset-4 col-md-8">
+        <button type="submit" class="btn btn-primary btn-md">로그인</button>
+        <button type='button' onclick="location.href='./create.do'" class="btn btn-primary btn-md">회원가입</button>
+        <button type='button' onclick="loadDefault();" class="btn btn-primary btn-md">테스트 계정</button>
+      </div>
+    </div>   
+    
+  </FORM>
+</DIV>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+ 
+</html>
+-------------------------------------------------------------------------------------
+ 
+2) 로그인 실패 ▷ /member/login_fail_msg.jsp
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script type="text/JavaScript"
+          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<!-- Bootstrap -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    
+    
+<script type="text/javascript">
+  $(function(){ 
+    $('#btn_retry').on('click', function() { 
+      location.href="./login.do"
+    });
+
+    $('#btn_home').on('click', function() { 
+      location.href="${pageContext.request.contextPath}/index.do"
+    });    
+  });
+</script>
+ 
+</head> 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+<DIV class='title_line'>알림</DIV>
+  <DIV class='message'>
+    <fieldset class='fieldset_basic'>
+      <ul>
+        <li class='li_none'>회원 로그인에 실패했습니다.</li>
+        <li class='li_none'>ID 또는 패스워드가 일치하지 않습니다.</li>
+        <li class='li_none'>
+          <button type="button" id="btn_retry" class="btn btn-primary btn-md">로그인 다시 시도</button>
+          <button type="button" id="btn_home" class="btn btn-primary btn-md">확인</button>
+        </li>
+        
+      </ul>
+    </fieldset>    
+  </DIV>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+ 
+</html>
+-------------------------------------------------------------------------------------
+
+ 
+2) top.jsp 변경
+- 로그인의 구분 처리     
+      <c:choose>
+        <c:when test="${sessionScope.id == null}">
+          <A class='menu_link'  href='${root}/member/login.do' >Login</A><span class='top_menu_sep'> </span>
+        </c:when>
+        <c:otherwise>
+          ${sessionScope.id } <A class='menu_link'  href='${root}/member/logout.do' >Logout</A><span class='top_menu_sep'> </span>
+        </c:otherwise>
+      </c:choose>     
+ 
+▷ /menu/top.jsp
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<DIV class='container' style='width: 100%;'> 
+  <!-- 화면 상단 메뉴 -->
+  <DIV class='top_img'>
+    <DIV class='top_menu_label'>Resort 0.1 영화와 여행이있는 리조트</DIV>
+    <NAV class='top_menu'>
+      <span style='padding-left: 0.5%;'></span>
+      <A class='menu_link'  href='/' >힐링 리조트</A><span class='top_menu_sep'> </span>
+      <A class='menu_link'  href='/categrp/list.do'>카테고리 그룹</A><span class='top_menu_sep'> </span>    
+      <A class='menu_link'  href='/member/list.do'>회원 목록</A><span class='top_menu_sep'> </span>
+      
+      <c:choose>
+        <c:when test="${sessionScope.id == null}">
+          <A class='menu_link'  href='${root}/member/login.do' >Login</A><span class='top_menu_sep'> </span>
+        </c:when>
+        <c:otherwise>
+          ${sessionScope.id } <A class='menu_link'  href='${root}/member/logout.do' >Logout</A><span class='top_menu_sep'> </span>
+        </c:otherwise>
+      </c:choose>      
+    </NAV>
+  </DIV>
+  
+  <!-- 화면을 2개로 분할하여 좌측은 메뉴, 우측은 내용으로 구성 -->  
+  <DIV class="row" style='margin-top: 2px;'>
+    <DIV class="col-sm-3 col-md-2"> <!-- 메뉴 출력 컬럼 -->
+      <img src='/menu/images/myimage.png' style='width: 100%;'>
+      <div style='margin-top: 5px;'>
+        <img src='/menu/images/myface.png'>힐링 리조트
+      </div>
+      <!-- Spring 출력 카테고리 그룹 / 카테고리 -->
+      <%-- <jsp:include page="/cate/list_index_left.do" flush='false' /> // ERROR --%>
+      <c:import url="/cate/list_index_left.do" />  
+    </div>
+      
+    <DIV class="col-sm-9 col-md-10 cont">  <!-- 내용 출력 컬럼 -->  
+   
+<DIV class='content'>
+-------------------------------------------------------------------------------------
 ~~~
