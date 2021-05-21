@@ -11876,8 +11876,11 @@ function openNotice(){
 
 3) 공지사항 쿠키 저장 페이지    ▷ /webapp/cookie/notice_cookie.jsp
 -------------------------------------------------------------------------------------
+<%-- 
+0521_[64][Cookie] 쿠키를 이용한 window.open()
+3) 공지사항 쿠키 저장 페이지
+--%>
 <%@ page contentType="text/html; charset=UTF-8" %>
- 
 <%
 Cookie cookie = new Cookie("windowOpen", "close"); // 이름, 값
 cookie.setMaxAge(30); // 30초
@@ -11931,9 +11934,8 @@ response.addCookie(cookie);
 -------------------------------------------------------------------------------------
  
 6. Controller class
-  - Spring은 주소 이동시 기본적으로 forward 방식을 이용합니다.
-    하지만 값을 전달하지 않는 단순 주소 이동이나 다른 도메인으로의 
-    이동은 redirect 방법을 사용합니다.
+  - Spring은 주소 이동시 기본적으로 forward 방식을 이용
+    하지만 값을 전달하지 않는 단순 주소 이동이나 다른 도메인으로의 이동은 redirect 방법을 사용
     예) mav.setViewName("redirect:/index.do"); // 확장자 명시
          mav.setViewName("redirect:/index.jsp"); // 확장자 명시
 
@@ -12008,22 +12010,24 @@ response.addCookie(cookie);
    @RequestParam(value="id_save", defaultValue="") String id_save
    - value: form input 태그의 name 속성 값
     
-▷ MemberCont.java
+▷ MemberCont.java 
+★ 로그 아웃처리는 [62] logout과 동일
+★★★★ 로그인 폼 과 로그인 처리 함수는 주석 처리
 -------------------------------------------------------------------------------------
   /**
-   * 로그인 폼
+   * [65][Member] Session, Cookie 기반 로그인, 로그아웃 기능의 제작
+   * Cookie 기반의 로그인 폼
    * @return
    */
   // http://localhost:9091/member/login.do 
-  @RequestMapping(value = "/member/login.do", 
-                             method = RequestMethod.GET)
+  @RequestMapping(value = "/member/login.do", method = RequestMethod.GET)
   public ModelAndView login_cookie(HttpServletRequest request) {
     ModelAndView mav = new ModelAndView();
     
-    Cookie[] cookies = request.getCookies();
+    Cookie[] cookies = request.getCookies(); // 쿠키 배열 생성
     Cookie cookie = null;
 
-    String ck_id = ""; // id 저장
+    String ck_id = "";          // id 저장
     String ck_id_save = ""; // id 저장 여부를 체크
     String ck_passwd = ""; // passwd 저장
     String ck_passwd_save = ""; // passwd 저장 여부를 체크
@@ -12033,18 +12037,18 @@ response.addCookie(cookie);
         cookie = cookies[i]; // 쿠키 객체 추출
         
         if (cookie.getName().equals("ck_id")){
-          ck_id = cookie.getValue(); 
-        }else if(cookie.getName().equals("ck_id_save")){
-          ck_id_save = cookie.getValue();  // Y, N
-        }else if (cookie.getName().equals("ck_passwd")){
-          ck_passwd = cookie.getValue();         // 1234
-        }else if(cookie.getName().equals("ck_passwd_save")){
-          ck_passwd_save = cookie.getValue();  // Y, N
+          ck_id = cookie.getValue();                          // Cookie에 저장된 id / ex) id input tag에 저장될 id 값
+        } else if(cookie.getName().equals("ck_id_save")){
+          ck_id_save = cookie.getValue();                 // Cookie에 id를 저장할것인지 여부(Y or N)   / ex) 아이디 저장 체크박스
+        } else if (cookie.getName().equals("ck_passwd")){
+          ck_passwd = cookie.getValue();                 // Cookie에 저장된 passwd / ex) passwd input tag에 저장될 id 값
+        } else if(cookie.getName().equals("ck_passwd_save")){
+          ck_passwd_save = cookie.getValue();         // ck_id_save와 같은 맥락
         }
       }
-    }
+    }// if end
     
-    mav.addObject("ck_id", ck_id); 
+    mav.addObject("ck_id", ck_id);  // 객체로 저장
     mav.addObject("ck_id_save", ck_id_save);
     mav.addObject("ck_passwd", ck_passwd);
     mav.addObject("ck_passwd_save", ck_passwd_save);
@@ -12054,6 +12058,7 @@ response.addCookie(cookie);
   }
   
   /**
+   * [65][Member] Session, Cookie 기반 로그인, 로그아웃 기능의 제작
    * 로그인 처리
    * @param request Cookie를 읽기위해 필요
    * @param response Cookie를 쓰기위해 필요
@@ -12129,23 +12134,6 @@ response.addCookie(cookie);
       mav.setViewName("redirect:/member/msg.do"); 
     }
         
-    return mav;
-  }
-  
-  /**
-   * 로그아웃 처리
-   * @param session
-   * @return
-   */
-  @RequestMapping(value="/member/logout.do", 
-                             method=RequestMethod.GET)
-  public ModelAndView logout(HttpSession session){
-    ModelAndView mav = new ModelAndView();
-    session.invalidate(); // 모든 session 변수 삭제
-    
-    mav.addObject("url", "logout_msg");
-    mav.setViewName("redirect:/member/msg.do"); 
-    
     return mav;
   }
 -------------------------------------------------------------------------------------
@@ -12344,4 +12332,39 @@ response.addCookie(cookie);
    
 <DIV class='content'>
 -------------------------------------------------------------------------------------
+~~~
+
+* **0521 : **
+~~~
+[01] Session, Cookie 기반 로그인, 로그아웃 기능의 제작
+1. SQL ▷ /webapp/WEB-INF/doc/dbms/member.sql
+-------------------------------------------------------------------------------------
+변경 없음
+-------------------------------------------------------------------------------------
+ 
+2. MyBATIS ▷ /src/main/resources/mybatis/member.xml
+-------------------------------------------------------------------------------------
+변경 없음
+-------------------------------------------------------------------------------------
+ 
+3. DAO interface ▷ /dev/mvc/member/MemberDAOInter.java 
+-------------------------------------------------------------------------------------
+변경 없음
+-------------------------------------------------------------------------------------
+
+4. Proc Interface ▷ dev.mvc.member.MemberProcInter.java
+-------------------------------------------------------------------------------------
+변경 없음
+-------------------------------------------------------------------------------------
+ 
+5. Process Class ▷ MemberProc.java
+-------------------------------------------------------------------------------------
+변경 없음
+-------------------------------------------------------------------------------------
+
+6. MemberCont.java
+-------------------------------------------------------------------------------------
+변경 없음
+-------------------------------------------------------------------------------------
+
 ~~~
