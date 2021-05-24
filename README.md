@@ -11905,7 +11905,7 @@ response.addCookie(cookie);
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0521 : [65][Member] Session, Cookie 기반 로그인, 로그아웃 기능의 제작**
+* **0524 : [65][Member] Session, Cookie 기반 로그인, 로그아웃 기능의 제작**
 ~~~
 [01] Session, Cookie 기반 로그인, 로그아웃 기능의 제작
 1. SQL ▷ /webapp/WEB-INF/doc/dbms/member.sql
@@ -12334,37 +12334,505 @@ response.addCookie(cookie);
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0521 : **
+* **0524 : [66][Member] 로그인 정보의 활용, session, top.jsp 메뉴의 변경**
 ~~~
-[01] Session, Cookie 기반 로그인, 로그아웃 기능의 제작
-1. SQL ▷ /webapp/WEB-INF/doc/dbms/member.sql
+1. Controller class ▷ MemberCont.java
 -------------------------------------------------------------------------------------
-변경 없음
+  /**
+   * Session test
+   * http://localhost:9091/member/session.do
+   * @param session
+   * @return
+   */
+  @RequestMapping(value="/member/session.do", 
+                             method=RequestMethod.GET)
+  public ModelAndView session(HttpSession session){
+    ModelAndView mav = new ModelAndView();
+    
+    mav.addObject("url", "session");
+    mav.setViewName("redirect:/member/msg.do"); 
+    
+    return mav;
+  }
 -------------------------------------------------------------------------------------
  
-2. MyBATIS ▷ /src/main/resources/mybatis/member.xml
+2. Session 객체의 접근▷ /webapp/member/session.jsp 
 -------------------------------------------------------------------------------------
-변경 없음
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+ 
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+ 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head> 
+ 
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+ 
+  <c:forEach var="name" items="${pageContext.session.attributeNames}">
+      변수: ${name}
+      값: ${sessionScope[name]}
+      <br>
+  </c:forEach> 
+  <br>  
+  로그인된 ID: ${sessionScope.id}
+  <br>
+  <c:if test="${sessionScope.id ne null }">
+    로그인된 사용자 메뉴 출력 영역
+  </c:if><br>
+ 
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+ 
+</html>
 -------------------------------------------------------------------------------------
  
-3. DAO interface ▷ /dev/mvc/member/MemberDAOInter.java 
+[02] 로그인 정보의 활용 - 로그인 인증 검사
+ 1. Process Interface  ▷ MemberProcInter.java
 -------------------------------------------------------------------------------------
-변경 없음
+  /**
+   * 로그인된 회원 계정인지 검사합니다.
+   * @param session
+   * @return true: 관리자
+   */
+  public boolean isMember(HttpSession session);   
 -------------------------------------------------------------------------------------
 
-4. Proc Interface ▷ dev.mvc.member.MemberProcInter.java
+2. Process Class - 콘트롤러의 메소드등에서 이용 가능 ▷ MemberProc.java
 -------------------------------------------------------------------------------------
-변경 없음
+  @Override
+  public boolean isMember(HttpSession session){
+    boolean sw = false; // 로그인하지 않은 것으로 초기화
+    
+    String id = (String)session.getAttribute("id");
+    
+    if (id != null){
+      sw = true;  // 로그인 한 경우
+    }
+    return sw;
+  }  
 -------------------------------------------------------------------------------------
+
+3. /webapp/WEB-INF/views/member/login_need.jsp  - 로그인이 필요하다는 화면 출력시 이용 가능
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
  
-5. Process Class ▷ MemberProc.java
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+ 
+ 
+<link href="../css/style.css" rel="Stylesheet" type="text/css">
+ 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+ 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+   
+<script type="text/javascript">
+  $(function(){
+ 
+  });
+</script>
+ 
+</head> 
+ 
+<body>
+<jsp:include page="/menu/top.jsp" flush='false' />
+ 
+  <DIV class='message'>
+    <H3>로그인이 필요한 페이지입니다.</H3>
+    <BR><BR>
+    <button type='button' 
+                 onclick="location.href='/member/login.do'" 
+                 class="btn btn-info">로그인</button>       
+    <button type='button' 
+                 onclick="location.href='/member/create.do'" 
+                 class="btn btn-info">회원 가입</button>       
+
+  </DIV>
+ 
+<jsp:include page="/menu/bottom.jsp" flush='false' />
+</body>
+ 
+</html>
 -------------------------------------------------------------------------------------
-변경 없음
+~~~
+
+* *0524 : [67][Security] Spring Security의 활용, SQL, application.properties 설정, 인증 관련 Controller 설정, 인증 환경 설정, 인증 실패 설정**
+~~~
+[01] Spring Security의 활용
+1. SQL 구성
+▷ /WEB-INF/doc/dbms/member.sql
+-------------------------------------------------------------------------------------
+MariaDB 10.3 기준
+
+1. DDL
+DROP TABLE member;
+
+CREATE TABLE member(
+  memberno  INT                       NOT NULL AUTO_INCREMENT COMMENT '회원 번호',
+  id              VARCHAR(20)         NOT NULL COMMENT '회원 id, username으로 지정됨',
+  name         VARCHAR(300)           NOT NULL COMMENT '성명',
+  password    VARCHAR(100)            NOT NULL COMMENT '패스워드',
+  authority     VARCHAR (20)          NOT NULL COMMENT '권한, ROLE_ADMIN, ROLE_USER 지정됨',
+  enabled      INT                    NOT NULL COMMENT '사용 여부, 1: 활성, 0: 비활성 지정됨',
+  rdate         DATETIME              NOT NULL COMMENT '등록일',
+  PRIMARY KEY (memberno)  
+);
+
+2. 등록
+-- 123 암호화: $2a$10$Yrmg68fBinTSAIAL2eFTZu2tr0WmVLR.plO5NARghZSlPwAr161Fa
+-- 1234 암호화: $2a$10$AVq05lsMMJbO7jBJMUCjo.VAQlWRnSLt5VUhhR5.EHPoS5CvYNB5W
+INSERT INTO member(id, name, password, authority, enabled, rdate)
+VALUES('user1', '왕눈이', '$2a$10$Yrmg68fBinTSAIAL2eFTZu2tr0WmVLR.plO5NARghZSlPwAr161Fa', 'ROLE_USER', 1, NOW());
+INSERT INTO member(id, name, password, authority, enabled, rdate)
+VALUES('admin1', '아로미', '$2a$10$AVq05lsMMJbO7jBJMUCjo.VAQlWRnSLt5VUhhR5.EHPoS5CvYNB5W', 'ROLE_ADMIN', 1, NOW());
+
+COMMIT;
+
+3. 목록
+SELECT memberno, id, name, password, authority, enabled, rdate
+FROM member
+ORDER BY memberno ASC;
+
+4. 조회
+SELECT memberno, id, name, password, authority, enabled, rdate
+FROM member
+WHERE memberno = 1;
+
+-- Spring security는 기본적으로 사용자 이름을 username, 패스워드를 password 컬럼을 이용함
+-- 로그인처리
+SELECT id as userName, password, enabled
+FROM member
+WHERE id = 'user1';
+
+-- 권한 로딩
+SELECT id as userName, authority
+FROM member
+WHERE id = 'user1';
+
+5. 삭제
+DELETE FROM member;
+COMMIT;
 -------------------------------------------------------------------------------------
 
-6. MemberCont.java
+2. application.properties 설정
 -------------------------------------------------------------------------------------
-변경 없음
+첨부 파일 참고
+------------------------------------------------------------------------------------- 
+
+3. 인증 관련 Controller 설정
+-------------------------------------------------------------------------------------
+package dev.mvc.security;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+@Controller
+public class SecurityCont {
+
+    @RequestMapping("/")
+    public @ResponseBody String root() throws Exception{
+        return "Spring Security 테스트";
+    }
+
+    @RequestMapping("/guest/guest.do")
+    public String guest() {
+
+        return "/guest/guest";  // /WEB-INF/views/guest/guest.jsp
+    }
+    
+    @RequestMapping("/member/member.do")
+    public String member() {
+
+        return "/member/member";  // /WEB-INF/views/member/member.jsp
+    }
+    
+    @RequestMapping("/admin/admin.do")
+    public String admin() {
+        
+        return "/admin/admin";
+    }
+
+    @RequestMapping("/login_form.do")
+    public String login_orm() {
+        
+        return "/security/login_form";
+    }
+    
+    @RequestMapping("/login_error.do")
+    public String login_error() {
+        
+        return "/security/login_error";
+    }
+    
+    @RequestMapping("/logout.do")
+    public String logout() {
+        
+        return "/security/logout";  // /WEB-INF/views/security/logout.jsp
+    }
+    
+}
+------------------------------------------------------------------------------------- 
+
+4. 인증 환경 설정
+-------------------------------------------------------------------------------------
+package dev.mvc.security;
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+
+@Configuration
+@EnableWebSecurity
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    public AuthenticationFailureHandler authenticationFailureHandler;
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+                .antMatchers("/", "/test/**").permitAll()
+                .antMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                .antMatchers("/menu/**").permitAll()
+                .antMatchers("/guest/**").permitAll()
+                .antMatchers("/member/**").hasAnyRole("USER", "ADMIN")  // DBMS: ROLE_USER, ROLE_ADMIN이 선언되어 있어야함.
+                .antMatchers("/admin/**").hasRole("ADMIN")                       // DBMS: ROLE_ADMIN이 선언되어 있어야함.
+                .anyRequest().authenticated();
+ 
+        http.formLogin()
+                .loginPage("/login_form.do")            // 로그인 주소
+                .loginProcessingUrl("/spring_security_check.do")
+                //.failureUrl("/login_form.do?error")    // default : /login?error
+                .failureHandler(authenticationFailureHandler)
+                //.defaultSuccessUrl("/")
+                .usernameParameter("id")               // default : username
+                .passwordParameter("password")     // default : password
+                .permitAll();
+ 
+        http.logout()
+                .logoutUrl("/logout.do")                // 로그아웃 주소
+                .logoutSuccessUrl("/")
+                .permitAll();
+        
+        // RESTful 또는 개발중에는 꺼 놓는다.
+        // http.csrf().disable();
+
+    }
+ 
+    // 암호화 확인을위해 개발시에만 활성화
+//    @Autowired
+//    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+//        auth.inMemoryAuthentication()
+//            .withUser("user1").password(passwordEncoder().encode("1234")).roles("USER")
+//            .and()
+//            .withUser("admin1").password(passwordEncoder().encode("1234")).roles("ADMIN");
+//    }
+  
+    @Autowired
+    private DataSource dataSource;
+  
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//        System.out.println("--> 123 암호화: " + passwordEncoder().encode("123"));
+//        System.out.println("--> 1234 암호화: " + passwordEncoder().encode("1234"));
+
+        auth.jdbcAuthentication()
+            .dataSource(dataSource)
+            .usersByUsernameQuery(" SELECT id as userName, password, enabled"
+                                            + " FROM member"
+                                            + " WHERE id = ?")
+            .authoritiesByUsernameQuery(" SELECT  id as userName, authority"
+                                                    + " FROM member"
+                                                    + " WHERE id = ?")
+            .passwordEncoder(new BCryptPasswordEncoder());
+    }
+  
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+------------------------------------------------------------------------------------- 
+
+5. 인증 실패 설정
+-------------------------------------------------------------------------------------
+package dev.mvc.security;
+
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+
+@Configuration
+public class SecurityFailureHandler implements AuthenticationFailureHandler {
+
+    @Override
+    public void onAuthenticationFailure(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        AuthenticationException exception)
+    throws IOException, ServletException
+    {
+        String loginid = request.getParameter("id");
+        String errormsg = "";
+        
+        if (exception instanceof BadCredentialsException) {
+            loginFailureCount(loginid);
+            errormsg = "아이디나 비밀번호가 맞지 않습니다. 다시 확인해주세요.";
+        } else if (exception instanceof InternalAuthenticationServiceException) {
+            loginFailureCount(loginid);
+            errormsg = "아이디나 비밀번호가 맞지 않습니다. 다시 확인해주세요.";
+        } else if (exception instanceof DisabledException) {
+            errormsg = "계정이 비활성화되었습니다. 관리자에게 문의하세요.";
+        } else if (exception instanceof CredentialsExpiredException) {
+            errormsg = "비밀번호 유효기간이 만료 되었습니다. 관리자에게 문의하세요.";
+        }
+    
+        request.setAttribute("username",  loginid);
+        request.setAttribute("error_message",  errormsg);
+        
+        request.getRequestDispatcher("/login_form.do?error").forward(request,  response);
+    }
+
+    // 비밀번호를 3번 이상 틀릴 시 계정 잠금 처리
+    protected void loginFailureCount(String id) {
+      System.out.println("6회이상 로그인 실패시 계정을 30분간 사용 못하게 됩니다.");
+        /*
+        // 틀린 횟수 업데이트
+        userDao.countFailure(id);
+        // 틀린 횟수 조회
+        int cnt = userDao.checkFailureCount(id);
+        if(cnt==3) {
+            // 계정 잠금 처리
+            userDao.disabledUsername(id);
+        }
+        */
+    }
+    
+}
+-------------------------------------------------------------------------------------
+~~~
+
+* **0524 : [68][Security] Spring Security의 활용, 로그인 폼, 로그아웃, View 제작, CSRF 처리**
+~~~
+[01] Spring Security의 활용, View 제작, CSRF 처리
+-------------------------------------------------------------------------------------
+1. 로그인/로그아웃 View
+- CSRF 보안 처리: <input type="hidden" name="${ _csrf.parameterName }" value="${ _csrf.token }">
+▷ 로그인 폼
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>로그인</title>
+<!-- /static 기준 -->
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+</head>
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+<br>
+<h1>로그인(login_form.jsp)</h1>
+<br>
+<form name='frm' action="/spring_security_check.do" method="post">
+    <input type="hidden" name="${ _csrf.parameterName }" value="${ _csrf.token }">
+    <c:if test="${param.error != null}">
+      <p>
+          Login Error! <br />
+          ${error_message}
+      </p>
+    </c:if>
+    <br>
+    ID : <input type="text" name="id" value="${id}"> <br><br>
+    PW : <input type="password" name="password"> <br><br>
+    <input type="submit" value="LOGIN"> 
+    <input type="button" value="사용자 테스트 계정" onclick="frm.id.value='user1'; frm.password.value='123'">
+    <input type="button" value="관리자 테스트 계정" onclick="frm.id.value='admin1'; frm.password.value='1234'"> <br>
+</form>
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+</html>
 -------------------------------------------------------------------------------------
 
+▷ 로그아웃 처리
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>로그아웃</title>
+<!-- /static 기준 -->
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+</head>
+<body>
+<jsp:include page="../menu/top.jsp" flush='false' />
+<br>
+<h1>로그아웃(login_form.jsp)</h1>
+<br>
+<form name='frm' action="/logout.do" method="post">
+    <input type="hidden" name="${ _csrf.parameterName }" value="${ _csrf.token }">
+    <script type="text/javascript">
+      document.frm.submit();
+    </script>
+</form>
+<jsp:include page="../menu/bottom.jsp" flush='false' />
+</body>
+</html>
+------------------------------------------------------------------------------------- 
+
+2. 손님 테스트 View
+-------------------------------------------------------------------------------------
+첨부 파일 참고
+------------------------------------------------------------------------------------- 
+
+3. 회원 테스트 View
+-------------------------------------------------------------------------------------
+첨부 파일 참고
+------------------------------------------------------------------------------------- 
+
+4. 관리자 테스트 View
+-------------------------------------------------------------------------------------
+첨부 파일 참고
+------------------------------------------------------------------------------------- 
 ~~~
