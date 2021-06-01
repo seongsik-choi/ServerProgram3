@@ -3,6 +3,7 @@
 
 * **jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 추천 시스템 구현**
 * ★프로젝트 구현시 자주 구현되는 이론★
+* ★categrp Table 환경을 AJAX로 변경★
 ~~~
 - jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 조회 화면(read.jsp)에서의 추천구현(contents 테이블)
 - Contenst table의 추천수(recom)를 사용할 경우 -> 중복 추천의 문제 발생
@@ -544,7 +545,7 @@ list_ajax.jsp
 ----------------------------------------------------------------------------------------------
 ~~~
 
-* **jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 삭제폼의 구현(categrp 테이블)**
+* **jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 자식 레코드가 없는 경우의 삭제(categrp 테이블)**
 ~~~
 [01] 삭제
 1. 자식 레코드가 없는 경우의 삭제(순수 AJAX)  - 현재 레코드를 삭제할 것인지만 물어보고 삭제 진행
@@ -683,49 +684,177 @@ read_update_ajax 코드 mapping 이름 -> read_ajax로 수정
         <A href="javascript: read_delete_ajax(${categrpno})" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
 ..... ★추가 부분......
 -----------------------------------------------------------------------------------
+~~~
 
+* **[13] 자식 레코드가 존재하는 경우 cate 테이블의 레코드 삭제**
+~~~
 2. 자식 레코드가 있는 경우의 삭제
-   1) Ajax로 자식 레코드가 있으면 카운트하여 알림
-   2) 자식 레코드를 삭제할 것인지 선택
-   3) Ajax로 자식 레코드를 삭제함.
-   4) 현재 레코드 삭제 진행
+   1) Ajax로 자식 레코드가 있으면 카운트하여 알림  2) 자식 레코드를 삭제할 것인지 선택
+   3) Ajax로 자식 레코드를 삭제함.  4) 현재 레코드 삭제 진행
 
-[02] jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 삭제폼의 구현(categrp 테이블)
-1. SQL ▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
------------------------------------------------------------------------------------
+[02] jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 삭제폼의 구현(cate 테이블)
 
+1. SQL ▷ /webapp/WEB-INF/doc/dbms/cate_c.sql
+- categrp <- cate
 -----------------------------------------------------------------------------------
-  
-2. MyBATIS ▷ /src/main/resources/categrp.xml 
------------------------------------------------------------------------------------
+-- categrp(부모레코드)에 속하는 cate(자식레코드)개수 산출이 필수
+SELECT COUNT(*) AS cnt FROM cate WHERE categrpno=1;
 
------------------------------------------------------------------------------------
- 
-3. DAO interface ▷ CategrpDAOInter.java 
-4. Process interface ▷ CategrpProcInter.java
+-- 특정 그룹에 속한 레코드 모두 삭제
+-- DELETE FROM cate WHERE categrpno=1;
 -----------------------------------------------------------------------------------
 
+2. MyBATIS ▷ /src/main/resources/cate.xml 
+-----------------------------------------------------------------------------------
+  <!-- 카테고리 그룹에 속한 레코드 갯수 산출 -->
+  <select id="count_by_categrpno" resultType="int" parameterType="int">
+    SELECT COUNT(*) AS cnt 
+    FROM cate 
+    WHERE categrpno=#{categrpno}
+  </select>
 -----------------------------------------------------------------------------------
 
-5. Process class ▷ CategrpProc.java
+3. DAO interface ▷ CateDAOInter.java 
+4. Process interface ▷ CateProcInter.java
+-----------------------------------------------------------------------------------
+  /**
+   * 카테고리 그룹별 레코드 번호
+   * @param categrpno
+   * @return
+   */
+  public int count_by_categrpno(int categrpno);
+-----------------------------------------------------------------------------------
+
+5. Process class ▷ CateProc.java
+- 중요(cate자신을 호출)
+-------------------------------------------------------------------------------------
+  // 카테고리 그룹별 레코드 번호
+  @Override
+  public int count_by_categrpno(int categrpno) {
+    int cnt = this.cateDAO.count_by_categrpno(categrpno); // 자기자신을 호출
+    return cnt;
+  }  
 -------------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------------
-   
-6. Aajx Controller class
-- 수정폼에 조회 기능이 결합니다. ▷ CategrpCont.java
+6. Aajx Controller class ▷ CateCont.java
+-----------------------------------------------------------------------------------
+구현 필요 no
 -----------------------------------------------------------------------------------
 
------------------------------------------------------------------------------------
- 
 7. View: JSP
-▷ /webapp/WEB-INF/views/categrp/list_ajax.jsp  
+▷ /webapp/WEB-INF/views/cate/list.jsp  
 -----------------------------------------------------------------------------------
+구현 필요 no
+-----------------------------------------------------------------------------------
+~~~
+
+* **[14] 자식 레코드가 존재하는 경우 cate 테이블 연동 categrp 테이블의 레코드 삭제, view 구현**
+~~~
+1. Ajax Controller class - 수정폼에 조회 기능이 결합
+ 
+▷ CategrpCont.java
+-----------------------------------------------------------------------------------
+ (추가)
+ @Autowired // CategrpProcInter 인터페이스를 구현한 CateProc.java가 할당
+ @Qualifier("dev.mvc.cate.CateProc") // proc에게 전송
+ private CateProcInter cateProc; 
+ ...
+ read_ajax() 밑에 (추가)
+ <label>출력 형식 : </label><SPAN id='frm_delete_visible'></SPAN>
+ .....
+    // 자식 레코드가 있는 레코드 삭제시 -> 자식 레코드의 개수 추가 필요
+    int count_by_categrpno = this.cateProc.count_by_categrpno(categrpno);
+    json.put("count_by_categrpno", count_by_categrpno);
+    
+-----------------------------------------------------------------------------------
+
+2. View: JSP ▷ /webapp/WEB-INF/views/categrp/list_ajax.jsp  
+-----------------------------------------------------------------------------------
+1) panel_delete DIV 내부에 추가
+...
+      <div id='frm_delete_count_by_categrpno' style='color:#FF0000; font-weight: bold; display: none;'>
+      <button type='button' id='btn_count_by_categrpno' class='btn btn-warning'>관련 자료 삭제하기</button>
+      </div>
+
+2) read_dele_ajax()에 내부에 추가
+ // var rdate = rdata.rdate;
+	 ....
+          var count_by_categrpno = parseInt(rdata.count_by_categrpno);
+          console.log("count_by_categrpno : " + count_by_categrpno);
+
+ $('#frm_delete_visible').html(visible);
+          ....
+          if (count_by_categrpno > 0 ) { // 자식 레코드가 있다면
+            // $('#frm_delete_count_by_categrpno').html(count_by_categrpno); // 자식레코값, TAG가 덮여서 X
+            $('#frm_delete_count_by_categrpno').append(count_by_categrpno); // 마지막 자식으로 추가(append)
+            $('#frm_delete_count_by_categrpno').show(); // 자식레코드 보여줌
+          }
 
 -----------------------------------------------------------------------------------
 ~~~
 
-* **메시지 통합**
+* **jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 자식 레코드가 존재하는 경우 contents 테이블의 삭제**
+~~~
+2. 자식 레코드가 있는 경우의 삭제
+   1) Ajax로 자식 레코드가 있으면 카운트하여 알림  2) 자식 레코드를 삭제할 것인지 선택
+   3) Ajax로 자식 레코드를 삭제함.  4) 현재 레코드 삭제 진행
+
+[02] jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 삭제폼의 구현(contents 테이블)
+
+1. SQL ▷ /webapp/WEB-INF/doc/dbms/contents_c.sql
+- cate <- contents
+- admin <- contenst
+-----------------------------------------------------------------------------------
+-- 특정 그룹에 속한 레코드 갯수 산출
+-- cate(부모레코드)에 속한 contents(자식레코드)에 대한 개수 산출 
+SELECT COUNT(*) as cnt FROM contents WHERE cateno=1;
+
+-- 특정 관리자에 속한 레코드 갯수 산출
+-- admin(부모레코드)에 속한 contents(자식레코드)에 대한 개수 산출 
+SELECT COUNT(*) as cnt FROM contents WHERE adminno=1;
+
+-- 특정 (카테고리)에 속한 레코드 모두 삭제
+-- DELETE FROM contents WHERE cateno=1;
+
+-- 특정 (관리자)에 속한 레코드 모두 삭제
+-- DELETE FROM contents WHERE adminno=1;
+-----------------------------------------------------------------------------------
+  
+2. MyBATIS ▷ /src/main/resources/contents.xml 
+-----------------------------------------------------------------------------------
+  <!-- 카테고리 에 속한 레코드 갯수 산출 -->
+  <select id="count_by_cateno" resultType="int" parameterType="int">
+    SELECT COUNT(*) AS cnt 
+    FROM contents 
+    WHERE cateno=#{cateno}
+  </select>
+
+  <!-- 관리자에 속한 레코드 갯수 산출 -->
+  <select id="count_by_adminno" resultType="int" parameterType="int">
+    SELECT COUNT(*) AS cnt 
+    FROM contents 
+    WHERE adminno=#{adminno}
+  </select>    
+-----------------------------------------------------------------------------------
+
+3. DAO interface ▷ contentsDAOInter.java 
+4. Process interface ▷ contentsProcInter.java
+-----------------------------------------------------------------------------------
+컨텐츠
+-----------------------------------------------------------------------------------
+
+5. Process class ▷ contentsProc.java
+-------------------------------------------------------------------------------------
+컨텐츠
+-------------------------------------------------------------------------------------
+   
+6. Aajx Controller class ▷ contentsCont.java
+-----------------------------------------------------------------------------------
+컨텐츠
+-----------------------------------------------------------------------------------
+~~~
+
+* **생성, 수정, 삭제 메시지 통합(error_msg.jsp)**
 ~~~
 ★ 등록처리, 수정처리, 삭제처리 POST 3부분 redirect로 변경
 -----------------------------------------------------------------------------------
@@ -794,6 +923,12 @@ create_msg -> error_msg로 변경 및 3가지 통합을 위해 수정
 
 </DIV> <%-- div msg end --%>
 -----------------------------------------------------------------------------------
+
+list.jsp도 삭제, 최종 categrp view 파일은 list_ajax, error_msg.jsp 2개만
+-----------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+
+
 ~~~
 
 * ★★★★★★★Member(회원 테이블) 제작★★★★★★★
