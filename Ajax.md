@@ -1,8 +1,803 @@
 # 3) 서버 프로그래밍3 (구현) : Spring Boot
 ## AJAX 이후 [51]~
+* **jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 추천 시스템 구현**
+* ★프로젝트 구현시 자주 구현되는 이론★
+~~~
+- jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 조회 화면(read.jsp)에서의 추천구현(contents 테이블)
+- Contenst table의 추천수(recom)를 사용할 경우 -> 중복 추천의 문제 발생
+
+-> 하나의 테이블 생성 : 
+1) 컨텐츠추천(contentsrecom)과 pk contentsrecomnno(컨텐츠추천번호)
+2) (FK)로 컨텐츠 번호, 회원번호 관계 설정
+3) 추천날짜(rdate) 생성
+4) M:N 관계 개선
+-> 실제 프로젝트 시 생성되는 테이블
+
+-> 수업은 추천수(recom) 컬럼만으로 추천 구현(Contents Table)에서의 조회
+
+1. SQL
+▷ /webapp/WEB-INF/doc/dbms/contents_c.sql
+-------------------------------------------------------------------------------------
+UPDATE contents
+SET recom = recom + 1
+WHERE contentsno = 131;
+commit;
+-------------------------------------------------------------------------------------
+
+▷ /src/main/resources/contents.xml 
+-------------------------------------------------------------------------------------
+  <!-- recom(추천수) AJAX-->
+  <update id="update_recom" parameterType="int">
+    UPDATE contents
+    SET recom = recom + 1
+    WHERE contentsno = #{contentsno }
+  </update>      
+-------------------------------------------------------------------------------------
+
+3. DAO interface 4. Process interface
+-------------------------------------------------------------------------------------
+  /**
+   * recom(추천수) AJAX
+   * @param contentsVO
+   * @return
+   */
+  public int update_recom(int contentsno);  
+-------------------------------------------------------------------------------------
+
+5. Process class
+-------------------------------------------------------------------------------------
+    // recom(추천수) AJAX
+    @Override
+    public int update_recom(int contentsno) {
+      int cnt = this.contentsDAO.update_recom(contentsno);
+      return cnt;
+    }    
+-------------------------------------------------------------------------------------
+
+6. Controller class
+-------------------------------------------------------------------------------------
+  /**
+   * recom(추천수) AJAX, 처리(POST) 방식만으로 구현, FORM(GET)이 필요가 없음
+   * http://localhost:9091/contents/update_recom_ajax.do?&contentsno=131
+   * 중요) Chrom에서 url Test시 GET 방식으로 바꿔서 Test, POST 방식 TEST 원하면 Restful 환경 설치 필요
+   * @return
+   */
+  @RequestMapping(value = "/contents/update_recom_ajax.do", method = RequestMethod.POST)
+  @ResponseBody
+  public String update_recom_ajax(int contentsno) { // 페이지 번호와 같은 매개변수 전달할 필요가 no
+    try {  
+      Thread.sleep(2000);  // 3초지연
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }    
+    int cnt = this.contentsProc.update_recom(contentsno); // 업데이으 한 이후
+    int recom = this.contentsProc.read(contentsno).getRecom(); // 다시 읽어오기(ex. 내가 추천 클릭의경우, 다른 사람도 추천 클릭시, 새로운 추천수 받아옴) 
+    
+    JSONObject json = new JSONObject();
+    json.put("cnt", cnt);
+    json.put("recom", recom);
+
+    return json.toString();
+  }  
+-------------------------------------------------------------------------------------
+
+7. read.jsp 수정
+-------------------------------------------------------------------------------------
+<script type="text/javascript">
+  $(function(){
+    $('#btn_recom').on("click", function() {update_recom_ajax(${contentsno}); }); 
+    // 클릭시 update_recom_ajax() 호출, contentsno를 전달
+  });
+
+  function update_recom_ajax(contentsno) {
+    // console.log(" -> contentsno : " + contentsno);
+    var params = "";
+    params = 'contentsno= ' + contentsno; // 공백이 값으로 있으면 안됨!!! 중요 = 기호★★★★★★★
+    // params = $('#frm').serialize(); // 직렬화, 폼의 데이터를 키와 값의 구조로 조합
+    
+    $.ajax({
+      url: '/contents/update_recom_ajax.do',  // Spring Controller의 requestmapping 요청 url 
+      type: 'post',  // 변경이기에 post
+      cache: false, // 응답 결과 임시 저장 취소
+      async: true,  // true: 비동기 통신
+      dataType: 'json', // 응답 형식: json, html, xml...
+      data: params,      // 데이터
+
+      success: function(rdata) { // 응답이 온경우
+        // console.log(" -> rdata : " + rdata);
+        var str = '';
+        if(rdata.cnt == 1) {
+          // input tag의 값은 가져오는경우  .val()
+          // console.log('->btn_recom: ' + $('#btn_recom').val()); // 값을 받아옴
+
+          // Button tag의 값을 가져오는 경우 .html()
+          // console.log('->btn_recom: ' + $('#btn_recom').html()); // 값을 받아옴
+          
+          // 실제 버튼 태그에서 실시간으로 값 증가 시키기
+          $('#btn_recom').html('♡추천♡('+rdata.recom+')');
+          
+          $('#span_animation').hide(); // 애니메이션 태그 숨김
+        } else { // ERROR
+          $('#span_animation').html("지금은 추천 할 수 없습니다."); 
+        }
+      },
+      
+      // Ajax 통신 에러, 응답 코드가 200이 아닌경우, dataType이 다른경우 
+      error: function(request, status, error) { // callback 함수
+        console.log(error);
+      }
+     }
+    ); // $.ajax end
+    
+    // $('#panel').html('조회 중입니다...');
+    $('#span_animation').html("<img src='/contents/images/ani04.gif' style='width: 8%;'>");
+    $('#span_animation').show(); // 숨겨진 태그의 출력
+    
+  } //update_recom_ajax() end
+  
+</script>
+
+.....
+            <button type='button' onclick="" class="btn btn-info">관심 상품</button>
+            <button type='button' id='btn_recom' class="btn btn-primary">♡추천♡(${recom }) </button>
+            <span id='span_animation'></span>
+-------------------------------------------------------------------------------------
+~~~
+
+* *jQuery, Ajax, JSON, Spring Boot을 연동한 목록 화면에서의 추천 구현(contents 테이블)**
+* ★프로젝트 구현시 자주 구현되는 이론★
+~~~
+- Controller class까지 변경 없음
+- 변경해야할 부분
+1) 추천 수 출력되는 곳의 태그가 고유하게 구분되어야함.
+2) <span id='span_recom_1'>♥(0)</span>으로 id 지정시 -> 모든 행이 span_recom_1 id를 갖음.
+
+추가) style.css의 링크 밑줄에 대한 클래스 추가 : .menu_link 4개의 css 복사하여 복붙
+-------------------------------------------------------------------------------------
+/* ver 1.9 */
+....
+
+  /* span에 대한 link 옵션 추가  */
+  .recom_link:link{  /* 방문전 상태 */
+    text-decoration: none; /* 밑줄 삭제 */
+    color: #555555;
+    font_size:0.8em;
+  }
+
+  .recom_link:visited{  /* 방문후 상태 */
+    text-decoration: none; /* 밑줄 삭제 */
+    color: #555555;
+    font_size:0.8em;
+  }
+
+  .recom_link:hover{  /* A 태그에 마우스가 올라간 상태 */
+    text-decoration: none; /* 밑줄 출력 none*/
+    color: #7777FF;
+    font_size:0.8em;
+  }
+
+  .recom_link:active{  /* A 태그를 클릭한 상태 */
+    text-decoration: none; /* 밑줄 출력 none*/
+    color: #7777FF;
+    font_size:0.8em;
+  }  
+-------------------------------------------------------------------------------------
+
+2) paing 부분 수정 및 추가
+-------------------------------------------------------------------------------------
+// 추가
+<script type="text/javascript">
+  function reocm_ajax(contentsno, status_count) { // tag에 contentsno와 id 값 이 들어옴
+    // 핵심 태그를 찾는 방.
+    console.log("-> recom_ " + status_count + ":"  + $('#recom_' + status_count).html()); // JQuery tag의 id 값을 받아 콘솔에 출력
+
+    var params = "";
+    params = 'contentsno= ' + contentsno; // 공백이 값으로 있으면 안됨!!! 중요 = 기호★★★★★★★
+    // params = $('#frm').serialize(); // 직렬화, 폼의 데이터를 키와 값의 구조로 조합
+    
+    $.ajax({
+      url: '/contents/update_recom_ajax.do',  // Spring Controller의 requestmapping 요청 url 
+      type: 'post',  // 변경이기에 post
+      cache: false, // 응답 결과 임시 저장 취소
+      async: true,  // true: 비동기 통신
+      dataType: 'json', // 응답 형식: json, html, xml...
+      data: params,      // 데이터
+
+      success: function(rdata) { // 응답이 온경우
+        // console.log(" -> rdata : " + rdata);
+        var str = '';
+        if (rdata.cnt == 1) {
+          // $('#span_animation_' + status_count).hide();   // SPAN 태그에 animation 출력
+          $('#recom_' + status_count).html('♥('+rdata.recom+')');     // A 태그에 animation 출력
+        } else {
+          // $('#span_animation_' + status_count).html("X");
+          $('#recom_' + status_count).html('♥(X)');
+        }
+      },
+      // Ajax 통신 에러, 응답 코드가 200이 아닌경우, dataType이 다른경우 
+      error: function(request, status, error) { // callback 함수
+        console.log(error);
+      }
+    }
+  );  //  $.ajax END
+
+  $('#recom_' + status_count).html("<img src='/contents/images/ani04.gif' style='width: 10%;'>");
+  // $('#span_animation_' + status_count).css('text-align', 'center');
+  // $('#span_animation_' + status_count).html("<img src='/contents/images/ani04.gif' style='width: 10%;'>");
+  // $('#span_animation_' + status_count).show(); // 숨겨진 태그의 출력
+  }
+</script>
+
+수정) <c:forEach var="contentsVO" items="${list }" varStatus="status">
+
+추가) 포인트 span과 </td> 사이
+	    <span style="font-size: 0.8em;">포인트: <fmt:formatNumber value="${point}" pattern="#,###" /></span>
+            
+            <span>
+            <A id="recom_${status.count }" 
+                  href="javascript:reocm_ajax(${contentsno }, ${status.count })" 
+                  class="recom_link">♥(${recom })
+            </A> </span>
+            <!-- contentsno(숫자)와, recom(숫자) 값을 전달해줘야함
+            status.count와 같이 여러개의 값을 전달할때는 숫자 값을 전달해줘야함. -->
+            <!--  javascript send_recom으로 전달되는 태그의 값음 문자열''로 전달-->
+            <%-- <span id="span_animation_${status.count }"></span> --%>
+            
+          </td>
+-------------------------------------------------------------------------------------
+
+3) gird 추가
+-------------------------------------------------------------------------------------
+      <c:set var="recom" value="${contentsVO.recom }" /> <%-- 추가 --%>
+
+               <Strong><fmt:formatNumber value='${saleprice}' pattern="#,###" />원</Strong><BR>
+               .....
+               <span style='font-size: 0.9em;'>♥(${recom })</span> <%-- 추가 --%>
+-------------------------------------------------------------------------------------
+
+list_by_cateno xml
+-------------------------------------------------------------------------------------
+DESC 설정
+-------------------------------------------------------------------------------------
+~~~
 
 
+* ** jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 수정폼의 구현(categrp 테이블**
+* ★프로젝트 구현시 자주 구현되는 이론★
+~~~
+- jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 수정폼의 구현
+[01] 주소(address, URL)의 변경
 
+1. 주소의 변경 유형 1
+1) 개발이 진행된 상태에서 주소 변경은 현실적으로 어려움
+    http://localhost:9091/categrp/list.do -> http://localhost:9091/categrp/list_ajax.do
+
+2) http://localhost:9091/categrp/list.do 주소를 유지하면서 변경
+   - 개발이 진행된 상태에서 주소 변경은 현실적으로 어려움으로 함수명 변경
+     public ModelAndView list() -> public ModelAndView list_ajax()
+   - 개발이 진행된 상태에서 주소 변경은 현실적으로 어려움으로 view 변경
+     /WEB-INF/views/categrp/list.jsp -> /WEB-INF/views/categrp/list_ajax.jsp
+
+2. Interceptor(Filter)등을 이용하여 주소 이동 처리
+
+1) 주소(address, URL) 테이블 존재
+    번호  코드   URL
+        1  C001   http://localhost:9091/categrp/create.do
+        2  C002   http://localhost:9091/categrp/list_ajax.do  <- 변경
+        3  C003   http://localhost:9091/categrp/read.do
+        4  C004   http://localhost:9091/categrp/update.do
+        5  C005   http://localhost:9091/categrp/delete.do
+        6  M001  http://localhost:9091/member/create.do
+        7  M002  http://localhost:9091/member/list.do
+
+2) http://localhost:9091/C002 요청시 http://localhost:9091/categrp/list.do로 이동
+3) 주소 변경 : http://localhost:9091/categrp/list_ajax.do
+4) http://localhost:9091/C002 요청시 http://localhost:9091/categrp/list_ajax.do로 이동
+
+1. SQL ▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
+▷ /src/main/resources/categrp.xml 
+3. DAO interface 4. Process interface
+5. Process class
+-------------------------------------------------------------------------------------
+-- READ 조회, 한건 조회
+변경사항 no
+-------------------------------------------------------------------------------------
+
+6. Controller class
+read_update() 를 복사하여 -> read_update_ajax()로 변경
+read_update()는 주석처리 NO
+-------------------------------------------------------------------------------------
+  // http://localhost:9091/categrp/read_update_ajax.do?categrpno=1
+  /**
+   * AJAX 기반 조회 + 수정폼 
+   * {"categrpVO":"[categrpno=1, name=영화, seqno=1, visible=Y, rdate=2021-04-14 21:47:10]"}
+   * @param categrpno 조회할 카테고리 번호
+   * @return
+   */
+  @RequestMapping(value="/categrp/read_update_ajax.do", method=RequestMethod.GET )
+  @ResponseBody
+  public String read_update_ajax(int categrpno) {
+   
+    CategrpVO categrpVO = this.categrpProc.read(categrpno);
+    JSONObject json = new JSONObject();
+    json.put("categrpVO", categrpVO); // categrpVO객체를 전부 저장
+    
+    return json.toString();
+  }    
+-------------------------------------------------------------------------------------
+
+6. Controller class
+Q) 주소 변경시 url이 전부 변경되어야 하기에 개발완료된 상태에서는 어려움.
+list() 복사 -> list_ajax() 생성
+list() 주석 처리 ctrl + /
+-------------------------------------------------------------------------------------
+  // http://localhost:9091/categrp/list.do
+  /**
+   * AJAX 활용, 목록
+   * 함수명과 jsp 변경, url 변경은 no
+   * @return
+   */
+  @RequestMapping(value="/categrp/list.do", method=RequestMethod.GET )
+  public ModelAndView list_ajax() {
+    ModelAndView mav = new ModelAndView();
+
+    // 등록 순서별 출력    
+    // List<CategrpVO> list = this.categrpProc.list_categrpno_asc();
+    // 출력 순서별 출력
+    List<CategrpVO> list = this.categrpProc.list_seqno_asc();
+
+    mav.addObject("list", list); // request.setAttribute("list", list);
+
+    mav.setViewName("/categrp/list_ajax"); // /webapp/WEB-INF/views/categrp/list_ajax.jsp
+    return mav;
+  }  
+-------------------------------------------------------------------------------------
+
+7. jsp 수정
+-------------------------------------------------------------------------------------
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<!DOCTYPE html> 
+<html lang="ko"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
+<title>Resort world</title>
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script type="text/JavaScript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script> <!--  부트 스트랩에서 제공하는 javascript -->
+
+<script type="text/javascript">
+  $(function() { // 동적 JQuery 사용 
+    $('#btn_update_cancel').on('click', cancel);
+  });
+
+  function cancel() {
+    $('#panel_create').css("display",""); 
+    $('#panel_update').css("display","none"); 
+  }
+    
+  function read_update_ajax(categrpno) {
+    // display=none; 속성의 panel_update FORM을 -> 출력
+    $('#panel_update').css("display","");  // update form은 none -> show
+    $('#panel_create').css("display","none"); // 기존 create 폼 -> hide
+    
+    // console.log('-> categrpno: ' +categrpno); // categrpno의 전달 확인.
+    var params = "";
+    params = 'categrpno= ' + categrpno; // 공백이 값으로 있으면 안됨!!! 중요 = 기호★★★★★★★
+    // params = $('#frm').serialize(); // 직렬화, 폼의 데이터를 키와 값의 구조로 조합
+    
+    $.ajax({
+      url: '/categrp/read_update_ajax.do',  // Spring Controller의 requestmapping 요청 url 
+      type: 'get',  // 변경이 아니기에 get
+      cache: false, // 응답 결과 임시 저장 취소
+      async: true,  // true: 비동기 통신
+      dataType: 'json', // 응답 형식: json, html, xml...
+      data: params,      // 데이터
+
+      success: function(rdata) { // 응답이 온경우 Spring에서 하나의 전체를 전달한 경우 -> 통문자열
+        // 현재 rata에 전달되는 값은 통문자열, index로 값 추출 시 [, c, a, t, ...
+        // console.log(" -> rdata : " + rdata.categrpVO); // rdata : [categrpno=1, name=영화, seqno=1, visible=Y, rdate=2021-04-14 21:47:10]
+        // console.log(" -> rdata : " + rdata.categrpVO.categrpno);  // -> rdata : undefined
+        // console.log(" -> 0 rdata : " + rdata.categrpVO[0]); // -> 0 rdata : [
+        // console.log(" -> 1 rdata : " + rdata.categrpVO[1]); // -> 1 rdata : c
+        // console.log('-> ' + JSON.parse(rdata.categrpVO)); // X
+        // console.log('-> ' + eval(rdata.categrpVO)); // eval : 순수문자 -> javascript 문자 ,  X
+        
+        // 해결) 문자열 중 [ ] substring 후 ,로 문자열 구분 필요
+        var str = rdata.categrpVO;
+        str =  str.substring(1, str.length-1); // [, ] 삭제
+        // console.log(str); // categrpno=1, name=영화, seqno=1, visible=Y, rdate=2021-04-14 21:47:10
+        strs = str.split(",");
+        // console.log(strs[0]); // categrpno=1
+        // console.log(strs[0].split("=")[0]); // categrpno
+        // console.log(strs[0].split("=")[1]); // 1
+      
+        var categrpno = strs[0].split("=")[1];
+        var name = strs[1].split("=")[1];
+        var seqno = strs[2].split("=")[1];
+        var visible = strs[3].split("=")[1];
+        var rdate = strs[4].split("=")[1];
+
+        var frm_update = $('#frm_update');
+        $('#categrpno', frm_update).val(categrpno); // frm_update FROM을 찾아서 -> id가 categrpno인 INPUT tag 값 가져옴.
+        $('#name', frm_update).val(name); 
+        $('#seqno', frm_update).val(seqno); 
+        $('#visible', frm_update).val(visible); 
+        $('#rdate', frm_update).val(rdate); 
+        
+        // input tag의 값은 가져오는경우  .val()
+        // console.log('->btn_recom: ' + $('#btn_recom').val()); // 값을 받아옴
+
+        // Button tag의 값을 가져오는 경우 .html()
+        // console.log('->btn_recom: ' + $('#btn_recom').html()); // 값을 받아옴
+        
+        // 실제 버튼 태그에서 실시간으로 값 증가 시키기
+        // $('#btn_recom').html('♡추천♡('+rdata.recom+')');
+     
+        // $('#span_animation').hide(); // 애니메이션 태그 숨김
+      },
+      
+      // Ajax 통신 에러, 응답 코드가 200이 아닌경우, dataType이 다른경우 
+      error: function(request, status, error) { // callback 함수
+        console.log(error);
+      }
+     }
+    ); // $.ajax end
+    
+    // $('#panel').html('조회 중입니다...');
+    // $('#span_animation').html("<img src='/contents/images/ani04.gif' style='width: 8%;'>");
+    // $('#span_animation').show(); // 숨겨진 태그의 출력
+        
+  }// read_update_ajax() end
+
+</script>
+
+.......
+
+  <%-- 신규 등록 --%>
+  <DIV id='panel_create' style='padding: 10px 0px 10px 0px; background-color: #F9F9F9; width: 100%; text-align: center;'>
+    <FORM name='frm_create' id='frm_create' method='POST' action='./create.do'>
+        
+      <label>그룹 이름</label>
+      <input type='text' name='name' id='name' value='' required="required" style='width: 25%;'
+                 autofocus="autofocus">
+  
+      <label>순서</label>
+      <input type='number' name='seqno' id='seqno' value='1' required="required" 
+                min='1' max='1000' step='1' style='width: 5%;'>
+  
+      <label>형식</label>
+      <select name='visible' id='visible'>
+        <option value='Y' selected="selected">Y</option>
+        <option value='N'>N</option>
+      </select>
+       
+      <button type="submit" id='submit'>등록</button>
+      <button type="button" onclick="cancel();">취소</button>
+      </FORM>
+  </DIV>
+  
+  <%-- 수정 등록 --%>
+  <DIV id='panel_update' style='padding: 10px 0px 10px 0px; background-color: #F9F9F9; width: 100%; 
+           text-align: center; display: none;'>
+    <FORM name='frm_update' id='frm_update' method='POST' action='./update.do'>
+      <!--  값전달을 위한 hidden type 필요 -->
+      <input type="hidden" name='categrpno' id='categrpno' value=''>
+      
+      <label>그룹 이름</label>
+      <input type='text' name='name' id='name' value='' required="required" style='width: 25%;'
+                 autofocus="autofocus">
+  
+      <label>순서</label>
+      <input type='number' name='seqno' id='seqno' value='1' required="required" 
+                min='1' max='1000' step='1' style='width: 5%;'>
+  
+      <label>형식</label>
+      <select name='visible' id='visible'>
+        <option value='Y' selected="selected">Y</option>
+        <option value='N'>N</option>
+      </select>
+       
+      <button type="submit" id='submit'>저장</button>
+      <button type="button" id='btn_update_cancel'>취소</button>
+      </FORM>
+  </DIV>  
+
+-------------------------------------------------------------------------------------
+
+-변경 사항
+read_update_ajax  주석처리하고 -> 복사하여 붙여넣기
+----------------------------------------------------------------------------------------------
+  /**
+   * 조회 + 수정폼 + Ajax, , VO에서 각각의 필드를 JSON으로 변환하는경우
+   * http://localhost:9091/categrp/read_update_ajax.do?categrpno=1
+   * {"categrpno":1,"visible":"Y","seqno":1,"rdate":"2021-04-08 17:01:28","name":"문화"}
+   * @param categrpno 조회할 카테고리 번호
+   * @return
+   */
+  @RequestMapping(value="/categrp/read_update_ajax.do", 
+                              method=RequestMethod.GET )
+  @ResponseBody
+  public String read_update_ajax(int categrpno) {
+    CategrpVO categrpVO = this.categrpProc.read(categrpno);
+    
+    JSONObject json = new JSONObject();
+    json.put("categrpno", categrpVO.getCategrpno());
+    json.put("name", categrpVO.getName());
+    json.put("seqno", categrpVO.getSeqno());
+    json.put("visible", categrpVO.getVisible());
+    json.put("rdate", categrpVO.getRdate());
+    
+    return json.toString();
+
+  }
+----------------------------------------------------------------------------------------------
+
+list_ajax.jsp
+----------------------------------------------------------------------------------------------
+      success: function(rdata) { // 응답이 온경우 Spring에서 하나의 전체를 전달한 경우 -> 통문자열   
+       ... 까지 다지우고 해당 5라인 추가
+	var categrpno = rdata.categrpno;  // JSON객체(rdata).VO변수명
+        var name = rdata.name;  
+        var seqno = rdata.seqno;  
+        var visible = rdata.visible;  
+        var rdate = rdata.rdate;  
+  
+        var frm_update = $('#frm_update');
+----------------------------------------------------------------------------------------------
+~~~
+
+* **jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 삭제폼의 구현(categrp 테이블)**
+~~~
+[01] 삭제
+1. 자식 레코드가 없는 경우의 삭제(순수 AJAX)  - 현재 레코드를 삭제할 것인지만 물어보고 삭제 진행
+
+-> Controller 부분
+read_update_ajax 코드 mapping 이름 -> read_ajax로 수정
+-> ajax 수정, 삭제에서 모두 사용하기 위해
+-----------------------------------------------------------------------------------
+  /**
+   * 조회 + 수정폼 + Ajax, , VO에서 각각의 필드를 JSON으로 변환하는경우
+   * http://localhost:9091/categrp/read_ajax.do?categrpno=1
+   * {"categrpno":1,"visible":"Y","seqno":1,"rdate":"2021-04-08 17:01:28","name":"문화"}
+   * @param categrpno 조회할 카테고리 번호
+   * @return
+   */
+  @RequestMapping(value="/categrp/read_ajax.do", 
+                              method=RequestMethod.GET )
+  @ResponseBody
+  public String read_ajax(int categrpno) {
+    CategrpVO categrpVO = this.categrpProc.read(categrpno);
+    
+    JSONObject json = new JSONObject();
+    json.put("categrpno", categrpVO.getCategrpno());
+    json.put("name", categrpVO.getName());
+    json.put("seqno", categrpVO.getSeqno());
+    json.put("visible", categrpVO.getVisible());
+    json.put("rdate", categrpVO.getRdate());
+    
+    return json.toString();
+  }
+-----------------------------------------------------------------------------------
+
+★ 1) panel 스크립트 추가
+★ 2) read_delete_ajax() 추가
+★ 3) list_ajax에 read_delete.jsp의 div frm_delete 부분 복사하여 수정 등록에 붙여넣기 후 ->수정
+★ read_update_ajax에 delete 패널 none 추가해주기!!!!!!!!!!!!!!
+★ 수정, 삭제 url mapping 부분 url: '/categrp/read_ajax.do', 로 둘다 해주기
+★ 하단 삭제 버튼 클릭시 url 부분 추가
+-----------------------------------------------------------------------------------
+..... ★추가 부분......
+<script type="text/javascript">
+  $(function() { // 동적 JQuery 사용 
+    $('#btn_update_cancel').on('click', cancel);
+    $('#btn_delete_cancel').on('click', cancel);
+  });
+
+  function cancel() {
+    $('#panel_create').css("display",""); 
+    $('#panel_update').css("display","none"); 
+    $('#panel_delete').css("display","none"); 
+  }
+..... ★추가 부분......      
+
+
+..... ★추가 부분......     
+  // 삭제 폼(자식 레코드가 없는 경우의 삭제)
+  function read_delete_ajax(categrpno) {
+    $('#panel_create').css("display","none"); // hide, 태그를 숨김
+    $('#panel_update').css("display","none"); // hide, 태그를 숨김  
+    $('#panel_delete').css("display",""); // show, 숨겨진 태그 출력 
+    // return;
+    
+    // console.log('-> categrpno:' + categrpno);
+    var params = "";
+    // params = $('#frm').serialize(); // 직렬화, 폼의 데이터를 키와 값의 구조로 조합
+    params = 'categrpno=' + categrpno; // 공백이 값으로 있으면 안됨.
+    $.ajax(
+      {
+        url: '/categrp/read_ajax.do',
+        type: 'get',  // get, post
+        cache: false, // 응답 결과 임시 저장 취소
+        async: true,  // true: 비동기 통신
+        dataType: 'json', // 응답 형식: json, html, xml...
+        data: params,      // 데이터
+        success: function(rdata) { // 응답이 온경우, Spring에서 하나의 객체를 전달한 경우 통문자열
+          // {"categrpno":1,"visible":"Y","seqno":1,"rdate":"2021-04-08 17:01:28","name":"문화"}
+          var categrpno = rdata.categrpno;
+          var name = rdata.name;
+          var seqno = rdata.seqno;
+          var visible = rdata.visible;
+          // var rdate = rdata.rdate;
+
+          var frm_delete = $('#frm_delete');
+          $('#categrpno', frm_delete).val(categrpno);
+          
+          $('#frm_delete_name').html(name);
+          $('#frm_delete_seqno').html(seqno);
+          $('#frm_delete_visible').html(visible);
+          
+          // console.log('-> btn_recom: ' + $('#btn_recom').val());  // X
+          // console.log('-> btn_recom: ' + $('#btn_recom').html());
+          // $('#btn_recom').html('♥('+rdata.recom+')');
+          // $('#span_animation').hide();
+        },
+        // Ajax 통신 에러, 응답 코드가 200이 아닌경우, dataType이 다른경우 
+        error: function(request, status, error) { // callback 함수
+          console.log(error);
+        }
+      }
+    );  //  $.ajax END
+
+    // $('#span_animation').css('text-align', 'center');
+    // $('#span_animation').html("<img src='/contents/images/ani04.gif' style='width: 8%;'>");
+    // $('#span_animation').show(); // 숨겨진 태그의 출력
+  } 
+..... ★추가 부분......     
+
+
+..... ★추가 부분......
+  <%-- 삭제 등록 --%>
+  <DIV id='panel_delete' style='padding: 10px 0px 10px 0px; background-color: #F9F9F9; 
+            width: 100%; text-align: center; display: none;'>
+    <div class="msg_warning">카테고리 그룹을 삭제하면 복구 할 수 없습니다.</div>
+    <FORM name='frm_delete' id='frm_delete' method='POST' action='./delete.do'>
+      <input type='hidden' name='categrpno' id='categrpno' value=''> <%-- 어떤 데이터가 들어올지 모르니 value 값은 no --%>
+        
+       <%-- span, A, DIV는 form태그에 종속no, 독립적인 Tag, id를 지정 --%>
+      <label>그룹 이름 : </label><SPAN id='frm_delete_name'></SPAN>
+      <label>순서 : </label><SPAN id='frm_delete_seqno'></SPAN>
+      <label>출력 형식 : </label><SPAN id='frm_delete_visible'></SPAN>
+       
+      <button type="submit" id='submit'>삭제</button>
+      <button type="button" id='btn_delete_cancel'>취소</button>
+    </FORM>
+  </DIV>
+..... ★추가 부분......
+
+
+  <%-- 수정 등록 --%>
+  <DIV id='panel_update' style='padding: 10px 0px 10px 0px; background-color: #F9F9F9; width: 100%; 
+           text-align: center; display: none;'>
+
+..... ★추가 부분......
+        <%-- <A href="./read_delete.do?categrpno=${categrpno }" title="삭제"><span class="glyphicon glyphicon-trash"></span></A> --%>
+        <%-- AJAX 기반 삭제 폼 --%>
+        <A href="javascript: read_delete_ajax(${categrpno})" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
+..... ★추가 부분......
+-----------------------------------------------------------------------------------
+
+★ 등록처리, 수정처리, 삭제처리 POST 3부분 redirect로 변경
+-----------------------------------------------------------------------------------
+    if (cnt == 1) {
+      mav.setViewName("redirect:/categrp/list.do");
+    } else {
+       mav.addObject("code", "create"); // request에 저장, request.setAttribute("code", "create")  
+       mav.setViewName("/categrp/error_msg"); // /webapp/WEB-INF/views/categrp/error_msg.jsp
+    }
+    return mav; // forward
+-----------------------------------------------------------------------------------
+
+★ 1) views에 categrp_nonajax 디렉토리 추가 -> 파일들 그대로 복사(백업용)
+★ 2) categrp에서 : create, read_update, read_delete, update_seqno_down, up 5개 파일 삭제
+-----------------------------------------------------------------------------------
+소스 수정 no
+-----------------------------------------------------------------------------------
+
+★ msg 3가지 통합하기
+create_msg -> error_msg로 변경 및 3가지 통합을 위해 수정
+- update_msg, delete_msg는 삭제
+-----------------------------------------------------------------------------------
+<DIV class='message'>
+  <fieldset class='fieldset_basic'>
+    <UL>
+      <%-- 등록 실패 --%>
+      <c:choose>
+        <c:when test="${code  == 'create'}">  <!-- if 문 -->
+          <LI class='li_none'>
+            <span class="span_success">새로운 카테고리 그룹 [${categrpVO.name }]을 실패했습니다.</span>
+          </LI>
+        </c:when>
+        
+        <%-- 수정 실패 --%>
+        <c:when test="${code  == 'update'}">  <!-- if 문 -->
+          <LI class='li_none'>
+           <span class="span_fail">카테고리 그룹 수정에 실패했습니다.</span>
+          </LI>
+        </c:when>
+        
+        <%-- 삭제 실패 --%>
+        <c:when test="${code  == 'delete'}">  <!-- if 문 -->
+          <LI class='li_none'>
+             <span class="span_fail">카테고리 그룹 삭제에 실패했습니다.</span>
+          </LI>
+        </c:when>                
+        
+        <%-- 등록, 수정, 식제 에러가 아닌경우 --%>
+        <c:otherwise>   <!-- else -->
+          <LI class='li_none_left'>
+            <span class="span_fail">알수 없는 에러로 작업에 실패했습니다.</span>
+          </LI>
+          <LI class='li_none_left'>
+            <span class="span_fail">다시 시도해주세요.</span>
+          </LI>
+        </c:otherwise>
+      </c:choose>
+      
+      <LI class='li_none'>
+        <br>
+        <button type='button' onclick="history.back()" class="btn btn-primary">다시 시도</button>
+        <button type='button' onclick="location.href='./list.do'" class="btn btn-default">목록</button>
+      </LI>
+    </UL>
+  </fieldset>
+
+</DIV> <%-- div msg end --%>
+-----------------------------------------------------------------------------------
+
+2. 자식 레코드가 있는 경우의 삭제
+   1) Ajax로 자식 레코드가 있으면 카운트하여 알림
+   2) 자식 레코드를 삭제할 것인지 선택
+   3) Ajax로 자식 레코드를 삭제함.
+   4) 현재 레코드 삭제 진행
+
+[02] jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 삭제폼의 구현(categrp 테이블)
+1. SQL ▷ /webapp/WEB-INF/doc/dbms/categrp_c.sql
+-----------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------
+  
+2. MyBATIS ▷ /src/main/resources/categrp.xml 
+-----------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------
+ 
+3. DAO interface ▷ CategrpDAOInter.java 
+4. Process interface ▷ CategrpProcInter.java
+-----------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------
+
+5. Process class ▷ CategrpProc.java
+-------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------
+   
+6. Aajx Controller class
+- 수정폼에 조회 기능이 결합니다. ▷ CategrpCont.java
+-----------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------
+ 
+7. View: JSP
+▷ /webapp/WEB-INF/views/categrp/list_ajax.jsp  
+-----------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------
+~~~
 
 * ★★★★★★★Member(회원 테이블) 제작★★★★★★★
 * **0428~9 : [51][Member] 회원 DBMS 설계(권한을 이용한 관리자 결합 모델), 논리적/물리적 모델링, SQL 제작, member.sql**
