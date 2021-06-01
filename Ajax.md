@@ -1,7 +1,7 @@
 # 3) 서버 프로그래밍3 (구현) : Spring Boot
 ## AJAX 이후 [51]~
 
-* **jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 추천 시스템 구현**
+* **[09] jQuery, Ajax, JSON, Spring Boot을 연동한 조회 화면에서의 추천 구현(contents 테이블)**
 * ★프로젝트 구현시 자주 구현되는 이론★
 * ★categrp Table 환경을 AJAX로 변경★
 ~~~
@@ -145,7 +145,7 @@ commit;
 -------------------------------------------------------------------------------------
 ~~~
 
-* **jQuery, Ajax, JSON, Spring Boot을 연동한 목록 화면에서의 추천 구현(contents 테이블)**
+* **[10] jQuery, Ajax, JSON, Spring Boot을 연동한 목록 화면에서의 추천 구현(contents 테이블)**
 * ★프로젝트 구현시 자주 구현되는 이론★
 ~~~
 - Controller class까지 변경 없음
@@ -257,7 +257,7 @@ commit;
 -------------------------------------------------------------------------------------
 ~~~
 
-* **jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 수정폼의 구현(categrp 테이블)**
+* **[11] jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 수정폼의 구현(categrp 테이블), 주소의 변경**
 * ★프로젝트 구현시 자주 구현되는 이론★
 ~~~
 - jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 수정폼의 구현
@@ -545,7 +545,7 @@ list_ajax.jsp
 ----------------------------------------------------------------------------------------------
 ~~~
 
-* **jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 자식 레코드가 없는 경우의 삭제(categrp 테이블)**
+* **[12] jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 자식 레코드가 없는 경우의 삭제 (categrp 테이블)**
 ~~~
 [01] 삭제
 1. 자식 레코드가 없는 경우의 삭제(순수 AJAX)  - 현재 레코드를 삭제할 것인지만 물어보고 삭제 진행
@@ -683,6 +683,81 @@ read_update_ajax 코드 mapping 이름 -> read_ajax로 수정
         <%-- AJAX 기반 삭제 폼 --%>
         <A href="javascript: read_delete_ajax(${categrpno})" title="삭제"><span class="glyphicon glyphicon-trash"></span></A>
 ..... ★추가 부분......
+-----------------------------------------------------------------------------------
+~~~
+
+* **생성, 수정, 삭제 메시지 통합(error_msg.jsp)**
+~~~
+★ 등록처리, 수정처리, 삭제처리 POST 3부분 redirect로 변경
+-----------------------------------------------------------------------------------
+    if (cnt == 1) {
+      mav.setViewName("redirect:/categrp/list.do");
+    } else {
+       mav.addObject("code", "create"); // request에 저장, request.setAttribute("code", "create")  
+       mav.setViewName("/categrp/error_msg"); // /webapp/WEB-INF/views/categrp/error_msg.jsp
+    }
+    return mav; // forward
+-----------------------------------------------------------------------------------
+
+★ 1) views에 categrp_nonajax 디렉토리 추가 -> 파일들 그대로 복사(백업용)
+★ 2) categrp에서 : create, read_update, read_delete, update_seqno_down, up 5개 파일 삭제
+-----------------------------------------------------------------------------------
+소스 수정 no
+-----------------------------------------------------------------------------------
+
+★ msg 3가지 통합하기
+create_msg -> error_msg로 변경 및 3가지 통합을 위해 수정
+- update_msg, delete_msg는 삭제
+-----------------------------------------------------------------------------------
+<DIV class='message'>
+  <fieldset class='fieldset_basic'>
+    <UL>
+      <%-- 등록 실패 --%>
+      <c:choose>
+        <c:when test="${code  == 'create'}">  <!-- if 문 -->
+          <LI class='li_none'>
+            <span class="span_success">새로운 카테고리 그룹 [${categrpVO.name }]을 실패했습니다.</span>
+          </LI>
+        </c:when>
+        
+        <%-- 수정 실패 --%>
+        <c:when test="${code  == 'update'}">  <!-- if 문 -->
+          <LI class='li_none'>
+           <span class="span_fail">카테고리 그룹 수정에 실패했습니다.</span>
+          </LI>
+        </c:when>
+        
+        <%-- 삭제 실패 --%>
+        <c:when test="${code  == 'delete'}">  <!-- if 문 -->
+          <LI class='li_none'>
+             <span class="span_fail">카테고리 그룹 삭제에 실패했습니다.</span>
+          </LI>
+        </c:when>                
+        
+        <%-- 등록, 수정, 식제 에러가 아닌경우 --%>
+        <c:otherwise>   <!-- else -->
+          <LI class='li_none_left'>
+            <span class="span_fail">알수 없는 에러로 작업에 실패했습니다.</span>
+          </LI>
+          <LI class='li_none_left'>
+            <span class="span_fail">다시 시도해주세요.</span>
+          </LI>
+        </c:otherwise>
+      </c:choose>
+      
+      <LI class='li_none'>
+        <br>
+        <button type='button' onclick="history.back()" class="btn btn-primary">다시 시도</button>
+        <button type='button' onclick="location.href='./list.do'" class="btn btn-default">목록</button>
+      </LI>
+    </UL>
+  </fieldset>
+
+</DIV> <%-- div msg end --%>
+-----------------------------------------------------------------------------------
+
+list.jsp도 삭제, 최종 categrp view 파일은 list_ajax, error_msg.jsp 2개만
+-----------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------
 ~~~
 
@@ -916,7 +991,7 @@ categrp 테이블(시퀀스 생성부분까지 블록 지정해서 실행)
 -> 컨텐츠가 없는 카테고리는 삭제
 ~~~
 
-* **jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 자식 레코드가 존재하는 경우 contents 테이블의 삭제**
+* **자식 레코드가 존재하는 경우 contents 테이블의 삭제**
 ~~~
 2. 자식 레코드가 있는 경우의 삭제
    1) Ajax로 자식 레코드가 있으면 카운트하여 알림  2) 자식 레코드를 삭제할 것인지 선택
@@ -974,81 +1049,6 @@ SELECT COUNT(*) as cnt FROM contents WHERE adminno=1;
 6. Aajx Controller class ▷ contentsCont.java
 -----------------------------------------------------------------------------------
 컨텐츠
------------------------------------------------------------------------------------
-~~~
-
-* **생성, 수정, 삭제 메시지 통합(error_msg.jsp)**
-~~~
-★ 등록처리, 수정처리, 삭제처리 POST 3부분 redirect로 변경
------------------------------------------------------------------------------------
-    if (cnt == 1) {
-      mav.setViewName("redirect:/categrp/list.do");
-    } else {
-       mav.addObject("code", "create"); // request에 저장, request.setAttribute("code", "create")  
-       mav.setViewName("/categrp/error_msg"); // /webapp/WEB-INF/views/categrp/error_msg.jsp
-    }
-    return mav; // forward
------------------------------------------------------------------------------------
-
-★ 1) views에 categrp_nonajax 디렉토리 추가 -> 파일들 그대로 복사(백업용)
-★ 2) categrp에서 : create, read_update, read_delete, update_seqno_down, up 5개 파일 삭제
------------------------------------------------------------------------------------
-소스 수정 no
------------------------------------------------------------------------------------
-
-★ msg 3가지 통합하기
-create_msg -> error_msg로 변경 및 3가지 통합을 위해 수정
-- update_msg, delete_msg는 삭제
------------------------------------------------------------------------------------
-<DIV class='message'>
-  <fieldset class='fieldset_basic'>
-    <UL>
-      <%-- 등록 실패 --%>
-      <c:choose>
-        <c:when test="${code  == 'create'}">  <!-- if 문 -->
-          <LI class='li_none'>
-            <span class="span_success">새로운 카테고리 그룹 [${categrpVO.name }]을 실패했습니다.</span>
-          </LI>
-        </c:when>
-        
-        <%-- 수정 실패 --%>
-        <c:when test="${code  == 'update'}">  <!-- if 문 -->
-          <LI class='li_none'>
-           <span class="span_fail">카테고리 그룹 수정에 실패했습니다.</span>
-          </LI>
-        </c:when>
-        
-        <%-- 삭제 실패 --%>
-        <c:when test="${code  == 'delete'}">  <!-- if 문 -->
-          <LI class='li_none'>
-             <span class="span_fail">카테고리 그룹 삭제에 실패했습니다.</span>
-          </LI>
-        </c:when>                
-        
-        <%-- 등록, 수정, 식제 에러가 아닌경우 --%>
-        <c:otherwise>   <!-- else -->
-          <LI class='li_none_left'>
-            <span class="span_fail">알수 없는 에러로 작업에 실패했습니다.</span>
-          </LI>
-          <LI class='li_none_left'>
-            <span class="span_fail">다시 시도해주세요.</span>
-          </LI>
-        </c:otherwise>
-      </c:choose>
-      
-      <LI class='li_none'>
-        <br>
-        <button type='button' onclick="history.back()" class="btn btn-primary">다시 시도</button>
-        <button type='button' onclick="location.href='./list.do'" class="btn btn-default">목록</button>
-      </LI>
-    </UL>
-  </fieldset>
-
-</DIV> <%-- div msg end --%>
------------------------------------------------------------------------------------
-
-list.jsp도 삭제, 최종 categrp view 파일은 list_ajax, error_msg.jsp 2개만
------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------
 ~~~
 
