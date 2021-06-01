@@ -545,7 +545,7 @@ list_ajax.jsp
 ----------------------------------------------------------------------------------------------
 ~~~
 
-* **[12] jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 자식 레코드가 없는 경우의 삭제 (categrp 테이블)**
+* **[12] jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 자식 레코드가 없는 경우의 삭제(categrp 테이블)**
 ~~~
 [01] 삭제
 1. 자식 레코드가 없는 경우의 삭제(순수 AJAX)  - 현재 레코드를 삭제할 것인지만 물어보고 삭제 진행
@@ -578,6 +578,7 @@ read_update_ajax 코드 mapping 이름 -> read_ajax로 수정
   }
 -----------------------------------------------------------------------------------
 
+- View: JSP ▷ /webapp/WEB-INF/views/categrp/list_ajax.jsp  
 ★ 1) panel 스크립트 추가
 ★ 2) read_delete_ajax() 추가
 ★ 3) list_ajax에 read_delete.jsp의 div frm_delete 부분 복사하여 수정 등록에 붙여넣기 후 ->수정
@@ -891,7 +892,7 @@ SELECT COUNT(*) AS cnt FROM cate WHERE categrpno=1;
 -----------------------------------------------------------------------------------
 ~~~
 
-* **[15] [15][Cate] Cate 테이블에서 categrpno가 같은 모든 레코드 삭제(DELETE ~ WHERE ~ **
+* **[15] [15][Cate] Cate 테이블에서 categrpno가 같은 모든 레코드 삭제(DELETE ~ WHERE)**
 ~~~
 [01] 삭제 기능의 제작 1. SQL:  /webapp/WEB-INF/doc/dbms/cate_c.sql
 -------------------------------------------------------------------------------------
