@@ -770,27 +770,150 @@ SELECT COUNT(*) AS cnt FROM cate WHERE categrpno=1;
 
 2. View: JSP ▷ /webapp/WEB-INF/views/categrp/list_ajax.jsp  
 -----------------------------------------------------------------------------------
-1) panel_delete DIV 내부에 추가
-...
-      <div id='frm_delete_count_by_categrpno' style='color:#FF0000; font-weight: bold; display: none;'>
-      <button type='button' id='btn_count_by_categrpno' class='btn btn-warning'>관련 자료 삭제하기</button>
+1) panel_delete DIV 내부
+      <label>출력 형식 : </label><SPAN id='frm_delete_visible'></SPAN>
+	...(밑으로 추가)
+
+      <%-- 자식 레코드 갯수 출력 --%>
+      <div id='frm_delete_count_by_categrpno' style='margin:10px auto;
+               color:#FF0000; font-weight: bold; display: none;'>
+        
+        <%--건수 누적되는 문제 SPAN id 값 주기  --%>       
+       <span id='frm_delete_count_by_categrpno_panel'></span>
+       
+       <%-- id를 줘 categrpno를 전달 --%>
+       『<A id='a_list_by_categrpno' href="../cate/list_by_categrpno.do?categrpno=${categrpno }">관련 자료 삭제하기</A>』
       </div>
 
 2) read_dele_ajax()에 내부에 추가
  // var rdate = rdata.rdate;
-	 ....
+	 ....(밑으로 추가)
           var count_by_categrpno = parseInt(rdata.count_by_categrpno);
           console.log("count_by_categrpno : " + count_by_categrpno);
 
  $('#frm_delete_visible').html(visible);
-          ....
+          ....(밑으로 추가)
           if (count_by_categrpno > 0 ) { // 자식 레코드가 있다면
             // $('#frm_delete_count_by_categrpno').html(count_by_categrpno); // 자식레코값, TAG가 덮여서 X
-            $('#frm_delete_count_by_categrpno').append(count_by_categrpno); // 마지막 자식으로 추가(append)
-            $('#frm_delete_count_by_categrpno').show(); // 자식레코드 보여줌
-          }
+            //$('#frm_delete_count_by_categrpno').append(count_by_categrpno); // 마지막 자식으로 추가(append)
+            // $('#frm_delete_count_by_categrpno').prepend('관련자료 : ' + count_by_categrpno +'건'); // 첫부분에 자식으로 추가(append)
 
+            $('#frm_delete_count_by_categrpno').show(); // 자식레코드 보여줌
+            $('#frm_delete_count_by_categrpno_panel').html('관련자료 : ' + count_by_categrpno +'건'); 
+            // 건수 누적되는 문제 해결 : Span으로 id 값을 전달해주기
+
+             // alert($('#a_list_by_categrpno').attr('href'));
+             // A 태그 : $('#id').attr('href', '../list.do');
+             // 삭제 클릭시 -> 링크 주소 출력 가능 : ../cate/list_by_categrpno.do?categrpno=
+            
+            $('#a_list_by_categrpno').attr('href', '../cate/list_by_categrpno.do?categrpno=' + categrpno);
+            // JQuery 앵커값 전달 + categrpno 값
+            // 관련자료 삭제하기 -> cateno값으로 이동
+          } else { // 자식 레코드가 없는 경우
+            $('#frm_delete_count_by_categrpno').hide(); // 자식레코드 숨김
+          } //else end
+...
 -----------------------------------------------------------------------------------
+~~~
+
+* **[15] [15][Cate] Cate 테이블에서 categrpno가 같은 모든 레코드 삭제(DELETE ~ WHERE ~ **
+~~~
+[01] 삭제 기능의 제작 1. SQL:  /webapp/WEB-INF/doc/dbms/cate_c.sql
+-------------------------------------------------------------------------------------
+-- categrpno가 같은 모든 레코드 삭제
+DELETE FROM cate 
+WHERE categrpno = 1;
+-------------------------------------------------------------------------------------
+
+2. cate.xml 작성 ▷ /src/main/resources/mybatis/cate.xml
+-------------------------------------------------------------------------------------
+    <!--categrpno가 같은 모든 레코드 삭제 -->
+  <delete id="delete_by_categrpno" parameterType="int">
+    DELETE FROM cate
+    WHERE categrpno=#{categrpno}
+  </delete>    
+-------------------------------------------------------------------------------------
+
+3. DAO interface ▷ dev.mvc.cate.CateDAOInter.java
+4. Process interface  ▷ dev.mvc.cate.CateProcInter.java
+-------------------------------------------------------------------------------------
+  /**
+   * categrpno가 같은 모든 레코드 삭제
+   * @param categrpno
+   * @return 처리된 레코드 갯수
+   */
+  public int delete_by_categrpno(int categrpno);  
+-------------------------------------------------------------------------------------
+ 
+5. Process class ▷ dev.mvc.cate.CateProc.java
+-------------------------------------------------------------------------------------
+  // categrpno가 같은 모든 레코드 삭제
+  @Override
+  public int delete_by_categrpno(int categrpno) {
+    int cnt = this.cateDAO.delete_by_categrpno(categrpno);
+    return cnt;
+  }
+-------------------------------------------------------------------------------------
+  
+6. Controller ▷ dev.mvc.cate.CateCont.java 
+-------------------------------------------------------------------------------------
+  /**
+   * categrpno가 같은 모든 레코드 삭제
+   * 
+   * @param cateVO
+   * @return
+   */
+  @RequestMapping(value = "/cate/delete_by_categrpno.do", method = RequestMethod.POST)
+  public ModelAndView delete_by_categrpno(int categrpno) {
+    ModelAndView mav = new ModelAndView();
+    
+    int cnt = this.cateProc.delete_by_categrpno(categrpno);
+    
+    mav.addObject("categrpno", categrpno);
+
+    mav.setViewName("redirect:/cate/list_by_categrpno.do"); // 새로고침 문제 해결, request 초기화
+    return mav;
+  }  
+-------------------------------------------------------------------------------------
+  
+7. View: JSP ▷ /webapp/cate/list_by_categrpno.jsp 
+1) 스크립트 추가
+2) contents/create.jsp에서 ASIDE 부분 복사하여 수정
+-------------------------------------------------------------------------------------
+1) 스크립트 선언
+<script type="text/javascript">
+  <%-- categrpno가 같은 모든 레코드 삭제 --%>
+  function delete_by_categrpno(categrpno) {
+    var f = $('#frm_delete_by_categrpno');
+    $('#categrpno', f).val(categrpno)
+    f.submit();
+  } 
+</script>
+
+2) 앵커 추가
+<DIV class='content_body'>
+...(밑으로 추가)
+
+  <ASIDE class="aside_right">
+    <form name='frm_delete_by_categrpno' id='frm_delete_by_categrpno' 
+              action='./delete_by_categrpno.do' method='post'>
+      <input type='hidden' name='categrpno' id='categrpno' value=''>
+      <%-- 앵커는 Get 방식이지만 -> FORM 으로 POST로 변경 --%>
+      <A href="javascript: delete_by_categrpno(${param.categrpno})">모든 카테고리 삭제</A>
+    </form>
+  </ASIDE> 
+  <DIV class='menu_line'></DIV>
+-------------------------------------------------------------------------------------
+
+-> 이후 테스트(테이블 재성성) : 반드시 여기 나온 순서대로 진행
+contents 테이블(시퀀스 생성부분까지 블록 지정해서 실행)
+cate 테이블(시퀀스 생성부분까지 블록 지정해서 실행)
+categrp 테이블(시퀀스 생성부분까지 블록 지정해서 실행)
+
+-> categrp insert(3개 레코드) -> cate insert(3개 레코드) -> contents는 웹 상에서 컨텐츠 등록
+-> 구현한 모든 카테고리 삭제 해보기
+-> 컨텐츠가 있는 카테고리는 제약조건에 의해 삭제 no
+-> 컨텐츠가 없는 카테고리는 삭제
 ~~~
 
 * **jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 자식 레코드가 존재하는 경우 contents 테이블의 삭제**
@@ -927,8 +1050,6 @@ create_msg -> error_msg로 변경 및 3가지 통합을 위해 수정
 list.jsp도 삭제, 최종 categrp view 파일은 list_ajax, error_msg.jsp 2개만
 -----------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------
-
-
 ~~~
 
 * ★★★★★★★Member(회원 테이블) 제작★★★★★★★
