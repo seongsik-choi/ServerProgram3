@@ -836,8 +836,8 @@ SELECT COUNT(*) AS cnt FROM cate WHERE categrpno=1;
  private CateProcInter cateProc; 
  ...
  read_ajax() 밑에 (추가)
- <label>출력 형식 : </label><SPAN id='frm_delete_visible'></SPAN>
- .....
+json.put("rdate", categrpVO.getRdate());
+.....
     // 자식 레코드가 있는 레코드 삭제시 -> 자식 레코드의 개수 추가 필요
     int count_by_categrpno = this.cateProc.count_by_categrpno(categrpno);
     json.put("count_by_categrpno", count_by_categrpno);
@@ -861,7 +861,7 @@ SELECT COUNT(*) AS cnt FROM cate WHERE categrpno=1;
        『<A id='a_list_by_categrpno' href="../cate/list_by_categrpno.do?categrpno=${categrpno }">관련 자료 삭제하기</A>』
       </div>
 
-2) read_dele_ajax()에 내부에 추가
+2) read_delete_ajax()에 내부에 추가
  // var rdate = rdata.rdate;
 	 ....(밑으로 추가)
           var count_by_categrpno = parseInt(rdata.count_by_categrpno);
