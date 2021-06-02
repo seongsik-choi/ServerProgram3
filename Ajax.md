@@ -992,13 +992,84 @@ categrp 테이블(시퀀스 생성부분까지 블록 지정해서 실행)
 -> 컨텐츠가 없는 카테고리는 삭제
 ~~~
 
-* **자식 레코드가 존재하는 경우 contents 테이블의 삭제**
+* **[16]~[17] 자식 레코드가 존재하는 경우 contents, cate 테이블의 레코드 삭제 mybatis, controller 구현**
 ~~~
+★1. 삭제 방법★
+   1) contents 테이블에 하나의 categrpno를 전달하여 처리 : 1개의 값만 전달, DBMS 엑세스 추가 발생(속도 저하)
+   2) cateno를 전달하여 처리 : 여러개의 값이 전달됨, "1,2,3"이 전달되면서 분할 처리가 필요.
+   3) contents 테이블 역정규화 : contents 테이블이 categrpno를 소유
+      categrp <reference- contents
+      단점 : contents 테이블의 컬럼 증가, VO 변경 발생
+
 2. 자식 레코드가 있는 경우의 삭제
    1) Ajax로 자식 레코드가 있으면 카운트하여 알림  2) 자식 레코드를 삭제할 것인지 선택
    3) Ajax로 자식 레코드를 삭제함.  4) 현재 레코드 삭제 진행
 
 [02] jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 삭제폼의 구현(contents 테이블)
+
+/cate/list_by_categrpno.jsp
+-----------------------------------------------------------------------------------
+1) FORM 내부의 새로운 javascript 추가에 따른 함수 추가 : 다수의 cateno값 전달하는 함수
+...
+<script type="text/javascript">
+  <%-- categrpno가 같은 모든 레코드 삭제 --%>
+  function delete_by_categrpno(categrpno) {
+    var f = $('#frm_delete_by_categrpno');
+    f.attr('action', './delete_by_categrpno.do'); // Action 속성(FROM의 action=''으로 지정 두종류 이기에)
+    $('#categrpno', f).val(categrpno)
+    f.submit();
+  } 
+
+  // 다수의 cateno 값을 전달하여 contents 레코드 삭제
+  function delete_contents_by_all_cateno() {
+    var f = $('#frm_delete_by_categrpno'); // FORM 찾기
+    f.attr('action', './delete_contents_by_all_cateno.do');  // Action 속성(FROM의 action=''으로 지정 두종류 이기에)
+
+    // console.log('catenos : ' +$('#catenos', f).val());   // '1', '2', '3'
+    var catenos = $('#catenos', f).val();
+    // console.log('catenos : ' +catenos); // catenos : '1','2','3',
+    catenos = catenos.substr(0, catenos.length -1); // 마지막 문자열 "," 제거
+    // console.log('catenos : ' +catenos); // catenos : '1','2','3'
+    // console.log('action : ' +f.attr('action'));     // action값
+    // return;
+    
+    $('#catenos').val(catenos);
+    f.submit();
+  }
+</script>
+
+2) <ASIDE> 메뉴
+...(밑으로 변경)
+  <ASIDE class="aside_right">
+    <form name='frm_delete_by_categrpno' id='frm_delete_by_categrpno' 
+              action='' method='post'> <%--Action 값은 비우기 2가지 종류 이기에 --%>
+      <input type='hidden' name='categrpno' id='categrpno' value=''> 
+      <input type='hidden' name='catenos' id='catenos' value=''> <%-- catenos  --%>
+      
+      <%-- 앵커는 Get 방식이지만 -> FORM 으로 POST로 변경 --%>
+      <A href="javascript: delete_contents_by_all_cateno()">모든 카테고리의 관련 자료 삭제</A>
+      <span class='menu_divide' >│</span>      
+      <A href="javascript: delete_by_categrpno(${param.categrpno})">모든 카테고리 삭제</A>
+    </form>
+  </ASIDE> 
+  <DIV class='menu_line'></DIV>
+   * 『모든 카테고리를 삭제』하기 전에 『모든 카테고리의 관련 자료 삭제』를 먼저 진행해 주세요. 
+
+3) <tbody>
+    <c:forEach var="cateVO" items="${list}">
+       <c:set var="cateno" value="${cateVO.cateno }" />
+       <c:set var="categrpno" value="${cateVO.categrpno }" />
+       ...(밑으로 추가)
+
+       <script type="text/javascript">
+         var catenos = $('#catenos').val();
+         catenos = catenos + "${cateno},";  // catenos + cateno 값 , "문자" 구조
+          // EL 내부에서 Javascript를 이용해 특정 태그로 값 전달
+         $('#catenos').val(catenos); // EL -> JQUERY -> HTML, 1, 2, 3
+         // source 확인 시 -> client 족에서 javascript를 순환하며 cateno값 출력 
+       </script>
+
+-----------------------------------------------------------------------------------
 
 1. SQL ▷ /webapp/WEB-INF/doc/dbms/contents_c.sql
 - cate <- contents
@@ -1017,6 +1088,20 @@ SELECT COUNT(*) as cnt FROM contents WHERE adminno=1;
 
 -- 특정 (관리자)에 속한 레코드 모두 삭제
 -- DELETE FROM contents WHERE adminno=1;
+
+...(밑으로 추가)
+
+-- 다수의 카테고리에 속한 레코드 개수
+-- IN('1', '2', '3') 과 같은 결과
+SELECT COUNT(*) as cnt 
+FROM contents
+WHERE cateno IN(1, 2, 3);
+
+-- 다수의 카테고리에 속한 레코드 모두 삭제 : IN
+-- IN('1', '2', '3') 과 같은 결과
+SELECT contentsno, adminno, cateno, title
+FROM contents
+WHERE cateno IN(1, 2, 3);
 -----------------------------------------------------------------------------------
   
 2. MyBATIS ▷ /src/main/resources/contents.xml 
@@ -1034,22 +1119,55 @@ SELECT COUNT(*) as cnt FROM contents WHERE adminno=1;
     FROM contents 
     WHERE adminno=#{adminno}
   </select>    
+...(밑으로 추가)
+
+  <!-- 다수의 cateno를 전달하여 contents 레코드 삭제 -->
+  <delete id="delete_contents_by_all_cateno" parameterType="Map">
+    DELETE FROM contents
+    WHERE cateno IN 
+    <foreach collection="catenos_list" item="codeno" separator="," open="(" close=")">
+      #{codeno}
+    </foreach>
+  </delete>
 -----------------------------------------------------------------------------------
 
 3. DAO interface ▷ contentsDAOInter.java 
 4. Process interface ▷ contentsProcInter.java
 -----------------------------------------------------------------------------------
-컨텐츠
+  /**
+   * 다수의 cateno를 전달하여 contents 레코드 삭제
+   * @param catenos
+   * @return
+   */
+  public int delete_contents_by_all_cateno(String catenos);  
 -----------------------------------------------------------------------------------
 
 5. Process class ▷ contentsProc.java
 -------------------------------------------------------------------------------------
-컨텐츠
+  // 다수의 cateno를 전달하여 contensts 삭제
+  @Override
+  public int delete_contents_by_all_cateno(Map<String, Object> catenos_list) {
+    int cnt = this.contentsDAO.delete_contents_by_all_cateno(catenos_list);
+    return cnt;
+  }
 -------------------------------------------------------------------------------------
    
-6. Aajx Controller class ▷ contentsCont.java
+6. Controller class ▷ contentsCont.java
 -----------------------------------------------------------------------------------
-컨텐츠
+  /**
+   * 다수의 cateno를 전달하여 contents 레코드 삭제
+   * @param contentsno
+   * @return
+   */
+  @RequestMapping(value="/contents/delete_contents_by_all_cateno.do", method=RequestMethod.POST)
+  public ModelAndView delete_contents_by_all_cateno(String catenos) { 
+    ModelAndView mav = new  ModelAndView();
+    
+    int cnt = this.contentsProc.delete_contents_by_all_cateno(catenos);
+    mav.setViewName("redirect:/contents/list_by_cateno_search_paging.do"); 
+    
+    return mav; 
+  }
 -----------------------------------------------------------------------------------
 ~~~
 
