@@ -1,4 +1,4 @@
-# 3) 서버 프로그래밍3 (구현) : Spring Boot
+# 3) 서버 프로그래밍 : Spring Boot
 ## AJAX 이후 [51]~
 
 * **[09] jQuery, Ajax, JSON, Spring Boot을 연동한 조회 화면에서의 추천 구현(contents 테이블)**
