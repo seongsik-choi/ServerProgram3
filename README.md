@@ -8835,8 +8835,4 @@ Update_file.jsp / update_text.jsp 추가1문장
             <input type='hidden' name='now_page' value='${param.now_page }'> // 추가
       -------------------------------------------------------------------------------------
 ~~~
-
-~~~
-~~~
-~~~
-~~~
+* **Member는 AJAX 구현 이후에**
