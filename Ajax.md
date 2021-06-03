@@ -1,7 +1,7 @@
 # 3) 서버 프로그래밍 : Spring Boot
 ## AJAX 이후 [51]~
 
-* **[09] jQuery, Ajax, JSON, Spring Boot을 연동한 조회 화면에서의 추천 구현(contents 테이블)**
+* **[51] jQuery, Ajax, JSON, Spring Boot을 연동한 조회 화면에서의 추천 구현(contents 테이블)**
 * ★프로젝트 구현시 자주 구현되는 이론★
 * ★categrp Table 환경을 AJAX로 변경★
 ~~~
@@ -145,7 +145,7 @@ commit;
 -------------------------------------------------------------------------------------
 ~~~
 
-* **[10] jQuery, Ajax, JSON, Spring Boot을 연동한 목록 화면에서의 추천 구현(contents 테이블)**
+* **[52] jQuery, Ajax, JSON, Spring Boot을 연동한 목록 화면에서의 추천 구현(contents 테이블)**
 * ★프로젝트 구현시 자주 구현되는 이론★
 ~~~
 - Controller class까지 변경 없음
@@ -257,7 +257,7 @@ commit;
 -------------------------------------------------------------------------------------
 ~~~
 
-* **[11] jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 수정폼의 구현(categrp 테이블), 주소의 변경**
+* **[53] jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 수정폼의 구현(categrp 테이블), 주소의 변경**
 * ★프로젝트 구현시 자주 구현되는 이론★
 ~~~
 - jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 수정폼의 구현
@@ -545,7 +545,7 @@ list_ajax.jsp
 ----------------------------------------------------------------------------------------------
 ~~~
 
-* **[12] jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 자식 레코드가 없는 경우의 삭제(categrp 테이블)**
+* **[54] jQuery, Ajax, JSON, Spring Boot + Animation을 연동한 자식 레코드가 없는 경우의 삭제(categrp 테이블)**
 ~~~
 [01] 삭제
 1. 자식 레코드가 없는 경우의 삭제(순수 AJAX)  - 현재 레코드를 삭제할 것인지만 물어보고 삭제 진행
@@ -687,7 +687,7 @@ read_update_ajax 코드 mapping 이름 -> read_ajax로 수정
 -----------------------------------------------------------------------------------
 ~~~
 
-* **생성, 수정, 삭제 메시지 통합(error_msg.jsp)**
+* **[60] 생성, 수정, 삭제 메시지 통합(error_msg.jsp)**
 ~~~
 ★ 등록처리, 수정처리, 삭제처리 POST 3부분 redirect로 변경
 -----------------------------------------------------------------------------------
@@ -762,7 +762,7 @@ list.jsp도 삭제, 최종 categrp view 파일은 list_ajax, error_msg.jsp 2개만
 -----------------------------------------------------------------------------------
 ~~~
 
-* **[13] 자식 레코드가 존재하는 경우 cate 테이블의 레코드 삭제**
+* **[55] 자식 레코드가 존재하는 경우 cate 테이블의 레코드 삭제**
 ~~~
 2. 자식 레코드가 있는 경우의 삭제
    1) Ajax로 자식 레코드가 있으면 카운트하여 알림  2) 자식 레코드를 삭제할 것인지 선택
@@ -824,7 +824,7 @@ SELECT COUNT(*) AS cnt FROM cate WHERE categrpno=1;
 -----------------------------------------------------------------------------------
 ~~~
 
-* **[14] 자식 레코드가 존재하는 경우 cate 테이블 연동 categrp 테이블의 레코드 삭제, view 구현**
+* **[56] 자식 레코드가 존재하는 경우 cate 테이블 연동 categrp 테이블의 레코드 삭제, view 구현**
 ~~~
 1. Ajax Controller class - 수정폼에 조회 기능이 결합
  
@@ -892,7 +892,7 @@ json.put("rdate", categrpVO.getRdate());
 -----------------------------------------------------------------------------------
 ~~~
 
-* **[15] [15][Cate] Cate 테이블에서 categrpno가 같은 모든 레코드 삭제(DELETE ~ WHERE)**
+* **[57][Cate] Cate 테이블에서 categrpno가 같은 모든 레코드 삭제(DELETE ~ WHERE)**
 ~~~
 [01] 삭제 기능의 제작 1. SQL:  /webapp/WEB-INF/doc/dbms/cate_c.sql
 -------------------------------------------------------------------------------------
@@ -992,7 +992,7 @@ categrp 테이블(시퀀스 생성부분까지 블록 지정해서 실행)
 -> 컨텐츠가 없는 카테고리는 삭제
 ~~~
 
-* **[16]~[17] 자식 레코드가 존재하는 경우 contents, cate 테이블의 레코드 삭제 mybatis, controller 구현**
+* **[58~59] 자식 레코드가 존재하는 경우 contents, cate 테이블의 레코드 삭제 mybatis, controller 구현**
 ~~~
 ★1. 삭제 방법★
    1) contents 테이블에 하나의 categrpno를 전달하여 처리 : 1개의 값만 전달, DBMS 엑세스 추가 발생(속도 저하)
@@ -1172,7 +1172,7 @@ WHERE cateno IN(1, 2, 3);
 ~~~
 
 * ★★★★★★★Member(회원 테이블) 제작★★★★★★★
-* **0428~9 : [51][Member] 회원 DBMS 설계(권한을 이용한 관리자 결합 모델), 논리적/물리적 모델링, SQL 제작, member.sql**
+* **0428~9 : [61][Member] 회원 DBMS 설계(권한을 이용한 관리자 결합 모델), 논리적/물리적 모델링, SQL 제작, member.sql**
 ~~~
 [01] 회원 DBMS 설계(권한을 이용한 관리자 결합 모델), 논리적/물리적 모델링, SQL 제작
 - 웹사이트 접근 그룹: 관리자(등급별 분류), 회원(등급별 분류), 비회원
@@ -1336,7 +1336,7 @@ WHERE id='user1' AND passwd='1234';
 - 질문답변, 댓글 테이블의 회원번호 중복된거 제거해주기!!!!
 ~~~
 
-* **0429 : [52][Member] VO(DTO), package 설정**
+* **0429 : [62][Member] VO(DTO), package 설정**
 ~~~
 1. DTO(VO) 생성
 
@@ -1484,7 +1484,7 @@ CREATE TABLE member (
                                                   "dev.mvc.cate", "dev.mvc.contents", "dev.mvc.member"})  
 ~~~
 
-* **0429 : [53][Member] 중복 ID 체크(DAO interface, DAO class, Processs interface, Process class)**
+* **0429 : [63][Member] 중복 ID 체크(DAO interface, DAO class, Processs interface, Process class)**
 ~~~
 1. SQL▷ /webapp/WEB-INF/doc/dbms/member.sql(Oracle)
 -------------------------------------------------------------------------------------
@@ -1593,7 +1593,7 @@ public class MemberProc implements MemberProcInter {
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0513 : [54][Member] 회원 가입 폼, 중복 ID 검사, Daum 우편번호 API 이용**
+* **0513 : [64][Member] 회원 가입 폼, 중복 ID 검사, Daum 우편번호 API 이용**
 ~~~
 [01] 중복 ID 검사
 
@@ -2007,7 +2007,7 @@ public class MemberCont {
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0514 : [55][Member] 회원 가입 처리, create_msg.jsp, 메시지 처리 콘트롤러, msg.do 구현**
+* **0514 : [65][Member] 회원 가입 처리, create_msg.jsp, 메시지 처리 콘트롤러, msg.do 구현**
 ~~~
 [01] 회원 가입 처리
 - Daum 우편주소 API 사용
@@ -2205,7 +2205,7 @@ COMMIT;
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0514 : [56][Member] 회원 목록 출력 기능 제작**
+* **0514 : [66][Member] 회원 목록 출력 기능 제작**
 ~~~
 ★관리자 전용
 
@@ -2392,7 +2392,7 @@ ORDER BY memberno ASC;
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0514 : [57][Member] 회원 조회(수정 폼) 기능 제작**
+* **0514 : [67][Member] 회원 조회(수정 폼) 기능 제작**
 ~~~
 [01] 조회(수정 폼) 기능 제작(SELECT ~ FROM ~ WHERE ~) 
 1. SQL▷ /webapp/WEB-INF/doc/dbms/member.sql
@@ -2661,7 +2661,7 @@ WHERE id = 'user1';
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0517 : [58][Member] 회원 수정 처리**
+* **0517 : [68][Member] 회원 수정 처리**
 ~~~
 ★수정 : list.jsp와 read.jsp의 title_line 위쪽 목록 create.do -> list.do로 수정
 ★수정 : create.jsp의 하단 '취소' 버튼 링크 onclick="history.back()" 로 수정
@@ -2796,7 +2796,7 @@ WHERE memberno=7;
 [과제] 회원 등급을 변경하는 기능을 추가 할 것.
 ~~~
 
-* **0517 : [59][Member] 회원 삭제 기능의 제작, Contents 테이블에서 참조되는 레코드는 삭제 안됨**
+* **0517 : [69][Member] 회원 삭제 기능의 제작, Contents 테이블에서 참조되는 레코드는 삭제 안됨**
 ~~~
 [01] 관리자측 회원 삭제 기능의 제작
 - Contents 테이블에서 참조되는 레코드는 삭제 안됨.
@@ -3008,7 +3008,7 @@ WHERE memberno=7;
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0517 : [60][Member] 회원 패스워드 변경 기능의 제작, Layer, HashMap 전달**
+* **0517 : [70][Member] 회원 패스워드 변경 기능의 제작, Layer, HashMap 전달**
 ~~~
 [01] 패스워드 변경 기능의 제작(UPDATE ~ SET ~ WHERE ~ )
  1. SQL ▷ /webapp/WEB-INF/doc/dbms/member_c.sql
@@ -3359,7 +3359,7 @@ WHERE memberno=1;
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0520 : [61][Session] Session을 이용한 로그인 상태 유지 및 해제(session 내부 객체)**
+* **0520 : [71] [Session] Session을 이용한 로그인 상태 유지 및 해제(session 내부 객체)**
 ~~~
 ★ Session : 클라이언트와 서버의 연결 상태, 톰캣 서버에 접속한 사용자에게 할당된 개별의 메모리
 [01] Session 내부 객체
@@ -3544,7 +3544,7 @@ public String checkNull(Object str) {
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0520 : [62][Member] index.do, home.do 제작, 로그인/로그아웃 기능의 제작, session, EL session 접근**
+* **0520 : [72][Member] index.do, home.do 제작, 로그인/로그아웃 기능의 제작, session, EL session 접근**
 ~~~
 [01] 시작 페이지의 제작
 1) EL을 이용한 Session의 사용
@@ -3933,7 +3933,7 @@ WHERE id = 'user1';
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0521 : [63][Cookie] 쿠키(Cookie)의 사용**
+* **0521 : [Cookie] 쿠키(Cookie)의 사용**
 ~~~
 [01] Cookie 객체의 사용 
 1. Cookie 개요 
@@ -4105,7 +4105,7 @@ response.addCookie(ck_email); // 쿠키 전송
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0521 : [64][Cookie] 쿠키를 이용한 window.open()**
+* **0521 : [Cookie] 쿠키를 이용한 window.open()**
 ~~~
 [01] Cookie 지원 window.open() 사용
 - sb_basic 프로젝트 계속 사용
@@ -4240,7 +4240,7 @@ response.addCookie(cookie);
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0524 : [65][Member] Session, Cookie 기반 로그인, 로그아웃 기능의 제작**
+* **0603 : [75][Member] Session, Cookie 기반 로그인, 로그아웃 기능의 제작, 3항 연산자의 사용**
 ~~~
 [01] Session, Cookie 기반 로그인, 로그아웃 기능의 제작
 1. SQL ▷ /webapp/WEB-INF/doc/dbms/member.sql
@@ -4360,14 +4360,14 @@ response.addCookie(cookie);
     ModelAndView mav = new ModelAndView();
     
     Cookie[] cookies = request.getCookies(); // 쿠키 배열 생성
-    Cookie cookie = null;
+    Cookie cookie = null; // 쿠키 읽어온 후
 
     String ck_id = "";          // id 저장
     String ck_id_save = ""; // id 저장 여부를 체크
     String ck_passwd = ""; // passwd 저장
     String ck_passwd_save = ""; // passwd 저장 여부를 체크
 
-    if (cookies != null) {
+    if (cookies != null) { // Cookie 변수가 있다면
       for (int i=0; i < cookies.length; i++){
         cookie = cookies[i]; // 쿠키 객체 추출
         
@@ -4426,7 +4426,8 @@ response.addCookie(cookie);
       session.setAttribute("memberno", memberVO.getMemberno());
       session.setAttribute("id", id);
       session.setAttribute("mname", memberVO.getMname());
-      
+      session.setAttribute("grade", memberVO.getGrade());
+
       // -------------------------------------------------------------------
       // id 관련 쿠기 저장
       // -------------------------------------------------------------------
@@ -4475,22 +4476,20 @@ response.addCookie(cookie);
  
  7. View: JSP 1) 로그인 폼 ▷ /member/login_ck_form.jsp 
 -------------------------------------------------------------------------------------
+<%-- 
+0521_[65][Member] Session, Cookie 기반 로그인, 로그아웃 기능의 제작
+1) 로그인 폼
+--%>
 <%@ page contentType="text/html; charset=UTF-8" %>
- 
 <!DOCTYPE html> 
 <html lang="ko"> 
 <head> 
 <meta charset="UTF-8"> 
 <meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
 <title>Resort world</title>
- 
 <link href="/css/style.css" rel="Stylesheet" type="text/css">
- 
-<script type="text/JavaScript"
-          src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
- 
+<script type="text/JavaScript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
 <script type="text/javascript">
@@ -4506,47 +4505,53 @@ response.addCookie(cookie);
 <jsp:include page="../menu/top.jsp" flush='false' />
  
 <DIV class='title_line'>로그인</DIV>
- 
-<DIV style='width: 80%; margin: 0px auto;'>
-  <FORM name='frm' method='POST' action='./login.do' class="form-horizontal">
-  
-    <div class="form-group">
-      <label class="col-md-4 control-label" style='font-size: 0.8em;'>아이디</label>    
-      <div class="col-md-8">
-        <input type='text' class="form-control" name='id' id='id' 
-                   value='${ck_id }' required="required" 
-                   style='width: 30%;' placeholder="아이디" autofocus="autofocus">
-        <Label>   
-          <input type='checkbox' name='id_save' value='Y' 
-                    ${ck_id_save == 'Y' ? "checked='checked'" : "" }> 저장
-        </Label>                   
-      </div>
- 
-    </div>   
- 
-    <div class="form-group">
-      <label class="col-md-4 control-label" style='font-size: 0.8em;'>패스워드</label>    
-      <div class="col-md-8">
-        <input type='password' class="form-control" name='passwd' id='passwd' 
-                  value='${ck_passwd }' required="required" style='width: 30%;' placeholder="패스워드">
-        <Label>
-          <input type='checkbox' name='passwd_save' value='Y' 
-                    ${ck_passwd_save == 'Y' ? "checked='checked'" : "" }> 저장
-        </Label>
-      </div>
-    </div>   
- 
-    <div class="form-group">
-      <div class="col-md-offset-4 col-md-8">
-        <button type="submit" class="btn btn-primary btn-md">로그인</button>
-        <button type='button' onclick="location.href='./create.do'" class="btn btn-primary btn-md">회원가입</button>
-        <button type='button' onclick="loadDefault();" class="btn btn-primary btn-md">테스트 계정</button>
-      </div>
-    </div>   
+<DIV class='content_body'> 
+   
+  <DIV style='width: 80%; margin: 0px auto;'>
+    <FORM name='frm' method='POST' action='./login.do' class="form-horizontal">
     
-  </FORM>
-</DIV>
- 
+      <div class="form-group">
+        <label class="col-md-4 control-label" style='font-size: 0.8em;'>아이디</label>    
+        <div class="col-md-8">
+          <input type='text' class="form-control" name='id' id='id' 
+                     value='${ck_id }' required="required" 
+                     style='width: 30%;' placeholder="아이디" autofocus="autofocus">
+                     <%-- spring 에서 보낸 ck_id --%>
+          <Label>   
+          <%-- 3항 연산자 if와 다르게 하나의 명령문 처럼 동작
+          ck_id_sabe == y인 경우 저장--%>
+            <input type='checkbox' name='id_save' value='Y' 
+                      ${ck_id_save == 'Y' ? "checked='checked'" : "" }> 저장
+          </Label>                   
+        </div>
+   
+      </div>   
+   
+      <div class="form-group">
+        <label class="col-md-4 control-label" style='font-size: 0.8em;'>패스워드</label>    
+        <div class="col-md-8">
+          <input type='password' class="form-control" name='passwd' id='passwd' 
+                    value='${ck_passwd }' required="required" 
+                    style='width: 30%;' placeholder="패스워드">
+                     <%-- spring 에서 보낸 ck_passwd --%>
+          <Label>
+            <input type='checkbox' name='passwd_save' value='Y' 
+                      ${ck_passwd_save == 'Y' ? "checked='checked'" : "" }> 저장
+          </Label>
+        </div>
+      </div>   
+   
+      <div class="form-group">
+        <div class="col-md-offset-4 col-md-8">
+          <button type="submit" class="btn btn-primary btn-md">로그인</button>
+          <button type='button' onclick="location.href='./create.do'" class="btn btn-primary btn-md">회원가입</button>
+          <button type='button' onclick="loadDefault();" class="btn btn-primary btn-md">테스트 계정</button>
+        </div>
+      </div>   
+      
+    </FORM>
+  </DIV>
+</DIV> <%-- content body end --%> 
 <jsp:include page="../menu/bottom.jsp" flush='false' />
 </body>
  
@@ -4613,67 +4618,42 @@ response.addCookie(cookie);
 </html>
 -------------------------------------------------------------------------------------
 
- 
-2) top.jsp 변경
-- 로그인의 구분 처리     
-      <c:choose>
-        <c:when test="${sessionScope.id == null}">
-          <A class='menu_link'  href='${root}/member/login.do' >Login</A><span class='top_menu_sep'> </span>
-        </c:when>
-        <c:otherwise>
-          ${sessionScope.id } <A class='menu_link'  href='${root}/member/logout.do' >Logout</A><span class='top_menu_sep'> </span>
-        </c:otherwise>
-      </c:choose>     
- 
-▷ /menu/top.jsp
+2) top.jsp 변경 - 로그인의 구분 처리 ▷ /menu/top.jsp
 -------------------------------------------------------------------------------------
-<%@ page contentType="text/html; charset=UTF-8" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
-<DIV class='container' style='width: 100%;'> 
-  <!-- 화면 상단 메뉴 -->
+<DIV class='container_main'> 
+  <%-- 화면 상단 메뉴 --%>
   <DIV class='top_img'>
     <DIV class='top_menu_label'>Resort 0.1 영화와 여행이있는 리조트</DIV>
     <NAV class='top_menu'>
       <span style='padding-left: 0.5%;'></span>
-      <A class='menu_link'  href='/' >힐링 리조트</A><span class='top_menu_sep'> </span>
-      <A class='menu_link'  href='/categrp/list.do'>카테고리 그룹</A><span class='top_menu_sep'> </span>    
-      <A class='menu_link'  href='/member/list.do'>회원 목록</A><span class='top_menu_sep'> </span>
+      <A class='menu_link'  href='/' >힐링 리조트</A><span class='top_menu_sep'> </span> 
       
       <c:choose>
-        <c:when test="${sessionScope.id == null}">
-          <A class='menu_link'  href='${root}/member/login.do' >Login</A><span class='top_menu_sep'> </span>
+        <c:when test="${sessionScope.id == null}"> <%-- 로그인 안 한 경 우 --%>
+          <A class='menu_link'  href='/member/login.do' >Login</A><span class='top_menu_sep'> </span>
         </c:when>
         <c:otherwise>
-          ${sessionScope.id } <A class='menu_link'  href='${root}/member/logout.do' >Logout</A><span class='top_menu_sep'> </span>
+          ${sessionScope.id } <A class='menu_link'  href='/member/logout.do' >Logout</A><span class='top_menu_sep'> </span>
         </c:otherwise>
-      </c:choose>      
+      </c:choose>     
+      
+      <A class='menu_link'  href='/categrp/list.do'>카테고리 그룹</A><span class='top_menu_sep'> </span> 
+      <A class='menu_link'  href='/cate/list_all.do'>카테고리 전체 목록</A><span class='top_menu_sep'> </span> 
+      <A class='menu_link'  href='/cate/list_all_join.do'>카테고리 전체 목록 Join</A><span class='top_menu_sep'> </span>                 
+      관리자[
+      <A class='menu_link'  href='/member/list.do'>회원</A>
+      ]
     </NAV>
   </DIV>
-  
-  <!-- 화면을 2개로 분할하여 좌측은 메뉴, 우측은 내용으로 구성 -->  
-  <DIV class="row" style='margin-top: 2px;'>
-    <DIV class="col-sm-3 col-md-2"> <!-- 메뉴 출력 컬럼 -->
-      <img src='/menu/images/myimage.png' style='width: 100%;'>
-      <div style='margin-top: 5px;'>
-        <img src='/menu/images/myface.png'>힐링 리조트
-      </div>
-      <!-- Spring 출력 카테고리 그룹 / 카테고리 -->
-      <%-- <jsp:include page="/cate/list_index_left.do" flush='false' /> // ERROR --%>
-      <c:import url="/cate/list_index_left.do" />  
-    </div>
-      
-    <DIV class="col-sm-9 col-md-10 cont">  <!-- 내용 출력 컬럼 -->  
-   
-<DIV class='content'>
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0524 : [66][Member] 로그인 정보의 활용, session, top.jsp 메뉴의 변경**
+* **0524 : [76][Member] 로그인 정보의 활용, session, top.jsp 메뉴의 변경**
 ~~~
 1. Controller class ▷ MemberCont.java
 -------------------------------------------------------------------------------------
   /**
+   * [76][Member] 로그인 정보의 활용, session, top.jsp 메뉴의 변경
    * Session test
    * http://localhost:9091/member/session.do
    * @param session
@@ -4688,11 +4668,32 @@ response.addCookie(cookie);
     mav.setViewName("redirect:/member/msg.do"); 
     
     return mav;
-  }
+  }  
 -------------------------------------------------------------------------------------
  
 2. Session 객체의 접근▷ /webapp/member/session.jsp 
+[실행결과]
+변수: memberno 값: 3
+변수: id 값: user1
+변수: mname 값: 왕눈이
+
+로그인된 ID: user1
+로그인된 사용자 메뉴 출력 영역
 -------------------------------------------------------------------------------------
+<%--
+[76][Member] 로그인 정보의 활용, session, top.jsp 메뉴의 변경 
+
+[실행결과]
+변수: memberno 값: 3
+변수: grade 값: 15
+변수: id 값: user1
+변수: mname 값: 왕눈이
+
+로그인된 ID: user1
+로그인 등급 : 15
+로그인된 사용자 메뉴 출력 영역
+회원 영역
+ --%>
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
  
@@ -4709,7 +4710,6 @@ response.addCookie(cookie);
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
  
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 </head> 
  
@@ -4724,8 +4724,25 @@ response.addCookie(cookie);
   <br>  
   로그인된 ID: ${sessionScope.id}
   <br>
+  
+  <%-- 등급(1 ~ 10: 관리자 / 11~20: 회원 / 30~39 : 정지 회원 / 40~49 : 탈퇴회원 / 99 : 비회원) --%>
+  <c:set var="grade" value="${sessionScope.grade }" />
+    로그인 등급 : ${grade}<br>
   <c:if test="${sessionScope.id ne null }">
-    로그인된 사용자 메뉴 출력 영역
+    로그인된 사용자 메뉴 출력 영역(특정 권한별 구분)<br>
+    <c:choose>
+      <c:when test="${grade >= 1 and grade <=10}">관리자 영역</c:when>
+      <c:when test="${grade >= 11 and grade <=20}">회원 영역</c:when>
+      <c:when test="${grade >= 30 and grade <=39}">정지 회원 영역</c:when>
+      <c:when test="${grade >= 40 and grade <=49}">탈퇴 회원 영역</c:when>
+      <c:when test="${grade == 99}">비회원 영역 처리</c:when>
+    </c:choose>
+    
+    <BR>
+    <c:choose>
+      <c:when test="${ grade <=20}">관리자 + 회원 영역</c:when>
+      <c:when test="${grade >=30}">비회원(정지, 탈퇴) 영역</c:when>
+    </c:choose>    
   </c:if><br>
  
 <jsp:include page="../menu/bottom.jsp" flush='false' />
@@ -4735,62 +4752,135 @@ response.addCookie(cookie);
 -------------------------------------------------------------------------------------
  
 [02] 로그인 정보의 활용 - 로그인 인증 검사
+- 사용자 웹 사이트오와관리자 웹사이트는 구분하여 제작하는 것을 권장. 
+ . 하나의 웹페이지에서 사용자 관리자 구분 시 코드가 추가됨으로 누락인한 보안 문제가 발생 할 수도 있음.
+ . 원칙적으로 사용자 <-> 관리자 페이지를 독립적으로 생성해야
+
+- 사용자 웹사이트는 로그인여부에 다른 페이지 구분
+ . 관리자를 분리했음으로 보안에 대한 부담이 줄어듬.
+
+- Spring Security등을 이용하여 폴더 단위로 접근 설정
+- 권한(Role) 테이블, URL 주소 테이블을 회원과 연동하여 페이지 이동시마다 Interceptor등을 이용하여 체크
+
+★★★★ Qnaadmin(grade<=10)으로 로그인했을때만 member/list.do 이동가능
+★★★★ 일반계정(grade >10)으로 로그인 경우 memeber/list.do 이동 불가능
  1. Process Interface  ▷ MemberProcInter.java
 -------------------------------------------------------------------------------------
   /**
-   * 로그인된 회원 계정인지 검사합니다.
+   * [76][Member] 로그인 정보의 활용, session, top.jsp 메뉴의 변경 
+   * 로그인된 회원 계정인지 검사
    * @param session
    * @return true: 관리자
    */
   public boolean isMember(HttpSession session);   
+
+    /**
+   * [76][Member] 로그인 정보의 활용, session, top.jsp 메뉴의 변경 
+   * 로그인된 관리자 계정인지 검사
+   * @param session
+   * @return true: 관리자
+   */
+  public boolean isAdmin(HttpSession session);    
 -------------------------------------------------------------------------------------
 
 2. Process Class - 콘트롤러의 메소드등에서 이용 가능 ▷ MemberProc.java
 -------------------------------------------------------------------------------------
+  // [76][Member] 로그인 정보의 활용, session, top.jsp 메뉴의 변경 : 로그인된 회원인지 검사
   @Override
   public boolean isMember(HttpSession session){
     boolean sw = false; // 로그인하지 않은 것으로 초기화
+    int grade = 99;
     
-    String id = (String)session.getAttribute("id");
-    
-    if (id != null){
-      sw = true;  // 로그인 한 경우
+    // System.out.println("-> grade: " + session.getAttribute("grade"));
+    if (session != null) {
+      String id = (String)session.getAttribute("id");
+      if (session.getAttribute("grade") != null) {
+        grade = (int)session.getAttribute("grade");
+      }
+      
+      if (id != null && grade <= 20){ // 관리자 + 회원
+        sw = true;  // 로그인 한 경우
+      }
     }
+    
     return sw;
+  }
+
+  // [76][Member] 로그인 정보의 활용, session, top.jsp 메뉴의 변경 : 로그인된 관리자인지 검사
+  @Override
+  public boolean isAdmin(HttpSession session) {
+    boolean sw = false; // 로그인하지 않은 것으로 초기화
+    int grade = 99;
+    
+    // System.out.println("-> grade: " + session.getAttribute("grade"));
+    if (session != null) {
+      String id = (String)session.getAttribute("id");
+      if (session.getAttribute("grade") != null) {
+        grade = (int)session.getAttribute("grade");
+      }
+      
+      if (id != null && grade <= 10){ // 관리자
+        sw = true;  // 로그인 한 경우
+      }
+    }
+    
+    return sw;
+  }  
+-------------------------------------------------------------------------------------
+
+MemberCont.java : list() 수정
+-------------------------------------------------------------------------------------
+  /**
+  * [56][Member] 회원 목록 출력 기능 제작
+  * 목록 출력 가능
+  * @param session
+  * @return
+  */
+  @RequestMapping(value="/member/list.do", method=RequestMethod.GET)
+  public ModelAndView list(HttpSession session) {
+    ModelAndView mav = new ModelAndView();
+    
+    if (this.memberProc.isAdmin(session)) { // 관리자의 경우 회원 목록 출력
+      List<MemberVO> list = memberProc.list();
+      mav.addObject("list", list);
+      mav.setViewName("/member/list"); // /webapp/WEB-INF/views/member/list.jsp
+    } else { // 관리자가 아닌 경우.
+      mav.addObject("url", "login_need"); // login_need.jsp, redirect parameter 적용
+      mav.setViewName("redirect:/member/msg.do");
+    }
+  
+    return mav;
   }  
 -------------------------------------------------------------------------------------
 
 3. /webapp/WEB-INF/views/member/login_need.jsp  - 로그인이 필요하다는 화면 출력시 이용 가능
 -------------------------------------------------------------------------------------
+<%-- 
+[76][Member] 로그인 정보의 활용, session, top.jsp 메뉴의 변경 
+--%>
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
- 
 <!DOCTYPE html> 
 <html lang="ko"> 
 <head> 
 <meta charset="UTF-8"> 
 <meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, width=device-width" /> 
 <title>Resort world</title>
- 
- 
-<link href="../css/style.css" rel="Stylesheet" type="text/css">
- 
+<link href="/css/style.css" rel="Stylesheet" type="text/css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
- 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
    
 <script type="text/javascript">
   $(function(){
- 
+
   });
 </script>
  
 </head> 
  
 <body>
-<jsp:include page="/menu/top.jsp" flush='false' />
+<jsp:include page="../menu/top.jsp" flush='false' />
  
   <DIV class='message'>
     <H3>로그인이 필요한 페이지입니다.</H3>
@@ -4803,15 +4893,15 @@ response.addCookie(cookie);
                  class="btn btn-info">회원 가입</button>       
 
   </DIV>
- 
-<jsp:include page="/menu/bottom.jsp" flush='false' />
+  
+<jsp:include page="../menu/bottom.jsp" flush='false' />
 </body>
  
 </html>
 -------------------------------------------------------------------------------------
 ~~~
 
-* *0524 : [67][Security] Spring Security의 활용, SQL, application.properties 설정, 인증 관련 Controller 설정, 인증 환경 설정, 인증 실패 설정**
+* *0524 : [77][Security] Spring Security의 활용, SQL, application.properties 설정, 인증 관련 Controller 설정, 인증 환경 설정, 인증 실패 설정**
 ~~~
 [01] Spring Security의 활용
 1. SQL 구성
@@ -5084,7 +5174,7 @@ public class SecurityFailureHandler implements AuthenticationFailureHandler {
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0524 : [68][Security] Spring Security의 활용, 로그인 폼, 로그아웃, View 제작, CSRF 처리**
+* **0524 : [78][Security] Spring Security의 활용, 로그인 폼, 로그아웃, View 제작, CSRF 처리**
 ~~~
 [01] Spring Security의 활용, View 제작, CSRF 처리
 -------------------------------------------------------------------------------------
