@@ -4901,6 +4901,7 @@ MemberCont.java : list() 수정
 -------------------------------------------------------------------------------------
 ~~~
 
+**********************************************
 * *0524 : [77][Security] Spring Security의 활용, SQL, application.properties 설정, 인증 관련 Controller 설정, 인증 환경 설정, 인증 실패 설정**
 ~~~
 [01] Spring Security의 활용
@@ -5174,90 +5175,103 @@ public class SecurityFailureHandler implements AuthenticationFailureHandler {
 -------------------------------------------------------------------------------------
 ~~~
 
-* **0524 : [78][Security] Spring Security의 활용, 로그인 폼, 로그아웃, View 제작, CSRF 처리**
+** *0614**
 ~~~
-[01] Spring Security의 활용, View 제작, CSRF 처리
--------------------------------------------------------------------------------------
-1. 로그인/로그아웃 View
-- CSRF 보안 처리: <input type="hidden" name="${ _csrf.parameterName }" value="${ _csrf.token }">
-▷ 로그인 폼
-<%@ page contentType="text/html; charset=UTF-8" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+contents 테이블 view 부분도 csrf 추가해주기
+member 테이블 view 부분도 csrf 추가해주기
+-> 이후 contents 등록했을때 Permission 오류 없이 등록돼야 OK
 
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>로그인</title>
-<!-- /static 기준 -->
-<link href="/css/style.css" rel="Stylesheet" type="text/css">
-</head>
-<body>
-<jsp:include page="../menu/top.jsp" flush='false' />
-<br>
-<h1>로그인(login_form.jsp)</h1>
-<br>
-<form name='frm' action="/spring_security_check.do" method="post">
-    <input type="hidden" name="${ _csrf.parameterName }" value="${ _csrf.token }">
-    <c:if test="${param.error != null}">
-      <p>
-          Login Error! <br />
-          ${error_message}
-      </p>
-    </c:if>
-    <br>
-    ID : <input type="text" name="id" value="${id}"> <br><br>
-    PW : <input type="password" name="password"> <br><br>
-    <input type="submit" value="LOGIN"> 
-    <input type="button" value="사용자 테스트 계정" onclick="frm.id.value='user1'; frm.password.value='123'">
-    <input type="button" value="관리자 테스트 계정" onclick="frm.id.value='admin1'; frm.password.value='1234'"> <br>
-</form>
-<jsp:include page="../menu/bottom.jsp" flush='false' />
-</body>
-</html>
+-> contents 좋아요 클릭시 -> Permission 오류 해결 : POST 부분만 해당
+-> AJAX에 해당하는 csrf 속성 한줄 추가
+/contents/list_by_cateno_searchpaging.jsp
+/contents/read.jsp
+-------------------------------------------------------------------------------------
+    // csrf 파라미터 추가
+    // <input type="hidden" name="${ _csrf.parameterName }" value="${ _csrf.token }">
+    params += '&${ _csrf.parameterName }=${ _csrf.token }';
+    
+    $.ajax({  // 윗부분에 3줄추가
+    ...
 -------------------------------------------------------------------------------------
 
-▷ 로그아웃 처리
--------------------------------------------------------------------------------------
-<%@ page contentType="text/html; charset=UTF-8" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+-> [83] 쇼핑카트 테이블 만들기 : doc/쇼핑카트/carc_c.sql 생성후 아래 코트 붙여넣기
+-> SQLdeveloper에서 테이블 만들고 sts에서 import
+-> 컨텐츠 테이블과 관계선 연결
+-> 회원 테이블과 관계선 연결
 
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>로그아웃</title>
-<!-- /static 기준 -->
-<link href="/css/style.css" rel="Stylesheet" type="text/css">
-</head>
-<body>
-<jsp:include page="../menu/top.jsp" flush='false' />
-<br>
-<h1>로그아웃(login_form.jsp)</h1>
-<br>
-<form name='frm' action="/logout.do" method="post">
-    <input type="hidden" name="${ _csrf.parameterName }" value="${ _csrf.token }">
-    <script type="text/javascript">
-      document.frm.submit();
-    </script>
-</form>
-<jsp:include page="../menu/bottom.jsp" flush='false' />
-</body>
-</html>
-------------------------------------------------------------------------------------- 
+/**********************************/
+/* Table Name: 쇼핑카트 */
+/**********************************/
+DROP TABLE cart CASCADE CONSTRAINTS;
 
-2. 손님 테스트 View
--------------------------------------------------------------------------------------
-첨부 파일 참고
-------------------------------------------------------------------------------------- 
+CREATE TABLE cart(
+  cartno                        NUMBER(10) NOT NULL PRIMARY KEY,
+  contentsno                  NUMBER(10) NULL ,
+  memberno                  NUMBER(10) NOT NULL,
+  cnt                            NUMBER(10) DEFAULT 0 NOT NULL,
+  tot                            NUMBER(10) DEFAULT 0 NOT NULL,
+  rdate                          DATE NOT NULL,
+  FOREIGN KEY (contentsno) REFERENCES contents (contentsno),
+  FOREIGN KEY (memberno) REFERENCES member (memberno)
+);
+ 
+COMMENT ON TABLE cart is '쇼핑카트';
+COMMENT ON COLUMN cart.cartno is '쇼핑카트 번호';
+COMMENT ON COLUMN cart.contentsno is '컨텐츠 번호';
+COMMENT ON COLUMN cart.memberno is '회원 번호';
+COMMENT ON COLUMN cart.cnt is '수량';
+COMMENT ON COLUMN cart.tot is '합계';
+COMMENT ON COLUMN cart.rdate is '날짜';
 
-3. 회원 테스트 View
--------------------------------------------------------------------------------------
-첨부 파일 참고
-------------------------------------------------------------------------------------- 
+DROP SEQUENCE cart_seq;
+CREATE SEQUENCE cart_seq
+  START WITH 1              -- 시작 번호
+  INCREMENT BY 1          -- 증가값
+  MAXVALUE 9999999999 -- 최대값: 9999999999
+  CACHE 2                       -- 2번은 메모리에서만 계산
+  NOCYCLE;                     -- 다시 1부터 생성되는 것을 방지
+  
+  
+-- insert
+SELECT contentsno, title, price FROM contents; --contentsno 존재하는지 확인(36, 7번사용)
+SELECT memberno, id FROM member; --memberno 존재하는지 확인(3번사용)
 
-4. 관리자 테스트 View
--------------------------------------------------------------------------------------
-첨부 파일 참고
-------------------------------------------------------------------------------------- 
+INSERT INTO cart(cartno, contentsno, memberno, cnt, tot, rdate)
+VALUES (cart_seq.nextval, 36, 3, 1, 9000, sysdate);
+
+INSERT INTO cart(cartno, contentsno, memberno, cnt, tot, rdate)
+VALUES (cart_seq.nextval, 37, 3, 1, 9000, sysdate);
+commit;
+
+-- LIST
+SELECT cartno, contentsno, memberno, cnt, tot, rdate FROM cart ORDER BY cartno ASC;
+
+    CARTNO CONTENTSNO   MEMBERNO        CNT        TOT RDATE              
+---------- ---------- ---------- ---------- ---------- -------------------
+         1         36          3          1       9000 2021-06-14 05:12:22
+         2         37          3          1       9000 2021-06-14 05:12:22
+
+-- LIST contents join : contents 테이블의 번호와, 제목, 가격과 join
+SELECT t.cartno, c.contentsno, c.title, c.price, t.memberno, t.cnt, t.tot, t.rdate
+FROM contents c, cart t
+WHERE c.contentsno = t.contentsno
+ORDER BY cartno ASC;
+
+-- READ
+SELECT t.cartno, c.contentsno, c.title, c.price, t.memberno, t.cnt, t.tot, t.rdate
+FROM contents c, cart t
+WHERE (c.contentsno = t.contentsno) AND t.cartno = 1;
+
+-- UPDATE : cnt와 tot 제외하고는 바꾸지못함
+UPDATE cart SET cnt=2, tot=2*9000 WHERE cartno = 1;
+commit;
+  
+-- DELETE
+DELETE FROM cart WHERE cartno=2;
+commit;
+------------------------------------------------------------------------------------
+
+-> Admin 테이블 erd에서 다시 import해주기
+
+-> 84회 VO 및 클래스 생성, databaseConfiguration 설정
 ~~~
